@@ -1,15 +1,15 @@
 === Sky Addons – Elementor Addons with Widgets & Templates ===
 Plugin Name: Sky Addons – Elementor Addons with Widgets & Templates
-Version: 3.2.2
+Version: 3.2.3
 Author: wowDevs
 Author URI: https://wowdevs.com/
 Contributors: wowdevs, bdkoder
 Tags: Elementor Addons, Essential Widgets, Elementor Templates, Theme Builder, Elementor Kit
 Donate link: https://skyaddons.com/pricing/
 Requires at least: 5.0
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 3.2.2
+Stable tag: 3.2.3
 License: GPLv3 or later
 License URI: https://opensource.org/licenses/GPL-3.0
 
@@ -218,6 +218,9 @@ Full documentation is available here: [https://skyaddons.com/docs/sky-addons/](h
 = How do I get support for this plugin? =
 You can ask any questions on the support forum of WordPress. We have a support team and they will help you to solve your issues as soon as possible. Or you can contact us here - https://wowdevs.com/support/
 
+= How can I become a Contributor? =
+If you want to contribute, go to our [Sky Addons GitHub Repository](https://github.com/wowdevs-public/sky-elementor-addons) and see where you can help.
+
 == Installation ==
 
 There are a few installation & set-up options for this plugin.
@@ -233,7 +236,11 @@ There are a few installation & set-up options for this plugin.
 **Step 1:** Go to the Plugins area of your admin > Click over Add New then search "Sky Addons"
 **Step 2:** Click Install Now and then activate.
 
-[**👉 How to Install Sky Addons For Elementor**](https://skyaddons.com/docs/sky-addons/installation/)	
+[**👉 How to Install Sky Addons For Elementor**](https://skyaddons.com/docs/sky-addons/installation/)
+
+== Source Code ==
+Development happens on GitHub:
+[https://github.com/wowdevs-public/sky-elementor-addons](https://github.com/wowdevs-public/sky-elementor-addons)
 
 == Screenshots ==
 
@@ -260,7 +267,7 @@ There are a few installation & set-up options for this plugin.
 
 == Changelog ==
 
-= 3.2.2 [18th September 2025] =
+= 3.2.3 [10th December 2025] =
 
 * Improved: System improved
 

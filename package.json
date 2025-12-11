@@ -1,0 +1,49 @@
+{
+  "name": "sky_addons",
+  "version": "3.2.3",
+  "devDependencies": {
+    "@wordpress/scripts": "^27.9.0",
+    "autoprefixer": "^10.4.21",
+    "cross-env": "^7.0.3",
+    "grunt": "^1.6.1",
+    "grunt-contrib-concat": "^2.1.0",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-contrib-jshint": "^3.2.0",
+    "grunt-contrib-less": "^3.0.0",
+    "grunt-contrib-watch": "^1.1.0",
+    "grunt-rtlcss": "^2.0.2",
+    "grunt-terser": "^2.0.0",
+    "jit-grunt": "^0.10.0",
+    "postcss": "^8.4.41",
+    "rimraf": "^6.0.1",
+    "tailwindcss": "^3.4.10",
+    "@fortawesome/fontawesome-svg-core": "^6.7.1",
+    "@fortawesome/free-brands-svg-icons": "^6.7.1",
+    "@fortawesome/free-solid-svg-icons": "^6.7.1",
+    "@fortawesome/react-fontawesome": "^0.2.2"
+  },
+  "description": "Sky Addons Core",
+  "main": "Gruntfile.js",
+  "dependencies": {
+    "react-faq-component": "^1.3.4",
+    "react-sticky-el": "^2.1.1",
+    "react-switch": "^7.1.0",
+    "react-select": "^5.10.1",
+    "sweetalert2": "^11.4.8"
+  },
+  "scripts": {
+    "wpbuild": "wp-scripts build",
+    "packages-update": "wp-scripts packages-update",
+    "start": "wp-scripts start",
+    "start:hot": "wp-scripts start --hot",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "clean": "find . -name .DS_Store -delete && rimraf ./assets && rimraf ./sky-elementor-addons",
+    "dev": "npm run clean && cross-env NODE_ENV=development grunt",
+    "build": "npm run clean && cross-env NODE_ENV=production grunt && npm run wpbuild && npm run make-pot",
+    "zip": "npm run && npm run build && rsync -av --exclude-from=.buildignore . sky-elementor-addons && zip -r sky-elementor-addons-v.$npm_package_version.zip sky-elementor-addons/* && npm run copyDemo",
+    "make-pot": "wp i18n make-pot . languages/sky-elementor-addons.pot --exclude=node_modules,build,vendor,assets,src",
+    "copyDemo": "cp -R /Users/shahidul/Documents/local/wowdevs/app/public/wp-content/plugins/sky-elementor-addons/sky-elementor-addons/* /Users/shahidul/Documents/local/skyaddons/app/public/wp-content/plugins/sky-elementor-addons/"
+  },
+  "author": "wowDevs<info@wowdevs.com>",
+  "license": "ISC"
+}
