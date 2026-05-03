@@ -3,12 +3,12 @@
 namespace Sky_Addons\Admin;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 class Sky_Elementor_Addons_Pro_Updater {
 	private $plugin_slug = 'sky-elementor-addons-pro/sky-elementor-addons-pro.php';
-	private $update_url = 'https://licenses.wowdevs.com/wp-content/uploads/2024/12/sky-elementor-addons-pro-v.2.1.1.zip?v=2.1.1';
+	private $update_url  = 'https://licenses.wowdevs.com/wp-content/uploads/2024/12/sky-elementor-addons-pro-v.2.1.1.zip?v=2.1.1';
 
 	public function __construct() {
 		add_action( 'wp_ajax_update_sky_pro_plugin', [ $this, 'ajax_handle_update' ] );
@@ -62,7 +62,7 @@ class Sky_Elementor_Addons_Pro_Updater {
 
 			// Perform the plugin update.
 			$upgrader = new \Plugin_Upgrader( new \WP_Upgrader_Skin() );
-			$result = $upgrader->install( $this->update_url );
+			$result   = $upgrader->install( $this->update_url );
 
 			if ( is_wp_error( $result ) ) {
 				wp_send_json_error( [ 'message' => $result->get_error_message() ] );

@@ -15,7 +15,7 @@ namespace Sky_Addons\Includes;
 //
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 class Parsedown {
 	// ~
@@ -328,7 +328,7 @@ class Parsedown {
 
 			$Block = [
 				'element' => [
-					'name'    => 'pre',
+					'name' => 'pre',
 					'element' => [
 						'name' => 'code',
 						'text' => $text,
@@ -489,7 +489,7 @@ class Parsedown {
 
 		$Block = [
 			'element' => [
-				'name'    => 'h' . $level,
+				'name' => 'h' . $level,
 				'handler' => [
 					'function'    => 'lineElements',
 					'argument'    => $text,
@@ -512,8 +512,8 @@ class Parsedown {
 
 			if ( $contentIndent >= 5 ) {
 				$contentIndent -= 1;
-				$matches[1]    = substr( $matches[1], 0, -$contentIndent );
-				$matches[3]    = str_repeat( ' ', $contentIndent ) . $matches[3];
+				$matches[1]     = substr( $matches[1], 0, -$contentIndent );
+				$matches[3]     = str_repeat( ' ', $contentIndent ) . $matches[3];
 			} elseif ( $contentIndent === 0 ) {
 				$matches[1] .= ' ';
 			}
@@ -554,7 +554,7 @@ class Parsedown {
 			$tagChose = $this->tagChoose( $CurrentBlock['element']['handler']['argument'] );
 
 			$Block['li'] = [
-				'name'    => 'li',
+				'name' => 'li',
 				'handler' => [
 					'function'    => 'li',
 					'argument'    => ! empty( $matches[3] ) ? [ $tagChose . $matches[3] ] : [],
@@ -623,7 +623,7 @@ class Parsedown {
 				$strp = $Block['tag_before'];
 			}
 			$Block['li'] = [
-				'name'    => 'li',
+				'name' => 'li',
 				'handler' => [
 					'function'    => 'li',
 					'argument'    => [ $strp . $text ],
@@ -686,7 +686,7 @@ class Parsedown {
 		if ( preg_match( '/^>[ ]?+(.*+)/', $Line['text'], $matches ) ) {
 			$Block = [
 				'element' => [
-					'name'    => 'blockquote',
+					'name' => 'blockquote',
 					'handler' => [
 						'function'    => 'linesElements',
 						'argument'    => (array) $matches[1],
@@ -765,7 +765,7 @@ class Parsedown {
 			}
 
 			$Block = [
-				'name'    => $matches[1],
+				'name' => $matches[1],
 				'element' => [
 					'rawHtml'   => $Line['text'],
 					'autobreak' => true,
@@ -879,7 +879,7 @@ class Parsedown {
 			$headerCell = trim( $headerCell );
 
 			$HeaderElement = [
-				'name'    => 'th',
+				'name' => 'th',
 				'handler' => [
 					'function'    => 'lineElements',
 					'argument'    => $headerCell,
@@ -947,7 +947,7 @@ class Parsedown {
 				$cell = trim( $cell );
 
 				$Element = [
-					'name'    => 'td',
+					'name' => 'td',
 					'handler' => [
 						'function'    => 'lineElements',
 						'argument'    => $cell,
@@ -981,9 +981,9 @@ class Parsedown {
 
 	protected function paragraph( $Line ) {
 		return [
-			'type'    => 'Paragraph',
+			'type' => 'Paragraph',
 			'element' => [
-				'name'    => 'p',
+				'name' => 'p',
 				'handler' => [
 					'function'    => 'lineElements',
 					'argument'    => $Line['text'],
@@ -1154,7 +1154,7 @@ class Parsedown {
 			$text = preg_replace( '/[ ]*+\n/', ' ', $text );
 
 			return [
-				'extent'  => strlen( $matches[0] ),
+				'extent' => strlen( $matches[0] ),
 				'element' => [
 					'name' => 'code',
 					'text' => $text,
@@ -1179,10 +1179,10 @@ class Parsedown {
 			}
 
 			return [
-				'extent'  => strlen( $matches[0] ),
+				'extent' => strlen( $matches[0] ),
 				'element' => [
-					'name'       => 'a',
-					'text'       => $matches[1],
+					'name' => 'a',
+					'text' => $matches[1],
 					'attributes' => [
 						'href' => $url,
 					],
@@ -1207,9 +1207,9 @@ class Parsedown {
 		}
 
 		return [
-			'extent'  => strlen( $matches[0] ),
+			'extent' => strlen( $matches[0] ),
 			'element' => [
-				'name'    => $emphasis,
+				'name' => $emphasis,
 				'handler' => [
 					'function'    => 'lineElements',
 					'argument'    => $matches[1],
@@ -1242,14 +1242,14 @@ class Parsedown {
 		}
 
 		$Inline = [
-			'extent'  => $Link['extent'] + 1,
+			'extent' => $Link['extent'] + 1,
 			'element' => [
-				'name'       => 'img',
+				'name'      => 'img',
 				'attributes' => [
 					'src' => $Link['element']['attributes']['href'],
 					'alt' => $Link['element']['handler']['argument'],
 				],
-				'autobreak'  => true,
+				'autobreak' => true,
 			],
 		];
 
@@ -1371,9 +1371,9 @@ class Parsedown {
 
 		if ( $Excerpt['text'][1] === '~' and preg_match( '/^~~(?=\S)(.+?)(?<=\S)~~/', $Excerpt['text'], $matches ) ) {
 			return [
-				'extent'  => strlen( $matches[0] ),
+				'extent' => strlen( $matches[0] ),
 				'element' => [
-					'name'    => 'del',
+					'name' => 'del',
 					'handler' => [
 						'function'    => 'lineElements',
 						'argument'    => $matches[1],
@@ -1398,8 +1398,8 @@ class Parsedown {
 				'extent'   => strlen( $matches[0][0] ),
 				'position' => $matches[0][1],
 				'element'  => [
-					'name'       => 'a',
-					'text'       => $url,
+					'name' => 'a',
+					'text' => $url,
 					'attributes' => [
 						'href' => $url,
 					],
@@ -1415,10 +1415,10 @@ class Parsedown {
 			$url = $matches[1];
 
 			return [
-				'extent'  => strlen( $matches[0] ),
+				'extent' => strlen( $matches[0] ),
 				'element' => [
-					'name'       => 'a',
-					'text'       => $url,
+					'name' => 'a',
+					'text' => $url,
 					'attributes' => [
 						'href' => $url,
 					],
@@ -1594,7 +1594,7 @@ class Parsedown {
 			// (autobreak === false) covers both sides of an element
 			$autoBreak = ! $autoBreak ? $autoBreak : $autoBreakNext;
 
-			$markup    .= ( $autoBreak ? "\n" : '' ) . $this->element( $Element );
+			$markup   .= ( $autoBreak ? "\n" : '' ) . $this->element( $Element );
 			$autoBreak = $autoBreakNext;
 		}
 
@@ -1659,7 +1659,7 @@ class Parsedown {
 	}
 
 	protected function sanitiseElement( array $Element ) {
-		static $goodAttribute = '/^[a-zA-Z0-9][a-zA-Z0-9-_]*+$/';
+		static $goodAttribute    = '/^[a-zA-Z0-9][a-zA-Z0-9-_]*+$/';
 		static $safeUrlNameToAtt = [
 			'a'   => 'href',
 			'img' => 'src',

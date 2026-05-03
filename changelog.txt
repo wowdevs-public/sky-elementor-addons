@@ -1,4 +1,27 @@
-= 3.2.2 [18th September 2025] =
+= 3.3.3 [4th May 2026] =
+
+* Improved: Security improved (Thanks to Athiwat Tiprasaharn (Jitlada))
+
+= 3.3.2 [29th April 2026] =
+
+* Improved: System improved
+
+= 3.3.1 [21th April 2026] =
+
+* Improved: System improved
+
+= 3.3.0 [20th March 2026] =
+
+* Improved: Glory Slider widget Improved (Thanks to Roosevelt)
+* Improved: System improved
+
+= 3.2.4 [2nd March 2026] =
+
+* Added: WPML Support added
+* Added: Custom Scripts (Global Features) added
+* Improved: Carousel Pagination improved
+
+= 3.2.3 [10th December 2025] =
 
 * Improved: System improved
 

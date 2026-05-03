@@ -60,7 +60,7 @@ class Theme_Builder {
 		}
 
 		$this->current_theme = get_template();
-		$template_ids = [
+		$template_ids        = [
 			'header'  => $this->header_template,
 			'footer'  => $this->footer_template,
 			'single'  => $this->single_template,
@@ -151,13 +151,13 @@ class Theme_Builder {
 		foreach ( $this->templates as $template ) {
 			$meta = get_post_meta( $template->ID );
 
-			$display_on       = maybe_unserialize( $meta['wowdevs_theme_builder_display_on'][0] ?? [] );
-			$not_display_on   = maybe_unserialize( $meta['wowdevs_theme_builder_not_display_on'][0] ?? [] );
-			$display_special  = maybe_unserialize( $meta['wowdevs_theme_builder_display_special_pages'][0] ?? [] );
+			$display_on          = maybe_unserialize( $meta['wowdevs_theme_builder_display_on'][0] ?? [] );
+			$not_display_on      = maybe_unserialize( $meta['wowdevs_theme_builder_not_display_on'][0] ?? [] );
+			$display_special     = maybe_unserialize( $meta['wowdevs_theme_builder_display_special_pages'][0] ?? [] );
 			$not_display_special = maybe_unserialize( $meta['wowdevs_theme_builder_not_display_special_pages'][0] ?? [] );
-			$display_custom   = maybe_unserialize( $meta['wowdevs_theme_builder_display_custom_pages'][0] ?? [] );
-			$not_display_custom = maybe_unserialize( $meta['wowdevs_theme_builder_not_display_custom_pages'][0] ?? [] );
-			$display_roles    = maybe_unserialize( $meta['wowdevs_theme_builder_display_roles'][0] ?? [] );
+			$display_custom      = maybe_unserialize( $meta['wowdevs_theme_builder_display_custom_pages'][0] ?? [] );
+			$not_display_custom  = maybe_unserialize( $meta['wowdevs_theme_builder_not_display_custom_pages'][0] ?? [] );
+			$display_roles       = maybe_unserialize( $meta['wowdevs_theme_builder_display_roles'][0] ?? [] );
 
 			$should_display = $this->should_display_template( $display_on, $not_display_on, $display_special, $not_display_special, $display_custom, $not_display_custom, $display_roles );
 
@@ -212,7 +212,7 @@ class Theme_Builder {
 
 		// ✅ User Role Checks (Properly Structured)
 		if ( is_user_logged_in() ) {
-			$user = wp_get_current_user();
+			$user       = wp_get_current_user();
 			$user_roles = array_column( $display_roles, 'value' );
 
 			// Allow if user is in "logged_in" list or their role matches allowed roles
@@ -465,13 +465,13 @@ class Theme_Builder {
 	public function get_custom_hooks() {
 		if ( apply_filters( 'sky_addons_pro_init', false ) ) {
 			$templates = $this->get_theme_templates();
-			$hooks = [];
+			$hooks     = [];
 			foreach ( $templates as $template ) {
-				$meta = get_post_meta( $template->ID );
-				$type = $meta['wowdevs_theme_builder_type'][0];
+				$meta        = get_post_meta( $template->ID );
+				$type        = $meta['wowdevs_theme_builder_type'][0];
 				$template_id = $template->ID;
 				if ( 'custom_hooks' === $type ) {
-					$hook_name = $meta['wowdevs_theme_builder_hook'][0];
+					$hook_name     = $meta['wowdevs_theme_builder_hook'][0];
 					$hook_priority = $meta['wowdevs_theme_builder_hook_priority'][0];
 					new \Sky_Addons\ThemeBuilder\Custom_Hooks( $hook_name, $hook_priority, $template_id );
 				}

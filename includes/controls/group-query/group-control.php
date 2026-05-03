@@ -6,7 +6,7 @@ use Elementor\Controls_Manager;
 use Sky_Addons\Includes\Controls\SelectInput\Dynamic_Select;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 trait Group_Control {
@@ -62,7 +62,7 @@ trait Group_Control {
 		$this->start_controls_tab(
 			'tab_posts_include',
 			[
-				'label'     => esc_html__( 'Include', 'sky-elementor-addons' ),
+				'label' => esc_html__( 'Include', 'sky-elementor-addons' ),
 				'condition' => [
 					'posts_source!' => [ 'manual_selection', 'current_query' ],
 				],
@@ -113,7 +113,7 @@ trait Group_Control {
 				'label_block' => true,
 				'placeholder' => esc_html__( 'Type and select terms', 'sky-elementor-addons' ),
 				'query_args'  => [
-					'query'        => 'terms',
+					'query' => 'terms',
 					'widget_props' => [
 						'post_type' => 'posts_source',
 					],
@@ -130,7 +130,7 @@ trait Group_Control {
 		$this->start_controls_tab(
 			'tab_posts_exclude',
 			[
-				'label'     => esc_html__( 'Exclude', 'sky-elementor-addons' ),
+				'label' => esc_html__( 'Exclude', 'sky-elementor-addons' ),
 				'condition' => [
 					'posts_source!' => [ 'manual_selection', 'current_query' ],
 				],
@@ -164,7 +164,7 @@ trait Group_Control {
 				'multiple'    => true,
 				'label_block' => true,
 				'query_args'  => [
-					'query'        => 'posts',
+					'query' => 'posts',
 					'widget_props' => [
 						'post_type' => 'posts_source',
 					],
@@ -203,7 +203,7 @@ trait Group_Control {
 				'label_block' => true,
 				'placeholder' => esc_html__( 'Type and select terms', 'sky-elementor-addons' ),
 				'query_args'  => [
-					'query'        => 'terms',
+					'query' => 'terms',
 					'widget_props' => [
 						'post_type' => 'posts_source',
 					],
@@ -221,7 +221,7 @@ trait Group_Control {
 		$this->add_control(
 			'posts_divider',
 			[
-				'type'      => Controls_Manager::DIVIDER,
+				'type' => Controls_Manager::DIVIDER,
 				'condition' => [
 					'posts_source!' => 'current_query',
 				],
@@ -230,10 +230,10 @@ trait Group_Control {
 		$this->add_control(
 			'product_show_product_type',
 			[
-				'label'     => esc_html__( 'Show Product', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SELECT,
-				'default'   => 'all',
-				'options'   => [
+				'label'   => esc_html__( 'Show Product', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => 'all',
+				'options' => [
 					'all'      => esc_html__( 'All Products', 'sky-elementor-addons' ),
 					'onsale'   => esc_html__( 'On Sale', 'sky-elementor-addons' ),
 					'featured' => esc_html__( 'Featured', 'sky-elementor-addons' ),
@@ -257,10 +257,10 @@ trait Group_Control {
 		$this->add_control(
 			'posts_select_date',
 			[
-				'label'     => esc_html__( 'Date', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SELECT,
-				'default'   => 'anytime',
-				'options'   => [
+				'label'   => esc_html__( 'Date', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => 'anytime',
+				'options' => [
 					'anytime' => esc_html__( 'All', 'sky-elementor-addons' ),
 					'today'   => esc_html__( 'Past Day', 'sky-elementor-addons' ),
 					'week'    => esc_html__( 'Past Week', 'sky-elementor-addons' ),
@@ -304,10 +304,10 @@ trait Group_Control {
 		$this->add_control(
 			'posts_orderby',
 			[
-				'label'     => esc_html__( 'Order By', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SELECT,
-				'default'   => 'date',
-				'options'   => [
+				'label'   => esc_html__( 'Order By', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => 'date',
+				'options' => [
 					'title'         => esc_html__( 'Title', 'sky-elementor-addons' ),
 					'ID'            => esc_html__( 'ID', 'sky-elementor-addons' ),
 					'date'          => esc_html__( 'Date', 'sky-elementor-addons' ),
@@ -324,10 +324,10 @@ trait Group_Control {
 		$this->add_control(
 			'posts_order',
 			[
-				'label'     => esc_html__( 'Order', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SELECT,
-				'default'   => 'desc',
-				'options'   => [
+				'label'   => esc_html__( 'Order', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => 'desc',
+				'options' => [
 					'asc'  => esc_html__( 'ASC', 'sky-elementor-addons' ),
 					'desc' => esc_html__( 'DESC', 'sky-elementor-addons' ),
 				],
@@ -340,8 +340,8 @@ trait Group_Control {
 		$this->add_control(
 			'product_hide_free',
 			[
-				'label'     => esc_html__( 'Hide Free Product', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SWITCHER,
+				'label' => esc_html__( 'Hide Free Product', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::SWITCHER,
 				'condition' => [
 					'posts_source' => 'product',
 				],
@@ -350,8 +350,8 @@ trait Group_Control {
 		$this->add_control(
 			'product_hide_out_stock',
 			[
-				'label'     => esc_html__( 'Hide Out of Stock', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SWITCHER,
+				'label' => esc_html__( 'Hide Out of Stock', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::SWITCHER,
 				'condition' => [
 					'posts_source' => 'product',
 				],
@@ -514,9 +514,9 @@ trait Group_Control {
 					];
 					break;
 				case 'onsale':
-					$product_ids_on_sale    = wc_get_product_ids_on_sale();
-					$product_ids_on_sale[]  = 0;
-					$args['post__in'] = $product_ids_on_sale;
+					$product_ids_on_sale   = wc_get_product_ids_on_sale();
+					$product_ids_on_sale[] = 0;
+					$args['post__in']      = $product_ids_on_sale;
 					break;
 			}
 			switch ( $settings['posts_orderby'] ) {

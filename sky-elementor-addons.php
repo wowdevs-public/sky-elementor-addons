@@ -3,7 +3,9 @@
  * Plugin Name: Sky Addons for Elementor
  * Plugin URI: https://skyaddons.com/
  * Description: <a href="https://skyaddons.com/">Sky Addons for Elementor</a> offers a range of advanced and engaging widgets for your website. With features like Free Elementor Templates Library, card, advanced accordion, advanced slider, advanced skill bars, dual button, image compare, info box, list group, logo grid, team member, floating effects  and many more, it's easy to find what you're looking for. Install it today to create a better web!
- * Version: 3.2.2
+ * Version: 3.3.3
+ * Requires at least: 5.0
+ * Requires PHP: 7.4
  * Author: wowDevs
  * Author URI: https://wowdevs.com/
  * Text Domain: sky-elementor-addons
@@ -11,7 +13,7 @@
  * License: GPLv3 or later
  * License URI: https://opensource.org/licenses/GPL-3.0
  * Elementor requires at least: 3.0.0
- * Elementor tested up to: 3.32.4
+ * Elementor tested up to: 4.0.4
  *
  * @package Sky_Addons
  */
@@ -20,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SKY_ADDONS_VERSION', '3.2.2' );
+define( 'SKY_ADDONS_VERSION', '3.3.3' );
 define( 'SKY_ADDONS_SLUG', 'sky-addons' );
 
 define( 'SKY_ADDONS__FILE__', __FILE__ );
@@ -73,6 +75,14 @@ function sky_addons_load_plugin() {
 
 	load_plugin_textdomain( 'sky-elementor-addons' );
 
+	// Core always boots: admin menu, dashboard REST API, custom scripts CPT.
+	require_once SKY_ADDONS_PATH . 'class-core.php';
+	\Sky_Addons\Core::instance();
+
+	// plugin.php is always loaded: it defines the class and helper functions.
+	// sky_elementor_addons() at the bottom of that file is guarded by did_action('elementor/loaded').
+	require_once SKY_ADDONS_PATH . 'plugin.php';
+
 	if ( ! did_action( 'elementor/loaded' ) ) {
 		add_action( 'admin_notices', 'sky_addons_fail_load' );
 		return;
@@ -83,10 +93,6 @@ function sky_addons_load_plugin() {
 		add_action( 'admin_notices', 'sky_addons_fail_load_out_of_date' );
 		return;
 	}
-
-	require_once SKY_ADDONS_PATH . 'plugin.php';
-	require_once SKY_ADDONS_PATH . 'class-core.php';
-	\Sky_Addons\Core::instance();
 }
 
 add_action( 'plugins_loaded', 'sky_addons_load_plugin' );
@@ -185,12 +191,8 @@ if ( ! function_exists( 'dci_plugin_sky_addons' ) ) {
 		// Include DCI SDK.
 		require_once __DIR__ . '/dci/start.php';
 
-		wp_register_style( 'dci-sdk-sky-addons', SKY_ADDONS_URL . 'dci/assets/css/dci.css', [], '1.3.0', 'all' );
-		wp_enqueue_style( 'dci-sdk-sky-addons' );
-
 		dci_dynamic_init(
 			[
-				'sdk_version'          => '1.2.1',
 				'product_id'           => 1,
 				'plugin_name'          => 'Sky Addons for Elementor', // make simple, must not empty
 				'plugin_title'         => 'Love using Sky Addons? Congrats 🎉  ( Never miss an Important Update )', // You can describe your plugin title here
@@ -227,12 +229,8 @@ if ( ! function_exists( 'sky_addons_rc_plugin' ) ) {
 
 		require_once SKY_ADDONS_PATH . 'includes/feedbacks/start.php';
 
-		wp_register_style( 'rc-sdk-sky-addons', SKY_ADDONS_URL . 'includes/feedbacks/assets/rc.css', [], '1.0.0', 'all' );
-		wp_enqueue_style( 'rc-sdk-sky-addons' );
-
 		rc_dynamic_init(
 			[
-				'sdk_version'  => '1.0.0',
 				'plugin_name'  => 'Sky Addons for Elementor',
 				'plugin_icon'  => SKY_ADDONS_ASSETS_URL . 'images/sky-logo-gradient.svg',
 				'slug'         => 'sky-elementor-addons',

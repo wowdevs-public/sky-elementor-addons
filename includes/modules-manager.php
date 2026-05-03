@@ -5,14 +5,14 @@ namespace Sky_Addons;
 use Elementor\Element_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 final class Managers {
 
 	private $_modules = null;
 
-	const WIDGETS_DB_KEY = 'sky_addons_inactive_widgets';
+	const WIDGETS_DB_KEY    = 'sky_addons_inactive_widgets';
 	const EXTENSIONS_DB_KEY = 'sky_addons_inactive_extensions';
 
 	public static function get_inactive_widgets() {

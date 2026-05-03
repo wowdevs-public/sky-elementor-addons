@@ -59,7 +59,7 @@ class Library_Api extends Source_Base {
 
 	public function get_items( $args = [] ) {
 		$library_data = self::get_library_data();
-		$templates = [];
+		$templates    = [];
 		if ( ! empty( $library_data['templates'] ) ) {
 			foreach ( $library_data['templates'] as $template_data ) {
 				$templates[] = $this->prepare_template( $template_data );
@@ -104,7 +104,7 @@ class Library_Api extends Source_Base {
 		$data = get_option( self::LIBRARY_OPTION_KEY );
 
 		$elementor_update_timestamp = get_option( '_transient_timeout_elementor_remote_info_api_data_' . ELEMENTOR_VERSION );
-		$update_timestamp = get_transient( self::LIBRARY_TIMESTAMP_CACHE_KEY );
+		$update_timestamp           = get_transient( self::LIBRARY_TIMESTAMP_CACHE_KEY );
 
 		if ( $force_update || false === $data || ! $update_timestamp || $update_timestamp !== $elementor_update_timestamp ) {
 			$timeout = ( $force_update ) ? 25 : 8;
@@ -223,7 +223,7 @@ class Library_Api extends Source_Base {
 
 		// $apiUrl = sprintf(self::API_DATA_URL, $template_id); //another way
 
-		$apiUrl = $json_url;
+		$apiUrl   = $json_url;
 		$response = wp_remote_get(
 			$apiUrl,
 			[
@@ -246,7 +246,7 @@ class Library_Api extends Source_Base {
 		$data['content'] = $this->replace_elements_ids( $data['content'] );
 		$data['content'] = $this->process_export_import_content( $data['content'], 'on_import' );
 
-		$post_id = $args['editor_post_id'];
+		$post_id  = $args['editor_post_id'];
 		$document = Plugin::$instance->documents->get( $post_id );
 		if ( $document ) {
 			$data['content'] = $document->get_elements_raw_data( $data['content'], true );

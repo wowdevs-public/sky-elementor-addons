@@ -37,7 +37,7 @@ class Svg_Support {
 				// If SVG is external, use the URL instead of the path
 				$svg_path = $response['url'];
 			}
-			$dimensions = $this->get_dimensions( $svg_path );
+			$dimensions        = $this->get_dimensions( $svg_path );
 			$response['sizes'] = [
 				'full' => [
 					'url'         => $response['url'],
@@ -53,12 +53,12 @@ class Svg_Support {
 	public function svg_attachment_metadata( $metadata, $attachment_id ) {
 		$mime = get_post_mime_type( $attachment_id );
 		if ( 'image/svg+xml' === $mime ) {
-			$svg_path   = get_attached_file( $attachment_id );
-			$upload_dir = wp_upload_dir();
+			$svg_path      = get_attached_file( $attachment_id );
+			$upload_dir    = wp_upload_dir();
 			$relative_path = str_replace( $upload_dir['basedir'], '', $svg_path );
 			$filename      = basename( $svg_path );
-			$dimensions = $this->get_dimensions( $svg_path );
-			$metadata = [
+			$dimensions    = $this->get_dimensions( $svg_path );
+			$metadata      = [
 				'width'  => intval( $dimensions->width ),
 				'height' => intval( $dimensions->height ),
 				'file'   => $relative_path,

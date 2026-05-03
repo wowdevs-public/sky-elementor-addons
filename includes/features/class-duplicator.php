@@ -42,8 +42,8 @@ class Duplicator {
 			return;
 		}
 
-		$post_id = ( isset( $_GET['post'] ) ? absint( $_GET['post'] ) : absint( $_POST['post'] ) );
-		$post = get_post( $post_id );
+		$post_id         = ( isset( $_GET['post'] ) ? absint( $_GET['post'] ) : absint( $_POST['post'] ) );
+		$post            = get_post( $post_id );
 		$current_user_id = get_current_user_id();
 
 		if ( current_user_can( 'manage_options' ) || current_user_can( 'edit_others_posts' ) ) {
@@ -57,8 +57,8 @@ class Duplicator {
 
 	public function duplicate_edit_post( $post_id ) {
 		global $wpdb;
-		$post = get_post( $post_id );
-		$current_user = wp_get_current_user();
+		$post            = get_post( $post_id );
+		$current_user    = wp_get_current_user();
 		$new_post_author = $current_user->ID;
 
 		if ( isset( $post ) && null !== $post ) {
@@ -80,7 +80,7 @@ class Duplicator {
 			];
 
 			$new_post_id = wp_insert_post( $args );
-			$taxonomies = get_object_taxonomies( $post->post_type );
+			$taxonomies  = get_object_taxonomies( $post->post_type );
 
 			foreach ( $taxonomies as $taxonomy ) {
 				$post_terms = wp_get_object_terms( $post_id, $taxonomy, [ 'fields' => 'slugs' ] );
@@ -94,11 +94,11 @@ class Duplicator {
 			) );
 
 			if ( is_array( $post_meta_infos ) ) {
-				$sql_query = "INSERT INTO {$wpdb->postmeta} ( post_id, meta_key, meta_value ) VALUES ";
+				$sql_query     = "INSERT INTO {$wpdb->postmeta} ( post_id, meta_key, meta_value ) VALUES ";
 				$sql_query_sel = [];
 
 				foreach ( $post_meta_infos as $meta_info ) {
-					$meta_value = wp_slash( $meta_info->meta_value );
+					$meta_value      = wp_slash( $meta_info->meta_value );
 					$sql_query_sel[] = "( $new_post_id, '{$meta_info->meta_key}', '{$meta_value}' )";
 				}
 
@@ -114,7 +114,7 @@ class Duplicator {
 			$css = Post_CSS::create( $new_post_id );
 			$css->update();
 
-			$all_post_types = get_post_types( [], 'names' );
+			$all_post_types    = get_post_types( [], 'names' );
 			$current_post_type = get_post_type( $post_id );
 
 			if ( in_array( $current_post_type, $all_post_types ) ) {

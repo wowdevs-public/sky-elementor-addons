@@ -104,9 +104,9 @@ class Builder_Data {
 			register_post_meta('wowdevs-hooks', $meta_field, [
 				'show_in_rest' => [
 					'schema' => [
-						'type'  => 'array',
+						'type' => 'array',
 						'items' => [
-							'type'       => 'object',
+							'type' => 'object',
 							'properties' => [
 								'value' => [
 									'type' => 'string',
@@ -115,8 +115,8 @@ class Builder_Data {
 						],
 					],
 				],
-				'single'       => true,
-				'type'         => 'object',
+				'single' => true,
+				'type'   => 'object',
 			]);
 		}
 	}

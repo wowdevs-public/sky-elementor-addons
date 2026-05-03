@@ -12,12 +12,12 @@ defined( 'ABSPATH' ) || exit;
  */
 class Sky_Addons_Admin {
 
-	const WIDGETS_DB_KEY = 'sky_addons_inactive_widgets';
+	const WIDGETS_DB_KEY           = 'sky_addons_inactive_widgets';
 	const WIDGETS_3RD_PARTY_DB_KEY = 'sky_addons_inactive_3rd_party_widgets';
-	const EXTENSIONS_DB_KEY = 'sky_addons_inactive_extensions';
-	const API_DB_KEY = 'sky_addons_api';
+	const EXTENSIONS_DB_KEY        = 'sky_addons_inactive_extensions';
+	const API_DB_KEY               = 'sky_addons_api';
 
-	public static $widget_list = null;
+	public static $widget_list  = null;
 	public static $widgets_name = null;
 
 	private function __construct() {
@@ -30,8 +30,6 @@ class Sky_Addons_Admin {
 		// add_action('sky_addons_license_manager', 'sky_addons_license_content');
 		// admin js
 		add_action( 'admin_enqueue_scripts', [ $this, 'load_admin_scripts' ] );
-
-		add_filter( 'plugin_action_links_' . plugin_basename( SKY_ADDONS__FILE__ ), [ $this, 'add_action_links' ] );
 
 		if ( class_exists( 'Tracker' ) && ! Tracker::is_allow_track() ) {
 			// add_action( 'sky_allow_tracker_notice', [ $this, 'allow_tracker_notice' ], 10, 3 );
@@ -50,7 +48,7 @@ class Sky_Addons_Admin {
 	 */
 	public function black_friday_notice() {
 		$black_friday_date = strtotime( '2024-12-10' );
-		$today = strtotime( gmdate( 'Y-m-d' ) );
+		$today             = strtotime( gmdate( 'Y-m-d' ) );
 
 		// Check if the transient is set, and display the notice
 		$transitent = get_transient( 'sky_black_friday_notice' );
@@ -115,71 +113,6 @@ class Sky_Addons_Admin {
 		return get_option( self::API_DB_KEY, [] );
 	}
 
-	public function admin_menu() {
-		$parent_slug = 'sky-elementor-addons';
-		$capability = 'manage_options';
-
-		add_menu_page( esc_html__( 'Sky Addons', 'sky-elementor-addons' ), esc_html__( 'Sky Addons', 'sky-elementor-addons' ), $capability, $parent_slug, [
-			$this,
-			'admin_settings',
-		], SKY_ADDONS_ASSETS_URL . 'images/sky-top-menu-logo.svg', 59 );
-
-		add_submenu_page( $parent_slug, esc_html__( 'Dashboard', 'sky-elementor-addons' ), esc_html__( 'Dashboard', 'sky-elementor-addons' ), $capability, $parent_slug, [
-			$this,
-			'admin_settings',
-		] );
-
-		add_submenu_page( $parent_slug, esc_html__( 'Widgets', 'sky-elementor-addons' ), esc_html__( 'Widgets', 'sky-elementor-addons' ), $capability, $parent_slug . '#widgets', [
-			$this,
-			'admin_settings',
-		] );
-
-		add_submenu_page( $parent_slug, esc_html__( 'Extensions', 'sky-elementor-addons' ), esc_html__( 'Extensions', 'sky-elementor-addons' ), $capability, $parent_slug . '#extensions', [
-			$this,
-			'admin_settings',
-		] );
-
-		add_submenu_page( $parent_slug, esc_html__( 'API Data', 'sky-elementor-addons' ), esc_html__( 'API Data', 'sky-elementor-addons' ), $capability, $parent_slug . '#api', [
-			$this,
-			'admin_settings',
-		] );
-
-		add_submenu_page( $parent_slug, esc_html__( 'Analytics', 'sky-elementor-addons' ), esc_html__( 'Analytics', 'sky-elementor-addons' ), $capability, $parent_slug . '#analytics-used-widgets', [
-			$this,
-			'admin_settings',
-		] );
-
-		add_submenu_page( $parent_slug, esc_html__( 'Get PRO', 'sky-elementor-addons' ), esc_html__( 'Get PRO', 'sky-elementor-addons' ), $capability, $parent_slug . '#pro', [
-			$this,
-			'admin_settings',
-		] );
-	}
-
-	public static function add_action_links( $links ) {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return $links;
-		}
-
-		$links = array_merge( [
-			sprintf(
-				'<a href="%s">%s</a>',
-				sky_addons_dashboard_link(),
-				esc_html__( 'Settings', 'sky-elementor-addons' )
-			),
-		], $links );
-		if ( sky_addons_init_pro() !== true ) {
-			$links = array_merge( $links, [
-				sprintf(
-					'<a target="_blank" style="color:#E0528D; font-weight: bold;" href="%s" title="%s">%s</a>',
-					'https://skyaddons.com/pricing/?coupon=SKYADDONS30',
-					esc_html__( 'Get 30% OFF!', 'sky-elementor-addons' ),
-					esc_html__( 'Get Pro', 'sky-elementor-addons' )
-				),
-			] );
-		}
-		return $links;
-	}
-
 	public function admin_settings() {
 		// if ( is_readable( sky_addons_core()->templates_dir . 'admin/dashboard.php' ) ) {
 		// require_once sky_addons_core()->templates_dir . 'admin/dashboard.php';
@@ -199,9 +132,9 @@ class Sky_Addons_Admin {
 
 		if ( class_exists( 'Elementor\Modules\Usage\Module' ) ) {
 
-			$module = Module::instance();
+			$module   = Module::instance();
 			$elements = $module->get_formatted_usage( 'raw' );
-			$widgets = self::get_widgets_names();
+			$widgets  = self::get_widgets_names();
 
 			if ( is_array( $elements ) || is_object( $elements ) ) {
 
@@ -271,13 +204,13 @@ class Sky_Addons_Admin {
 	 */
 	public static function get_element_list() {
 
-		$inactive_widgets = self::get_inactive_widgets();
+		$inactive_widgets           = self::get_inactive_widgets();
 		$inactive_3rd_party_widgets = self::get_inactive_3rd_party_widgets();
-		$inactive_extensions = self::get_inactive_extensions();
-		$saved_api = self::get_saved_api();
+		$inactive_extensions        = self::get_inactive_extensions();
+		$saved_api                  = self::get_saved_api();
 
 		$widgets_fields = [
-			'sky_addons_widgets' => [
+			'sky_addons_widgets'          => [
 				[
 					'name'         => 'advanced-accordion',
 					'label'        => esc_html__( 'Advanced Accordion', 'sky-elementor-addons' ),
@@ -1348,7 +1281,7 @@ class Sky_Addons_Admin {
 					'demo_url'     => '#',
 				],
 			],
-			'sky_addons_extensions' => [
+			'sky_addons_extensions'       => [
 				[
 					'name'         => 'advanced-tooltip',
 					'label'        => esc_html__( 'Advanced Tooltip', 'sky-elementor-addons' ),
@@ -1548,8 +1481,8 @@ class Sky_Addons_Admin {
 					'demo_url'     => 'https://skyaddons.com/elementor/wrapper-link-extensions/',
 				],
 			],
-			'sky_addons_api' => [
-				'form_builder_group' => [
+			'sky_addons_api'              => [
+				'form_builder_group'              => [
 					'input_box'    => [
 						[
 							'name'        => 'form_builder_email_to',
@@ -1575,7 +1508,7 @@ class Sky_Addons_Admin {
 					],
 					'feature_type' => 'pro',
 				],
-				'sky_addons_api_mailchimp_group' => [
+				'sky_addons_api_mailchimp_group'  => [
 					'input_box'    => [
 						[
 							'name'        => 'mailchimp_api_key',
@@ -1596,7 +1529,7 @@ class Sky_Addons_Admin {
 					],
 					'feature_type' => 'pro',
 				],
-				'sky_addons_api_instagram_group' => [
+				'sky_addons_api_instagram_group'  => [
 					'input_box'    => [
 						[
 
@@ -1634,9 +1567,9 @@ class Sky_Addons_Admin {
 		self::$widget_list = $widgets_fields['sky_addons_widgets'];
 		self::$widget_list = array_merge( self::$widget_list, $widgets_fields['sky_addons_3rd_party_widget'] );
 
-		$used_widgets = self::get_used_widgets();
-		$widgets_fields['sky_addons_widgets'] = array_map(function( $widget ) use ( $used_widgets ) {
-			$widget_name = $widget['name'];
+		$used_widgets                         = self::get_used_widgets();
+		$widgets_fields['sky_addons_widgets'] = array_map(function ( $widget ) use ( $used_widgets ) {
+			$widget_name          = $widget['name'];
 			$widget['total_used'] = isset( $used_widgets[ 'sky-' . $widget_name ] ) ? $used_widgets[ 'sky-' . $widget_name ] : 0;
 			return $widget;
 		}, $widgets_fields['sky_addons_widgets']);

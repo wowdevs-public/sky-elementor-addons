@@ -64,7 +64,7 @@ class Custom_Meta_Box {
 	public function meta_render_html( $post ) {
 		wp_nonce_field( 'sky_video_link_nonce_action', 'sa-video-link-meta' );
 		$get_meta = get_post_meta( $post->ID, 'sky_video_link_meta', true );
-		$value = ! empty( $get_meta ) ? $get_meta : '';
+		$value    = ! empty( $get_meta ) ? $get_meta : '';
 		?>
 		<label for="sky_video_link_meta">
 			<?php esc_html_e( 'Sky Addons Video Link', 'sky-elementor-addons' ); ?>

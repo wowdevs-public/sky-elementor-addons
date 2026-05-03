@@ -26,6 +26,7 @@ class Menu {
 	 */
 	public function __construct() {
 		add_action( 'admin_menu', [ $this, 'admin_menu' ] );
+		add_filter( 'plugin_action_links_' . plugin_basename( SKY_ADDONS__FILE__ ), [ $this, 'add_action_links' ] );
 	}
 
 	/**
@@ -69,6 +70,11 @@ class Menu {
 			'plugin_layout',
 		] );
 
+		add_submenu_page( $parent_slug, esc_html__( 'Custom Scripts', 'sky-elementor-addons' ), esc_html__( 'Custom Scripts', 'sky-elementor-addons' ), $capability, $parent_slug . '#custom_scripts', [
+			$this,
+			'plugin_layout',
+		] );
+
 		if ( ! _is_sky_addons_pro_activated() ) {
 			add_submenu_page( $parent_slug, esc_html__( 'Get PRO', 'sky-elementor-addons' ), esc_html__( 'Get PRO', 'sky-elementor-addons' ), $capability, $parent_slug . '#license', [
 				$this,
@@ -100,5 +106,37 @@ class Menu {
 
 	public static function get_b64_icon() {
 		return 'data:image/svg+xml;base64,' . base64_encode( file_get_contents( SKY_ADDONS_ASSETS_PATH . 'images/sky-top-menu-logo.svg' ) );
+	}
+
+	/**
+	 * @param $suffix
+	 */
+	public static function dashboard_link( $suffix = '' ) {
+		return add_query_arg( [ 'page' => 'sky-addons' . $suffix ], admin_url( 'admin.php' ) );
+	}
+
+	public static function add_action_links( $links ) {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return $links;
+		}
+
+		$links = array_merge( [
+			sprintf(
+				'<a href="%s">%s</a>',
+				self::dashboard_link(),
+				esc_html__( 'Settings', 'sky-elementor-addons' )
+			),
+		], $links );
+		if ( sky_addons_init_pro() !== true ) {
+			$links = array_merge( $links, [
+				sprintf(
+					'<a target="_blank" style="color:#E0528D; font-weight: bold;" href="%s" title="%s">%s</a>',
+					'https://skyaddons.com/pricing/?coupon=SKYADDONS30',
+					esc_html__( 'Get 30% OFF!', 'sky-elementor-addons' ),
+					esc_html__( 'Get Pro', 'sky-elementor-addons' )
+				),
+			] );
+		}
+		return $links;
 	}
 }

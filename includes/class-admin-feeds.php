@@ -22,7 +22,7 @@ class Admin_Feeds {
 	}
 
 	/**
-	 * Register RSS Feeds for Element Pack
+	 * Register RSS Feeds for
 	 */
 	public function register_rss_feeds() {
 		wp_add_dashboard_widget(
@@ -68,7 +68,7 @@ class Admin_Feeds {
 	 */
 	private function get_remote_feeds_data() {
 		$transient_key = $this->settings['transient_key'];
-		$cached_data = get_transient( $transient_key );
+		$cached_data   = get_transient( $transient_key );
 
 		if ( ! empty( $cached_data ) ) {
 			return json_decode( $cached_data );
@@ -100,7 +100,7 @@ class Admin_Feeds {
 	 */
 	private function get_rss_posts_data() {
 		$transient_key = $this->settings['transient_key'] . '_rss';
-		$cached_data = get_transient( $transient_key );
+		$cached_data   = get_transient( $transient_key );
 
 		if ( ! empty( $cached_data ) ) {
 			$rss_items = json_decode( $cached_data, true ); // Decode as associative array
@@ -113,7 +113,7 @@ class Admin_Feeds {
 				return '<li>' . esc_html__( 'Items Not Found', 'sky-elementor-addons' ) . '.</li>';
 			}
 
-			$maxitems = $rss->get_item_quantity( 5 );
+			$maxitems  = $rss->get_item_quantity( 5 );
 			$rss_items = $rss->get_items( 0, $maxitems );
 
 			// Convert RSS items to a simpler array to avoid serialization issues

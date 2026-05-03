@@ -7,7 +7,7 @@ use WP_Query;
 use Sky_Addons\Sky_Addons_Plugin;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 /**
@@ -237,8 +237,8 @@ class Dynamic_Input_Module {
 	 * Get dynamic Templates
 	 */
 	public function get_dynamic_templates() {
-		$searchText = $this->get_search_query();
-		$args = [];
+		$searchText        = $this->get_search_query();
+		$args              = [];
 		$args['post_type'] = 'elementor_library';
 		if ( $searchText ) {
 			$args['s'] = $searchText;
@@ -247,8 +247,8 @@ class Dynamic_Input_Module {
 		$results = [];
 		foreach ( $query->posts as $post ) {
 			$post_type_obj = get_post_type_object( $post->post_type );
-			$text = ( $post_type_obj->hierarchical ) ? $this->get_post_name_with_parents( $post ) : $post->post_title;
-			$results[] = [
+			$text          = ( $post_type_obj->hierarchical ) ? $this->get_post_name_with_parents( $post ) : $post->post_title;
+			$results[]     = [
 				'id'   => $post->ID,
 				'text' => esc_html( $text ),
 			];
@@ -453,7 +453,7 @@ class Dynamic_Input_Module {
 			$args['s'] = $searchText;
 		}
 		$templates = Sky_Addons_Plugin::elementor()->templates_manager->get_source( 'local' )->get_items( $args );
-		$results     = [];
+		$results   = [];
 
 		if ( empty( $templates ) ) {
 			$results = [ '0' => esc_html__( 'Sorry, Templates Not Found!', 'sky-elementor-addons' ) ];
@@ -476,7 +476,7 @@ class Dynamic_Input_Module {
 	 */
 	public function get_anywhere_templates() {
 		$search_text = $this->get_search_query();
-		$results = [];
+		$results     = [];
 		if ( post_type_exists( 'ae_global_templates' ) ) {
 			$anywhere = get_posts([
 				'fields'         => 'ids',
