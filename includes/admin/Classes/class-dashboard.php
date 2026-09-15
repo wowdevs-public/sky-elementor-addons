@@ -65,7 +65,7 @@ class Dashboard {
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => [ $this, 'handle_dashboard' ],
 				// 'permission_callback' => array( $this, 'get_permissions_check' ),
-				'permission_callback' => '__return_true',
+				'permission_callback' => [ $this, 'get_permissions_check' ],
 			]
 		);
 
@@ -118,7 +118,6 @@ class Dashboard {
 		$cache_time = 2 * MINUTE_IN_SECONDS; // Cache for 12 hours
 
 		$data = get_transient( $cache_key );
-		$data = false;
 
 		if ( false === $data ) {
 			// $data = array(

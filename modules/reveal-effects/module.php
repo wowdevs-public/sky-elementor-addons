@@ -21,10 +21,16 @@ class Module extends Module_Base {
 	}
 
 	public function register_section( $element ) {
+			$name = $element->get_name();
+
+			$tab = ( 'section' === $name || 'container' === $name )
+				? Controls_Manager::TAB_LAYOUT
+				: Controls_Manager::TAB_CONTENT;
+
 			$element->start_controls_section(
 				'section_sky_addons_reveal_fx_controls',
 				[
-					'tab'   => Controls_Manager::TAB_ADVANCED,
+					'tab'   => $tab,
 					'label' => esc_html__( 'Reveal Effects', 'sky-elementor-addons' ) . sky_addons_get_icon(),
 				]
 			);
@@ -33,6 +39,9 @@ class Module extends Module_Base {
 
 	public function register_controls( $widget, $args ) {
 
+			/**
+			 * ── Enable ────────────────────────────────────────
+			 */
 			$widget->add_control(
 				'sa_reveal_fx_enable',
 				[
@@ -43,41 +52,9 @@ class Module extends Module_Base {
 				]
 			);
 
-			$widget->add_control(
-				'sa_reveal_fx_select_type',
-				[
-					'label'              => esc_html__( 'Selector', 'sky-elementor-addons' ),
-					'type'               => Controls_Manager::SELECT,
-					'default'            => 'default',
-					'options'            => [
-						'default' => esc_html__( 'Default', 'sky-elementor-addons' ),
-						'custom'  => esc_html__( 'Custom', 'sky-elementor-addons' ),
-					],
-					'render_type'        => 'none',
-					'frontend_available' => true,
-					'condition'          => [
-						'sa_reveal_fx_enable' => 'yes',
-					],
-				]
-			);
-
-			$sa_reveal_fx_selector = ( sky_addons_init_pro() === true || sky_addons_editor_mode() === true ) ? true : false;
-
-			$widget->add_control(
-				'sa_reveal_fx_selector',
-				[
-					'label'              => esc_html__( 'Custom Selector', 'sky-elementor-addons' ) . sky_addons_control_indicator_pro(),
-					'type'               => Controls_Manager::TEXT,
-					'description'        => esc_html__( '(Example - .post-item) Best to use on Grid Items. And must select the inner class of the element.', 'sky-elementor-addons' ),
-					'render_type'        => 'none',
-					'frontend_available' => $sa_reveal_fx_selector,
-					'condition'          => [
-						'sa_reveal_fx_enable'      => 'yes',
-						'sa_reveal_fx_select_type' => 'custom',
-					],
-				]
-			);
-
+			/**
+			 * ── Animation ─────────────────────────────────────
+			 */
 			$widget->add_control(
 				'sa_reveal_fx_direction',
 				[
@@ -85,56 +62,12 @@ class Module extends Module_Base {
 					'type'               => Controls_Manager::SELECT,
 					'default'            => 'lr',
 					'options'            => [
-						'lr' => esc_html__( 'Left to Right (Default)', 'sky-elementor-addons' ),
-						'rl' => esc_html__( 'Right to Left', 'sky-elementor-addons' ),
-						'tb' => esc_html__( 'Top to Bottom', 'sky-elementor-addons' ),
-						'bt' => esc_html__( 'Bottom to Top', 'sky-elementor-addons' ),
+						'lr' => esc_html__( 'Left → Right', 'sky-elementor-addons' ),
+						'rl' => esc_html__( 'Right → Left', 'sky-elementor-addons' ),
+						'tb' => esc_html__( 'Top → Bottom', 'sky-elementor-addons' ),
+						'bt' => esc_html__( 'Bottom → Top', 'sky-elementor-addons' ),
 					],
-					'render_type'        => 'none',
-					'frontend_available' => true,
 					'separator'          => 'before',
-					'condition'          => [
-						'sa_reveal_fx_enable' => 'yes',
-					],
-				]
-			);
-
-			$widget->add_control(
-				'sa_reveal_fx_content_show',
-				[
-					'label'              => esc_html__( 'Content Show', 'sky-elementor-addons' ),
-					'type'               => Controls_Manager::SWITCHER,
-					'description'        => esc_html__( 'If true , the content of the element will be show on the reveal time.', 'sky-elementor-addons' ),
-					'render_type'        => 'none',
-					'frontend_available' => true,
-					'condition'          => [
-						'sa_reveal_fx_enable' => 'yes',
-					],
-				]
-			);
-
-			$widget->add_control(
-				'sa_reveal_fx_layers',
-				[
-					'label'              => esc_html__( 'Layers', 'sky-elementor-addons' ),
-					'type'               => Controls_Manager::NUMBER,
-					'description'        => esc_html__( 'The number of layers to be shown during the animation. Default : 1', 'sky-elementor-addons' ),
-					'render_type'        => 'none',
-					'frontend_available' => true,
-					'condition'          => [
-						'sa_reveal_fx_enable' => 'yes',
-					],
-				]
-			);
-
-			$widget->add_control(
-				'sa_reveal_fx_bg_colors',
-				[
-					'label'              => esc_html__( 'Background Colors', 'sky-elementor-addons' ),
-					'type'               => Controls_Manager::TEXTAREA,
-					'description'        => esc_html__( 'If you will use Multicolor then never forget to increase the Layers.', 'sky-elementor-addons' ),
-					'rows'               => 4,
-					'placeholder'        => esc_html__( 'red, blue, green', 'sky-elementor-addons' ),
 					'render_type'        => 'none',
 					'frontend_available' => true,
 					'condition'          => [
@@ -147,11 +80,13 @@ class Module extends Module_Base {
 				'sa_reveal_fx_duration',
 				[
 					'label'              => esc_html__( 'Duration (ms)', 'sky-elementor-addons' ),
+					'description'        => esc_html__( 'Total time in milliseconds for one reveal phase. Higher values produce a slower animation.', 'sky-elementor-addons' ),
 					'type'               => Controls_Manager::SLIDER,
 					'range'              => [
 						'px' => [
-							'min' => 500,
-							'max' => 5000,
+							'min'  => 200,
+							'max'  => 5000,
+							'step' => 100,
 						],
 					],
 					'default'            => [
@@ -166,16 +101,15 @@ class Module extends Module_Base {
 				]
 			);
 
-			$sa_reveal_fx_easing_value = ( sky_addons_init_pro() === true || sky_addons_editor_mode() === true ) ? true : false;
-
 			$widget->add_control(
 				'sa_reveal_fx_easing',
 				[
-					'label'              => esc_html__( 'Easing', 'sky-elementor-addons' ) . sky_addons_control_indicator_pro(),
+					'label'              => esc_html__( 'Easing', 'sky-elementor-addons' ),
+					'description'        => esc_html__( 'Controls the acceleration curve of the reveal animation.', 'sky-elementor-addons' ),
 					'type'               => Controls_Manager::SELECT,
 					'default'            => '',
 					'options'            => [
-						''                => esc_html__( 'Default', 'sky-elementor-addons' ),
+						''                => esc_html__( 'Default (easeInOutQuint)', 'sky-elementor-addons' ),
 						'easeInQuart'     => esc_html__( 'easeInQuart', 'sky-elementor-addons' ),
 						'easeInQuint'     => esc_html__( 'easeInQuint', 'sky-elementor-addons' ),
 						'easeInSine'      => esc_html__( 'easeInSine', 'sky-elementor-addons' ),
@@ -206,7 +140,36 @@ class Module extends Module_Base {
 						'easeOutInBounce' => esc_html__( 'easeOutInBounce', 'sky-elementor-addons' ),
 					],
 					'render_type'        => 'none',
-					'frontend_available' => $sa_reveal_fx_easing_value,
+					'frontend_available' => true,
+					'condition'          => [
+						'sa_reveal_fx_enable' => 'yes',
+					],
+				]
+			);
+
+			/**
+			 * ── Layers ────────────────────────────────────────
+			 */
+			$widget->add_control(
+				'sa_reveal_fx_layers',
+				[
+					'label'              => esc_html__( 'Layers', 'sky-elementor-addons' ),
+					'description'        => esc_html__( 'Number of colored overlay bands shown during the animation. Use multiple layers for a striped reveal effect.', 'sky-elementor-addons' ),
+					'type'               => Controls_Manager::SLIDER,
+					'range'              => [
+						'px' => [
+							'min'  => 1,
+							'max'  => 10,
+							'step' => 1,
+						],
+					],
+					'default'            => [
+						'unit' => 'px',
+						'size' => 1,
+					],
+					'separator'          => 'before',
+					'render_type'        => 'none',
+					'frontend_available' => true,
 					'condition'          => [
 						'sa_reveal_fx_enable' => 'yes',
 					],
@@ -214,11 +177,13 @@ class Module extends Module_Base {
 			);
 
 			$widget->add_control(
-				'sa_reveal_fx_cover_area',
+				'sa_reveal_fx_bg_colors',
 				[
-					'label'              => esc_html__( 'Cover Area', 'sky-elementor-addons' ),
-					'type'               => Controls_Manager::NUMBER,
-					'description'        => esc_html__( 'Percentage-based value representing how much of the area should be left covered. Default : 0', 'sky-elementor-addons' ),
+					'label'              => esc_html__( 'Layer Colors', 'sky-elementor-addons' ),
+					'description'        => esc_html__( 'Comma-separated colors for each layer (e.g. #111, #e74c3c, rgba(0,0,0,0.8)). Add one color per layer. Unmatched layers reuse the last color.', 'sky-elementor-addons' ),
+					'type'               => Controls_Manager::TEXTAREA,
+					'rows'               => 3,
+					'placeholder'        => esc_html__( '#111, #e74c3c, #3498db', 'sky-elementor-addons' ),
 					'render_type'        => 'none',
 					'frontend_available' => true,
 					'condition'          => [
@@ -230,13 +195,14 @@ class Module extends Module_Base {
 			$widget->add_control(
 				'sa_reveal_fx_delay',
 				[
-					'label'              => esc_html__( 'Delay (ms)', 'sky-elementor-addons' ),
-					'description'        => esc_html__( 'Staggered delay in timing between the layer. Default: 100', 'sky-elementor-addons' ),
+					'label'              => esc_html__( 'Layer Delay (ms)', 'sky-elementor-addons' ),
+					'description'        => esc_html__( 'Stagger delay in milliseconds between each layer animation. Only effective when Layers > 1.', 'sky-elementor-addons' ),
 					'type'               => Controls_Manager::SLIDER,
 					'range'              => [
 						'px' => [
-							'min' => 500,
-							'max' => 5000,
+							'min'  => 0,
+							'max'  => 2000,
+							'step' => 50,
 						],
 					],
 					'default'            => [
@@ -251,11 +217,132 @@ class Module extends Module_Base {
 				]
 			);
 
+			/**
+			 * ── Behaviour ─────────────────────────────────────
+			 */
+			$widget->add_control(
+				'sa_reveal_fx_content_show',
+				[
+					'label'              => esc_html__( 'Show Content During Animation', 'sky-elementor-addons' ),
+					'description'        => esc_html__( 'When enabled, the element content remains visible while the overlay animates. When disabled, content appears only after the overlay fully passes.', 'sky-elementor-addons' ),
+					'type'               => Controls_Manager::SWITCHER,
+					'separator'          => 'before',
+					'render_type'        => 'none',
+					'frontend_available' => true,
+					'condition'          => [
+						'sa_reveal_fx_enable' => 'yes',
+					],
+				]
+			);
+
+			$widget->add_control(
+				'sa_reveal_fx_cover_area',
+				[
+					'label'              => esc_html__( 'Cover Area (%)', 'sky-elementor-addons' ),
+					'description'        => esc_html__( 'Percentage of the element left covered by the overlay after the animation completes. Set to 0 for a full reveal.', 'sky-elementor-addons' ),
+					'type'               => Controls_Manager::NUMBER,
+					'min'                => 0,
+					'max'                => 100,
+					'step'               => 1,
+					'default'            => 0,
+					'render_type'        => 'none',
+					'frontend_available' => true,
+					'condition'          => [
+						'sa_reveal_fx_enable' => 'yes',
+					],
+				]
+			);
+
+			$widget->add_control(
+				'sa_reveal_fx_loop',
+				[
+					'label'              => esc_html__( 'Replay on Scroll', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+					'description'        => esc_html__( 'When enabled, the reveal animation replays every time the element scrolls back into view.', 'sky-elementor-addons' ),
+					'type'               => Controls_Manager::SWITCHER,
+					'render_type'        => 'none',
+					'frontend_available' => true,
+					'condition'          => [
+						'sa_reveal_fx_enable' => 'yes',
+					],
+				]
+			);
+
+			$widget->add_control(
+				'sa_reveal_fx_threshold',
+				[
+					'label'              => esc_html__( 'Trigger Threshold (%)', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+					'description'        => esc_html__( 'Percentage of the element that must be visible in the viewport before the animation triggers. Lower values trigger earlier.', 'sky-elementor-addons' ),
+					'type'               => Controls_Manager::SLIDER,
+					'range'              => [
+						'px' => [
+							'min'  => 5,
+							'max'  => 100,
+							'step' => 5,
+						],
+					],
+					'default'            => [
+						'unit' => 'px',
+						'size' => 80,
+					],
+					'render_type'        => 'none',
+					'frontend_available' => true,
+					'condition'          => [
+						'sa_reveal_fx_enable' => 'yes',
+					],
+				]
+			);
+
+			/**
+			 * ── Targeting ─────────────────────────────────────
+			 */
+			$widget->add_control(
+				'sa_reveal_fx_select_type',
+				[
+					'label'              => esc_html__( 'Target Selector', 'sky-elementor-addons' ),
+					'description'        => esc_html__( 'Choose which element to apply the reveal effect to. Use Custom to target inner items individually (e.g. grid cards, list items).', 'sky-elementor-addons' ),
+					'type'               => Controls_Manager::SELECT,
+					'default'            => 'default',
+					'options'            => [
+						'default' => esc_html__( 'Default (Entire Element)', 'sky-elementor-addons' ),
+						'custom'  => esc_html__( 'Custom Selector', 'sky-elementor-addons' ),
+					],
+					'separator'          => 'before',
+					'render_type'        => 'none',
+					'frontend_available' => true,
+					'condition'          => [
+						'sa_reveal_fx_enable' => 'yes',
+					],
+				]
+			);
+
+			$sa_reveal_fx_selector = ( sky_addons_init_pro() === true || sky_addons_editor_mode() === true ) ? true : false;
+
+			$widget->add_control(
+				'sa_reveal_fx_selector',
+				[
+					'label'              => esc_html__( 'CSS Selector', 'sky-elementor-addons' ) . sky_addons_control_indicator_pro(),
+					'description'        => esc_html__( 'CSS selector for the inner elements to animate individually (e.g. .post-item, .sa-card). Each matched element gets its own reveal animation.', 'sky-elementor-addons' ),
+					'type'               => Controls_Manager::TEXT,
+					'ai'                 => [ 'active' => false ],
+					'render_type'        => 'none',
+					'frontend_available' => $sa_reveal_fx_selector,
+					'condition'          => [
+						'sa_reveal_fx_enable'      => 'yes',
+						'sa_reveal_fx_select_type' => 'custom',
+					],
+				]
+			);
+
+			/**
+			 * ── Advanced ──────────────────────────────────────
+			 */
 			$widget->add_control(
 				'sa_reveal_fx_z_index',
 				[
-					'label'       => esc_html__( 'Z-Index', 'sky-elementor-addons' ),
+					'label'       => esc_html__( 'Overlay Z-Index', 'sky-elementor-addons' ),
+					'description' => esc_html__( 'Stacking order of the reveal overlay. Increase this value if the overlay appears hidden behind other elements.', 'sky-elementor-addons' ),
 					'type'        => Controls_Manager::NUMBER,
+					'separator'   => 'before',
 					'render_type' => 'none',
 					'condition'   => [
 						'sa_reveal_fx_enable' => 'yes',
@@ -269,15 +356,29 @@ class Module extends Module_Base {
 
 	public function widget_reveal_fx_before_render( $widget ) {
 			$settings = $widget->get_settings_for_display();
-		if ( $settings['sa_reveal_fx_enable'] === 'yes' ) {
+		if ( isset( $settings['sa_reveal_fx_enable'] ) && 'yes' === $settings['sa_reveal_fx_enable'] ) {
 				wp_enqueue_script( 'anime' );
 				wp_enqueue_script( 'revealFx' );
+				wp_enqueue_script( 'sa-reveal-effects' );
 		}
 	}
 
 	protected function add_actions() {
+			// Widgets — Content tab
 			add_action( 'elementor/element/common/_section_style/after_section_end', [ $this, 'register_section' ] );
 			add_action( 'elementor/element/common/section_sky_addons_reveal_fx_controls/before_section_end', [ $this, 'register_controls' ], 10, 2 );
+
+			// Sections — Layout tab
+			add_action( 'elementor/element/section/section_layout/after_section_end', [ $this, 'register_section' ] );
+			add_action( 'elementor/element/section/section_sky_addons_reveal_fx_controls/before_section_end', [ $this, 'register_controls' ], 10, 2 );
+
+			// Containers — Layout tab
+			add_action( 'elementor/element/container/section_layout/after_section_end', [ $this, 'register_section' ] );
+			add_action( 'elementor/element/container/section_sky_addons_reveal_fx_controls/before_section_end', [ $this, 'register_controls' ], 10, 2 );
+
+			// Script enqueue on frontend render
 			add_action( 'elementor/frontend/widget/before_render', [ $this, 'widget_reveal_fx_before_render' ], 10, 1 );
+			add_action( 'elementor/frontend/section/before_render', [ $this, 'widget_reveal_fx_before_render' ], 10, 1 );
+			add_action( 'elementor/frontend/container/before_render', [ $this, 'widget_reveal_fx_before_render' ], 10, 1 );
 	}
 }

@@ -11,7 +11,7 @@ class Module extends Module_Base {
 
 		add_action(
 			'elementor/element/before_section_end',
-			function( $section, $section_id, $args ) {
+			function ( $section, $section_id, $args ) {
 				if ( 'sky-post-comments' === $section->get_name() && 'section_title' === $section_id ) {
 					$section->remove_control( 'title' );
 					$section->remove_control( 'link' );

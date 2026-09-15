@@ -11,7 +11,7 @@ use Elementor\Core\Kits\Documents\Tabs\Global_Typography;
 use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 class FluentForm extends Widget_Base {
@@ -44,6 +44,10 @@ class FluentForm extends Widget_Base {
 		return true;
 	}
 
+	public function has_widget_inner_wrapper(): bool {
+		return ! \Elementor\Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
+	}
+
 	protected function register_controls() {
 
 		$this->start_controls_section(
@@ -61,6 +65,7 @@ class FluentForm extends Widget_Base {
 				[
 					'type'            => Controls_Manager::RAW_HTML,
 					'raw'             => sprintf(
+						/* translators: %1$s: plugin name linked to its install page, %2$s: current user's display name. */
 						__( 'Hello %2$s, the %1$s plugin is required for this widget to work properly. Please install and activate %1$s to access the full functionality of this widget. After installation, refresh this page to start using the form builder.', 'sky-elementor-addons' ),
 						'<a href="' . esc_url( admin_url( 'plugin-install.php?s=fluentform&tab=search&type=term' ) )
 						. '" target="_blank" rel="noopener">Fluent Form</a>',
@@ -88,6 +93,7 @@ class FluentForm extends Widget_Base {
 					'label_block' => true,
 					'options'     => [ '' => __( '-- Select a Form --', 'sky-elementor-addons' ) ] + \sky_addons_fluent_forms(),
 					'description' => sprintf(
+						/* translators: %1$s: opening link tag, %2$s: closing link tag. */
 						__( 'Create or edit forms in the %1$sFluent Forms dashboard%2$s', 'sky-elementor-addons' ),
 						'<a href="' . esc_url( admin_url( 'admin.php?page=fluent_forms' ) ) . '" target="_blank">',
 						'</a>'
@@ -99,10 +105,283 @@ class FluentForm extends Widget_Base {
 
 		$this->end_controls_section();
 
+		$this->__form_container_style_controls();
 		$this->__fields_style_controls();
 		$this->__fields_label_style_controls();
 		$this->__submit_btn_style_controls();
+		$this->__validation_error_style_controls();
+		$this->__success_message_style_controls();
 		$this->__break_style_controls();
+	}
+
+	protected function __form_container_style_controls() {
+
+		$this->start_controls_section(
+			'_section_form_container_style',
+			[
+				'label' => esc_html__( 'Form Container', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			]
+		);
+
+		$this->add_responsive_control(
+			'form_container_padding',
+			[
+				'label'      => esc_html__( 'Padding', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .ff-default' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'form_container_margin',
+			[
+				'label'      => esc_html__( 'Margin', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .ff-default' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
+			[
+				'name'     => 'form_container_background',
+				'label'    => esc_html__( 'Background', 'sky-elementor-addons' ),
+				'types'    => [ 'classic', 'gradient' ],
+				'selector' => '{{WRAPPER}} .ff-default',
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			[
+				'name'     => 'form_container_border',
+				'selector' => '{{WRAPPER}} .ff-default',
+			]
+		);
+
+		$this->add_responsive_control(
+			'form_container_border_radius',
+			[
+				'label'      => esc_html__( 'Border Radius', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .ff-default' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			[
+				'name'     => 'form_container_box_shadow',
+				'selector' => '{{WRAPPER}} .ff-default',
+			]
+		);
+
+		$this->end_controls_section();
+	}
+
+	protected function __validation_error_style_controls() {
+
+		$this->start_controls_section(
+			'_section_validation_error_style',
+			[
+				'label' => esc_html__( 'Validation Error', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			]
+		);
+
+		$this->add_responsive_control(
+			'validation_error_padding',
+			[
+				'label'      => esc_html__( 'Padding', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', 'em', 'rem', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .ff-el-is-error .ff-el-form-control' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			[
+				'name'     => 'validation_error_border',
+				'label'    => esc_html__( 'Border', 'sky-elementor-addons' ),
+				'selector' => '{{WRAPPER}} .ff-el-is-error .ff-el-form-control',
+			]
+		);
+
+		$this->add_responsive_control(
+			'validation_error_border_radius',
+			[
+				'label'      => esc_html__( 'Border Radius', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .ff-el-is-error .ff-el-form-control' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
+			[
+				'name'     => 'validation_error_background',
+				'label'    => esc_html__( 'Background', 'sky-elementor-addons' ),
+				'types'    => [ 'classic', 'gradient' ],
+				'selector' => '{{WRAPPER}} .ff-el-is-error .ff-el-form-control',
+			]
+		);
+
+		$this->add_control(
+			'validation_error_text_color',
+			[
+				'label' => esc_html__( 'Error Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .ff-validator-error' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'validation_error_margin',
+			[
+				'label'      => esc_html__( 'Error Message Margin Top', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ 'px' ],
+				'range'      => [
+					'px' => [
+						'min' => 0,
+						'max' => 50,
+					],
+				],
+				'selectors'  => [
+					'{{WRAPPER}} .ff-validator-error' => 'margin-top: {{SIZE}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			[
+				'name'     => 'validation_error_typography',
+				'label'    => esc_html__( 'Error Text Typography', 'sky-elementor-addons' ),
+				'selector' => '{{WRAPPER}} .ff-validator-error',
+				'global'   => [
+					'default' => Global_Typography::TYPOGRAPHY_ACCENT,
+				],
+			]
+		);
+
+		$this->end_controls_section();
+	}
+
+	protected function __success_message_style_controls() {
+
+		$this->start_controls_section(
+			'_section_success_message_style',
+			[
+				'label' => esc_html__( 'Success Message', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			]
+		);
+
+		$this->add_responsive_control(
+			'success_message_padding',
+			[
+				'label'      => esc_html__( 'Padding', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', 'em', 'rem', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .ff-success-message' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'success_message_margin',
+			[
+				'label'      => esc_html__( 'Margin', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', 'em', 'rem', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .ff-success-message' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'success_message_border_radius',
+			[
+				'label'      => esc_html__( 'Border Radius', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .ff-success-message' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			[
+				'name'     => 'success_message_typography',
+				'label'    => esc_html__( 'Typography', 'sky-elementor-addons' ),
+				'selector' => '{{WRAPPER}} .ff-success-message',
+				'global'   => [
+					'default' => Global_Typography::TYPOGRAPHY_ACCENT,
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
+			[
+				'name'     => 'success_message_background',
+				'label'    => esc_html__( 'Background', 'sky-elementor-addons' ),
+				'types'    => [ 'classic', 'gradient' ],
+				'selector' => '{{WRAPPER}} .ff-success-message',
+			]
+		);
+
+		$this->add_control(
+			'success_message_text_color',
+			[
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .ff-success-message' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			[
+				'name'     => 'success_message_border',
+				'selector' => '{{WRAPPER}} .ff-success-message',
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			[
+				'name'     => 'success_message_box_shadow',
+				'selector' => '{{WRAPPER}} .ff-success-message',
+			]
+		);
+
+		$this->end_controls_section();
 	}
 
 	protected function __fields_style_controls() {
@@ -180,8 +459,8 @@ class FluentForm extends Widget_Base {
 		$this->add_control(
 			'field_color',
 			[
-				'label'     => __( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .ff-el-form-control' => 'color: {{VALUE}}',
 				],
@@ -191,8 +470,8 @@ class FluentForm extends Widget_Base {
 		$this->add_control(
 			'field_placeholder_color',
 			[
-				'label'     => __( 'Placeholder Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Placeholder Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} ::-webkit-input-placeholder' => 'color: {{VALUE}};',
 					'{{WRAPPER}} ::-moz-placeholder'      => 'color: {{VALUE}};',
@@ -329,8 +608,8 @@ class FluentForm extends Widget_Base {
 		$this->add_control(
 			'label_color',
 			[
-				'label'     => __( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .ff-el-input--label label' => 'color: {{VALUE}}',
 				],
@@ -340,8 +619,8 @@ class FluentForm extends Widget_Base {
 		$this->add_control(
 			'check_box_label_color',
 			[
-				'label'     => __( 'Check Box Label Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Check Box Label Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .ff-el-form-check .ff-el-form-check-label' => 'color: {{VALUE}}',
 				],
@@ -351,8 +630,8 @@ class FluentForm extends Widget_Base {
 		$this->add_control(
 			'required_label_color',
 			[
-				'label'     => __( 'Required Label Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Required Label Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .ff-el-input--label label:before' => 'color: {{VALUE}}',
 				],
@@ -415,8 +694,8 @@ class FluentForm extends Widget_Base {
 		$this->add_control(
 			'help_text_icon_color',
 			[
-				'label'     => __( 'Icon Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Icon Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .ff-el-tooltip' => 'color: {{VALUE}}',
 				],
@@ -426,8 +705,8 @@ class FluentForm extends Widget_Base {
 		$this->add_control(
 			'help_text_color',
 			[
-				'label'     => __( 'Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .ff-el-tooltip:before' => 'color: {{VALUE}}',
 				],
@@ -437,8 +716,8 @@ class FluentForm extends Widget_Base {
 		$this->add_control(
 			'help_text_arrow_color',
 			[
-				'label'     => __( 'Arrow Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Arrow Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .ff-el-tooltip:after' => 'border-top-color: {{VALUE}}',
 				],
@@ -551,9 +830,9 @@ class FluentForm extends Widget_Base {
 		$this->add_control(
 			'submit_text_color',
 			[
-				'label'     => __( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#FFFFFF',
+				'label'   => __( 'Text Color', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::COLOR,
+				'default' => '#FFFFFF',
 				'selectors' => [
 					'{{WRAPPER}} .ff-btn-submit' => 'color: {{VALUE}};',
 				],
@@ -582,9 +861,9 @@ class FluentForm extends Widget_Base {
 		$this->add_control(
 			'submit_hover_text_color',
 			[
-				'label'     => __( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '#FFFFFF',
+				'label'   => __( 'Text Color', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::COLOR,
+				'default' => '#FFFFFF',
 				'selectors' => [
 					'{{WRAPPER}} .ff-btn-submit:hover, {{WRAPPER}} .ff-btn-submit:focus' => 'color: {{VALUE}};',
 				],
@@ -604,8 +883,8 @@ class FluentForm extends Widget_Base {
 		$this->add_control(
 			'submit_hover_border_color',
 			[
-				'label'     => __( 'Border Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Border Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .ff-btn-submit:hover, {{WRAPPER}} .ff-btn-submit:focus' => 'border-color: {{VALUE}};',
 				],
@@ -672,8 +951,8 @@ class FluentForm extends Widget_Base {
 		$this->add_control(
 			'section_break_title_color',
 			[
-				'label'     => __( 'Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .ff-el-section-break .ff-el-section-title' => 'color: {{VALUE}};',
 				],
@@ -692,8 +971,8 @@ class FluentForm extends Widget_Base {
 		$this->add_control(
 			'section_break_description_color',
 			[
-				'label'     => __( 'Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .ff-el-section-break .ff-section_break_desk' => 'color: {{VALUE}};',
 				],
@@ -715,6 +994,7 @@ class FluentForm extends Widget_Base {
 		$settings = $this->get_settings_for_display();
 
 		if ( ! empty( $settings['form_id'] ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Form markup from Fluent Forms' shortcode, escaped by that plugin; wp_kses_post() would strip the form fields.
 			echo sky_addons_do_shortcode( 'fluentform', [
 				'id' => $settings['form_id'],
 			] );

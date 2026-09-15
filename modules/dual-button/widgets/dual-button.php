@@ -13,7 +13,7 @@ use Elementor\Icons_Manager;
 use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 class Dual_Button extends Widget_Base {
@@ -37,9 +37,21 @@ class Dual_Button extends Widget_Base {
 	public function get_keywords() {
 		return [ 'sky', 'dual', 'buttons' ];
 	}
+	public function get_style_depends() {
+		if ( sky_addons_editor_mode() ) {
+			return [ 'sky-addons-styles' ];
+		}
+
+		return [ 'sa-dual-button' ];
+	}
+
 
 	public function get_custom_help_url() {
 		return 'https://skyaddons.com/docs/sky-addons/widgets/dual-button/';
+	}
+
+	public function has_widget_inner_wrapper(): bool {
+		return ! \Elementor\Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
 	}
 
 	protected function register_controls() {
@@ -55,9 +67,9 @@ class Dual_Button extends Widget_Base {
 		$this->add_responsive_control(
 			'dual_button_alignment',
 			[
-				'label'     => esc_html__( 'Alignment', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::CHOOSE,
-				'options'   => [
+				'label'   => esc_html__( 'Alignment', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::CHOOSE,
+				'options' => [
 					'flex-start' => [
 						'title' => esc_html__( 'Left', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-left',
@@ -71,8 +83,8 @@ class Dual_Button extends Widget_Base {
 						'icon'  => 'eicon-h-align-right',
 					],
 				],
-				'default'   => 'center',
-				'toggle'    => false,
+				'default' => 'center',
+				'toggle'  => false,
 				'selectors' => [
 					'{{WRAPPER}} .sa-dual-button' => 'justify-content: {{VALUE}} !important;',
 				],
@@ -90,10 +102,6 @@ class Dual_Button extends Widget_Base {
 						'min' => 25,
 						'max' => 100,
 					],
-				],
-				'default'    => [
-					'unit' => '%',
-					// 'size' => 50,
 				],
 				'selectors'  => [
 					'{{WRAPPER}} .sa-dual-button-container' => 'width: {{SIZE}}%;',
@@ -163,10 +171,10 @@ class Dual_Button extends Widget_Base {
 		$this->add_control(
 			'separator_content_text',
 			[
-				'label'     => esc_html__( 'Text', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::TEXT,
-				'default'   => esc_html__( 'or', 'sky-elementor-addons' ),
-				'dynamic'   => [ 'active' => true ],
+				'label'   => esc_html__( 'Text', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::TEXT,
+				'default' => esc_html__( 'or', 'sky-elementor-addons' ),
+				'dynamic' => [ 'active' => true ],
 				'condition' => [
 					'separator_content_type' => 'text',
 					'show_separator'         => 'yes',
@@ -232,9 +240,9 @@ class Dual_Button extends Widget_Base {
 		$this->add_responsive_control(
 			'button_a_alignment',
 			[
-				'label'     => esc_html__( 'Alignment', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::CHOOSE,
-				'options'   => [
+				'label'   => esc_html__( 'Alignment', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::CHOOSE,
+				'options' => [
 					'flex-start' => [
 						'title' => esc_html__( 'Left', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-left',
@@ -248,8 +256,8 @@ class Dual_Button extends Widget_Base {
 						'icon'  => 'eicon-text-align-right',
 					],
 				],
-				'toggle'    => false,
-				'default'   => 'center',
+				'toggle'  => false,
+				'default' => 'center',
 				'selectors' => [
 					'{{WRAPPER}} .sa-btn-a' => 'justify-content: {{VALUE}};',
 				],
@@ -356,9 +364,9 @@ class Dual_Button extends Widget_Base {
 		$this->add_responsive_control(
 			'button_b_alignment',
 			[
-				'label'     => esc_html__( 'Alignment', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::CHOOSE,
-				'options'   => [
+				'label'   => esc_html__( 'Alignment', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::CHOOSE,
+				'options' => [
 					'flex-start' => [
 						'title' => esc_html__( 'Left', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-left',
@@ -372,8 +380,8 @@ class Dual_Button extends Widget_Base {
 						'icon'  => 'eicon-text-align-right',
 					],
 				],
-				'default'   => 'center',
-				'toggle'    => false,
+				'default' => 'center',
+				'toggle'  => false,
 				'selectors' => [
 					'{{WRAPPER}} .sa-btn-b' => 'justify-content: {{VALUE}};',
 				],
@@ -520,8 +528,8 @@ class Dual_Button extends Widget_Base {
 		$this->add_control(
 			'button_a_color',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-btn-a'       => 'color: {{VALUE}}',
 					'{{WRAPPER}} .sa-btn-a svg *' => 'fill: {{VALUE}}',
@@ -590,8 +598,8 @@ class Dual_Button extends Widget_Base {
 		$this->add_control(
 			'button_a_color_hover',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-btn-a:hover'       => 'color: {{VALUE}}',
 					'{{WRAPPER}} .sa-btn-a:hover svg *' => 'fill: {{VALUE}}',
@@ -606,6 +614,10 @@ class Dual_Button extends Widget_Base {
 				'label'    => esc_html__( 'Background', 'sky-elementor-addons' ),
 				'types'    => [ 'classic', 'gradient' ],
 				'selector' => '{{WRAPPER}} .sa-btn-a:hover',
+				'fields_options' => [
+					'background' => [ 'default' => 'classic' ],
+					'color'      => [ 'default' => '#6a3385' ],
+				],
 			]
 		);
 
@@ -620,8 +632,8 @@ class Dual_Button extends Widget_Base {
 		$this->add_control(
 			'button_a_border_hover',
 			[
-				'label'     => esc_html__( 'Border Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Border Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}}  .sa-btn-a:hover' => 'border-color: {{VALUE}};',
 				],
@@ -710,8 +722,8 @@ class Dual_Button extends Widget_Base {
 		$this->add_control(
 			'button_b_color',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-btn-b'       => 'color: {{VALUE}}',
 					'{{WRAPPER}} .sa-btn-b svg *' => 'fill: {{VALUE}}',
@@ -780,8 +792,8 @@ class Dual_Button extends Widget_Base {
 		$this->add_control(
 			'button_b_color_hover',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-btn-b:hover'       => 'color: {{VALUE}}',
 					'{{WRAPPER}} .sa-btn-b:hover svg *' => 'fill: {{VALUE}}',
@@ -796,6 +808,10 @@ class Dual_Button extends Widget_Base {
 				'label'    => esc_html__( 'Background', 'sky-elementor-addons' ),
 				'types'    => [ 'classic', 'gradient' ],
 				'selector' => '{{WRAPPER}} .sa-btn-b:hover',
+				'fields_options' => [
+					'background' => [ 'default' => 'classic' ],
+					'color'      => [ 'default' => '#c43da0' ],
+				],
 			]
 		);
 
@@ -810,8 +826,8 @@ class Dual_Button extends Widget_Base {
 		$this->add_control(
 			'button_b_border_hover',
 			[
-				'label'     => esc_html__( 'Border Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Border Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}}  .sa-btn-b:hover' => 'border-color: {{VALUE}};',
 				],
@@ -862,8 +878,8 @@ class Dual_Button extends Widget_Base {
 		$this->start_controls_section(
 			'separator_style',
 			[
-				'label'     => esc_html__( 'Separator', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Separator', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_separator' => 'yes',
 				],
@@ -878,12 +894,12 @@ class Dual_Button extends Widget_Base {
 				'size_units' => [ 'px', 'em' ],
 				'range'      => [
 					'px' => [
-						'min' => 30,
-						'max' => 50,
+						'min' => 20,
+						'max' => 80,
 					],
 				],
 				'selectors'  => [
-					'{{WRAPPER}} .sa-separator' => 'height: {{SIZE}}{{UNIT}}; width: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .sa-separator' => 'height: {{SIZE}}{{UNIT}}; width: {{SIZE}}{{UNIT}}; margin-left: calc(-{{SIZE}}{{UNIT}} / 2); margin-right: calc(-{{SIZE}}{{UNIT}} / 2); font-size: calc({{SIZE}}{{UNIT}} * 0.38);',
 				],
 			]
 		);
@@ -891,8 +907,8 @@ class Dual_Button extends Widget_Base {
 		$this->add_control(
 			'separator_color',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-separator' => 'color: {{VALUE}}',
 				],
@@ -934,7 +950,7 @@ class Dual_Button extends Widget_Base {
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => [ 'px', 'em', '%' ],
 				'selectors'  => [
-					'{{WRAPPER}} .sa-separator' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}}; overflow: hidden;',
+					'{{WRAPPER}} .sa-separator' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 			]
 		);
@@ -948,13 +964,48 @@ class Dual_Button extends Widget_Base {
 			]
 		);
 
+		$this->add_control(
+			'separator_ring_width',
+			[
+				'label'      => esc_html__( 'Ring Width', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ 'px' ],
+				'range'      => [
+					'px' => [
+						'min' => 0,
+						'max' => 20,
+					],
+				],
+				'default'    => [
+					'size' => 5,
+					'unit' => 'px',
+				],
+				'separator'  => 'before',
+				'selectors'  => [
+					'{{WRAPPER}} .sa-separator' => '--sa-sep-ring-w: {{SIZE}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'separator_ring_color',
+			[
+				'label'   => esc_html__( 'Ring Color', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'type'    => Controls_Manager::COLOR,
+				'default' => 'rgba(255,255,255,0.3)',
+				'selectors' => [
+					'{{WRAPPER}} .sa-separator' => '--sa-sep-ring-color: {{VALUE}};',
+				],
+			]
+		);
+
 		$this->end_controls_section();
 
 		$this->start_controls_section(
 			'icon_a_style',
 			[
-				'label'     => esc_html__( 'Icon A', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Icon A', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'button_a_icon[value]!' => '',
 				],
@@ -1024,8 +1075,8 @@ class Dual_Button extends Widget_Base {
 		$this->add_control(
 			'icon_a_color',
 			[
-				'label'     => esc_html__( 'Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-btn-a .sa-icon-wrap' => 'color: {{VALUE}}',
 				],
@@ -1063,8 +1114,8 @@ class Dual_Button extends Widget_Base {
 		$this->add_control(
 			'icon_a_color_hover',
 			[
-				'label'     => esc_html__( 'Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-btn-a:hover .sa-icon-wrap' => 'color: {{VALUE}}',
 				],
@@ -1084,8 +1135,8 @@ class Dual_Button extends Widget_Base {
 		$this->add_control(
 			'icon_a_hover_border_color',
 			[
-				'label'     => esc_html__( 'Border Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Border Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-btn-a:hover .sa-icon-wrap' => 'border-color: {{VALUE}}',
 				],
@@ -1113,8 +1164,8 @@ class Dual_Button extends Widget_Base {
 		$this->start_controls_section(
 			'icon_b_style',
 			[
-				'label'     => esc_html__( 'Icon B', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Icon B', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'button_b_icon[value]!' => '',
 				],
@@ -1184,8 +1235,8 @@ class Dual_Button extends Widget_Base {
 		$this->add_control(
 			'icon_b_color',
 			[
-				'label'     => esc_html__( 'Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-btn-b .sa-icon-wrap' => 'color: {{VALUE}}',
 				],
@@ -1223,8 +1274,8 @@ class Dual_Button extends Widget_Base {
 		$this->add_control(
 			'icon_b_color_hover',
 			[
-				'label'     => esc_html__( 'Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-btn-b:hover .sa-icon-wrap' => 'color: {{VALUE}}',
 				],
@@ -1244,8 +1295,8 @@ class Dual_Button extends Widget_Base {
 		$this->add_control(
 			'icon_b_hover_border_color',
 			[
-				'label'     => esc_html__( 'Border Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Border Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-btn-b:hover .sa-icon-wrap' => 'border-color: {{VALUE}}',
 				],
@@ -1271,12 +1322,11 @@ class Dual_Button extends Widget_Base {
 		$this->end_controls_section();
 	}
 
-	protected function button_icon( $btn ) {
-		$settings = $this->get_settings_for_display();
+	protected function button_icon( string $icon_key, array $settings ): void {
 		?>
 		<div class="sa-icon-wrap sa-text-center">
 			<?php
-			Icons_Manager::render_icon( $settings[ $btn ], [
+			Icons_Manager::render_icon( $settings[ $icon_key ], [
 				'aria-hidden' => 'true',
 			] );
 			?>
@@ -1284,75 +1334,71 @@ class Dual_Button extends Widget_Base {
 		<?php
 	}
 
-	// sa-button-icon
+	private function render_button( string $btn, array $settings ): void {
+		$key          = 'button_' . $btn;
+		$icon_key     = $key . '_icon';
+		$text_key     = $key . '_text';
+		$position_key = $key . '_icon_position';
+
+		$this->add_link_attributes( $key, $settings[ $key . '_link' ] );
+
+		$icon_position_class = ! empty( $settings[ $icon_key ]['value'] )
+			? 'sa-flex-icon-' . $settings[ $position_key ]
+			: '';
+
+		$this->add_render_attribute( $key, 'class',
+			'sa-btn sa-btn-' . $btn . ' sa-d-flex sa-text-decoration-none sa-align-items-center sa-justify-content-center ' . $icon_position_class
+		);
+
+		if ( ! empty( $settings[ $text_key ] ) ) {
+			$this->add_render_attribute( $key, 'class', 'sa-button-icon-' . $settings[ $position_key ] );
+		}
+		?>
+		<a <?php $this->print_render_attribute_string( $key ); ?>>
+			<?php
+			if ( ! empty( $settings[ $icon_key ]['value'] ) ) {
+				$this->button_icon( $icon_key, $settings );
+			}
+			if ( ! empty( $settings[ $text_key ] ) ) {
+				printf( '<span class="sa-button-text">%s</span>', esc_html( $settings[ $text_key ] ) );
+			}
+			?>
+		</a>
+		<?php
+	}
+
+	private function render_separator( array $settings ): void {
+		if ( 'yes' !== $settings['show_separator'] ) {
+			return;
+		}
+
+		?>
+		<span class="sa-separator">
+			<span class="sa-separator-inner">
+				<?php
+				if ( 'icon' === $settings['separator_content_type'] ) {
+					Icons_Manager::render_icon( $settings['separator_content_icon'], [
+						'aria-hidden' => 'true',
+					] );
+				} else {
+					echo esc_html( $settings['separator_content_text'] );
+				}
+				?>
+			</span>
+		</span>
+		<?php
+	}
+
 	protected function render() {
 		$settings = $this->get_settings_for_display();
-
-		// button A
-		$this->add_link_attributes( 'button_a', $settings['button_a_link'] );
-		$icon_position_a = ! empty( $settings['button_a_icon']['value'] ) ? 'sa-flex-icon-' . $settings['button_a_icon_position'] : '';
-		$this->add_render_attribute( 'button_a', 'class', 'sa-btn sa-btn-a sa-d-flex sa-text-decoration-none sa-align-items-center sa-justify-content-center ' . $icon_position_a );
-
-		// button B
-		$this->add_link_attributes( 'button_b', $settings['button_b_link'] );
-		$icon_position_b = ! empty( $settings['button_b_icon']['value'] ) ? 'sa-flex-icon-' . $settings['button_b_icon_position'] : '';
-		$this->add_render_attribute( 'button_b', 'class', 'sa-btn sa-btn-b sa-d-flex sa-text-decoration-none sa-align-items-center sa-justify-content-center ' . $icon_position_b );
 		?>
 		<div class="sa-dual-button sa-d-flex sa-justify-content-center sa-align-items-center">
 			<div class="sa-dual-button-container sa-d-flex sa-align-items-center">
 				<?php
-				if ( ! empty( $settings['button_a_text'] ) ) :
-					$this->add_render_attribute( 'button_a', 'class', 'sa-button-icon-' . $settings['button_a_icon_position'] );
-				endif;
+				$this->render_button( 'a', $settings );
+				$this->render_button( 'b', $settings );
+				$this->render_separator( $settings );
 				?>
-				<a <?php $this->print_render_attribute_string( 'button_a' ); ?>>
-					<?php
-					if ( ! empty( $settings['button_a_icon']['value'] ) ) {
-						$this->button_icon( 'button_a_icon' );
-					}
-
-					if ( ! empty( $settings['button_a_text'] ) ) {
-						printf(
-							'<span class="sa-button-text">%1$s</span>',
-							esc_html( $settings['button_a_text'] )
-						);
-					}
-					?>
-				</a>
-
-				<?php
-				if ( ! empty( $settings['button_b_text'] ) ) :
-					$this->add_render_attribute( 'button_b', 'class', 'sa-button-icon-' . $settings['button_b_icon_position'] );
-				endif;
-				?>
-
-				<a <?php $this->print_render_attribute_string( 'button_b' ); ?>>
-					<?php
-					if ( ! empty( $settings['button_b_icon']['value'] ) ) {
-						$this->button_icon( 'button_b_icon' );
-					}
-					if ( ! empty( $settings['button_b_text'] ) ) {
-						printf(
-							'<span class="sa-button-text">%1$s</span>',
-							esc_html( $settings['button_b_text'] )
-						);
-					}
-					?>
-				</a>
-				<?php if ( $settings['show_separator'] === 'yes' ) : ?>
-					<span class="sa-separator">
-						<?php
-						if ( $settings['separator_content_type'] === 'icon' ) {
-							Icons_Manager::render_icon( $settings['separator_content_icon'], [
-								'aria-hidden' => 'true',
-								'class'       => 'sa--',
-							] );
-						} else {
-							echo esc_html( $settings['separator_content_text'] );
-						}
-						?>
-					</span>
-				<?php endif; ?>
 			</div>
 		</div>
 		<?php

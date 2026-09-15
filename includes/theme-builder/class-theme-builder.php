@@ -34,24 +34,57 @@ class Theme_Builder {
 
 	public function includes() {
 		require_once SKY_ADDONS_INC_PATH . 'theme-builder/class-builder-data.php';
+		require_once SKY_ADDONS_INC_PATH . 'theme-builder/class-builder-context.php';
+		require_once SKY_ADDONS_INC_PATH . 'theme-builder/class-template-router.php';
+		require_once SKY_ADDONS_INC_PATH . 'theme-builder/class-preview-manager.php';
+		require_once SKY_ADDONS_INC_PATH . 'theme-builder/class-live-preview.php';
+
+		Builder_Context::instance();
+		Preview_Manager::instance();
+		Live_Preview::instance();
 
 		require_once SKY_ADDONS_INC_PATH . 'theme-builder/themes/astra.php';
 		require_once SKY_ADDONS_INC_PATH . 'theme-builder/themes/bbtheme.php';
 		require_once SKY_ADDONS_INC_PATH . 'theme-builder/themes/default-support.php';
 		require_once SKY_ADDONS_INC_PATH . 'theme-builder/themes/generatepress.php';
 		require_once SKY_ADDONS_INC_PATH . 'theme-builder/themes/genesis.php';
+		require_once SKY_ADDONS_INC_PATH . 'theme-builder/themes/kadence.php';
 		require_once SKY_ADDONS_INC_PATH . 'theme-builder/themes/neve.php';
 		require_once SKY_ADDONS_INC_PATH . 'theme-builder/themes/oceanwp.php';
+		require_once SKY_ADDONS_INC_PATH . 'theme-builder/themes/storefront.php';
 
-		if ( apply_filters( 'sky_addons_pro_init', false ) && defined( 'SKY_ADDONS_PRO_INC_PATH' ) ) {
-			if ( file_exists( SKY_ADDONS_PRO_INC_PATH . 'theme-builder/support/custom-hooks.php' ) ) {
-				require_once SKY_ADDONS_PRO_INC_PATH . 'theme-builder/support/custom-hooks.php';
-				$this->get_custom_hooks();
-			}
-		}
+		require_once SKY_ADDONS_INC_PATH . 'theme-builder/support/custom-hooks.php';
+	}
+
+	/**
+	 * Requests that can never render a Theme Builder template.
+	 *
+	 * Feeds, robots.txt, sitemaps, favicon, trackbacks and oEmbed responses all
+	 * run past the `wp` action and then exit at `template_redirect`, before
+	 * `template_include` is ever reached — so every template query, meta prime
+	 * and theme-support class built for them is pure waste. On a crawled site
+	 * these are a meaningful share of all requests.
+	 *
+	 * REST, admin-ajax and cron never reach `wp` at all, so they need no guard.
+	 * 404 deliberately is NOT listed — a 404 template is a supported type.
+	 *
+	 * @return bool
+	 */
+	private function is_ignorable_request() {
+		return is_feed() || is_robots() || is_favicon() || is_trackback() || is_embed();
 	}
 
 	public function hooks() {
+		if ( $this->is_ignorable_request() ) {
+			return;
+		}
+
+		// A live preview renders the template alone on Elementor's Canvas. Injecting
+		// the site's assigned header, footer or Custom Hooks around it would bury the
+		// design being previewed inside unrelated chrome.
+		if ( Live_Preview::instance()->is_preview_request() ) {
+			return;
+		}
 
 		$this->current_template = basename( get_page_template_slug() );
 
@@ -97,6 +130,14 @@ class Theme_Builder {
 				new Themes_Hooks\Genesis( $template_ids );
 				break;
 
+			case 'kadence':
+				new Themes_Hooks\Kadence( $template_ids );
+				break;
+
+			case 'storefront':
+				new Themes_Hooks\Storefront( $template_ids );
+				break;
+
 			default:
 				new Themes_Hooks\Default_Support( $template_ids );
 				break;
@@ -107,11 +148,20 @@ class Theme_Builder {
 	 * Apply Conditions for Header, Footer, Single, Archive, 404
 	 */
 	public function apply_conditions() {
-		$this->templates = $this->get_theme_templates();
+		if ( $this->is_ignorable_request() ) {
+			return;
+		}
 
-		// if ( ! is_admin() ) {
-		// }
+		// A live preview renders the template alone on Elementor's Canvas. Injecting
+		// the site's assigned header, footer or Custom Hooks around it would bury the
+		// design being previewed inside unrelated chrome.
+		if ( Live_Preview::instance()->is_preview_request() ) {
+			return;
+		}
+
+		$this->templates = $this->get_theme_templates();
 		$this->match_conditions();
+		$this->get_custom_hooks();
 	}
 
 	/**
@@ -168,103 +218,124 @@ class Theme_Builder {
 	}
 
 	/**
-	 * Determine if a template should be displayed
+	 * Determine if a template should be displayed.
+	 *
+	 * Three-step AND model:
+	 *   Step 1 — WHERE  : page/location must match at least one Display On condition.
+	 *   Step 2 — WHO    : if roles are set, current user must match (empty roles = no restriction).
+	 *   Step 3 — EXCEPT : Not Display On overrides everything — always wins.
+	 *
+	 * Meta values are stored as [{value:"..."}] objects; array_column(...,'value') extracts them.
+	 * Custom page IDs stored as strings from JS, so cast $post->ID to string for comparison.
+	 * Custom page checks guarded by is_singular() to prevent false matches on archive pages.
 	 */
 	private function should_display_template( $display_on, $not_display_on, $display_special, $not_display_special, $display_custom, $not_display_custom, $display_roles ) {
 		global $post;
 
-		$should_display = false;
+		// ── Step 1: WHERE ────────────────────────────────────────────────────────
+		// Must match at least one location — no match means skip this template entirely.
+		$display_on_values      = array_column( $display_on, 'value' );
+		$display_special_values = array_column( $display_special, 'value' );
+		$display_custom_values  = array_column( $display_custom, 'value' );
 
-		// ✅ Check Display Conditions
-		if ( in_array( 'entire_site', array_column( $display_on, 'value' ) ) ) {
-			$should_display = true;
+		$location_match = false;
+
+		if ( in_array( 'entire_site', $display_on_values ) ) {
+			$location_match = true;
+		} elseif ( is_page() && in_array( 'all_pages', $display_on_values ) ) {
+			$location_match = true;
+		} elseif ( is_single() && in_array( 'all_posts', $display_on_values ) ) {
+			// is_single() covers posts + all custom post type singles
+			$location_match = true;
+		} elseif ( is_front_page() && in_array( 'front_page', $display_special_values ) ) {
+			$location_match = true;
+		} elseif ( is_home() && in_array( 'blog_page', $display_special_values ) ) {
+			// is_home() = blog posts index; is_archive() does NOT include it
+			$location_match = true;
+		} elseif ( is_archive() && in_array( 'archive_page', $display_special_values ) ) {
+			// is_archive() covers category, tag, author, date, CPT archives
+			$location_match = true;
+		} elseif ( is_search() && in_array( 'search_page', $display_special_values ) ) {
+			// is_search() is NOT covered by is_archive() — search needs its own option
+			$location_match = true;
+		} elseif ( is_404() && in_array( '404_page', $display_special_values ) ) {
+			$location_match = true;
+		} elseif ( is_singular() && $post && in_array( (string) $post->ID, $display_custom_values ) ) {
+			// is_singular() guard prevents $post false-positives on archive pages
+			$location_match = true;
 		}
 
-		if ( is_page() && in_array( 'all_pages', array_column( $display_on, 'value' ) ) ) {
-			$should_display = true;
+		if ( ! $location_match ) {
+			return false;
 		}
 
-		if ( is_single() && in_array( 'all_posts', array_column( $display_on, 'value' ) ) ) {
-			$should_display = true;
-		}
+		// ── Step 2: WHO ──────────────────────────────────────────────────────────
+		// If roles configured and not all_users, current user must match.
+		// Empty roles or all_users = no restriction, skip this check entirely.
+		$user_role_values = array_column( $display_roles, 'value' );
 
-		// Special Pages
-		if ( is_front_page() && in_array( 'front_page', array_column( $display_special, 'value' ) ) ) {
-			$should_display = true;
-		}
+		if ( ! empty( $user_role_values ) && ! in_array( 'all_users', $user_role_values ) ) {
+			$role_match = false;
 
-		if ( is_home() && in_array( 'blog_page', array_column( $display_special, 'value' ) ) ) {
-			$should_display = true;
-		}
-
-		if ( is_archive() && in_array( 'archive_page', array_column( $display_special, 'value' ) ) ) {
-			$should_display = true;
-		}
-
-		if ( is_404() && in_array( '404_page', array_column( $display_special, 'value' ) ) ) {
-			$should_display = true;
-		}
-
-		// Custom Selected Pages
-		if ( $post && in_array( $post->ID, array_column( $display_custom, 'value' ) ) ) {
-			$should_display = true;
-		}
-
-		// ✅ User Role Checks (Properly Structured)
-		if ( is_user_logged_in() ) {
-			$user       = wp_get_current_user();
-			$user_roles = array_column( $display_roles, 'value' );
-
-			// Allow if user is in "logged_in" list or their role matches allowed roles
-			if ( in_array( 'logged_in', $user_roles ) || ! empty( array_intersect( $user->roles, $user_roles ) ) ) {
-				$should_display = true;
+			if ( is_user_logged_in() ) {
+				$user = wp_get_current_user();
+				// 'logged_in' matches any authenticated user; specific roles matched via intersect
+				if ( in_array( 'logged_in', $user_role_values ) || ! empty( array_intersect( $user->roles, $user_role_values ) ) ) {
+					$role_match = true;
+				}
+			} elseif ( in_array( 'logged_out', $user_role_values ) ) {
+				// logged_out only matches unauthenticated visitors
+				$role_match = true;
 			}
 
-			// 🚀 Fix: If "logged_out" is set, prevent display for logged-in users (including admins)
-			if ( in_array( 'logged_out', $user_roles ) ) {
-				$should_display = false;
+			if ( ! $role_match ) {
+				return false;
 			}
 		}
 
-		// ✅ If user is logged out and "logged_out" is set, allow display
-		if ( ! is_user_logged_in() && in_array( 'logged_out', array_column( $display_roles, 'value' ) ) ) {
-			$should_display = true;
-		}
+		// ── Step 3: EXCEPTIONS ───────────────────────────────────────────────────
+		// Not Display On overrides Steps 1 & 2 entirely — return false on any match.
+		$not_display_on_values      = array_column( $not_display_on, 'value' );
+		$not_display_special_values = array_column( $not_display_special, 'value' );
+		$not_display_custom_values  = array_column( $not_display_custom, 'value' );
 
-		// ❌ Check Not Display Conditions (Overrides Above)
-		if ( in_array( 'entire_site', array_column( $not_display_on, 'value' ) ) ) {
+		if ( in_array( 'entire_site', $not_display_on_values ) ) {
 			return false;
 		}
 
-		if ( is_page() && in_array( 'all_pages', array_column( $not_display_on, 'value' ) ) ) {
+		if ( is_page() && in_array( 'all_pages', $not_display_on_values ) ) {
 			return false;
 		}
 
-		if ( is_single() && in_array( 'all_posts', array_column( $not_display_on, 'value' ) ) ) {
+		if ( is_single() && in_array( 'all_posts', $not_display_on_values ) ) {
 			return false;
 		}
 
-		if ( is_front_page() && in_array( 'front_page', array_column( $not_display_special, 'value' ) ) ) {
+		if ( is_front_page() && in_array( 'front_page', $not_display_special_values ) ) {
 			return false;
 		}
 
-		if ( is_home() && in_array( 'blog_page', array_column( $not_display_special, 'value' ) ) ) {
+		if ( is_home() && in_array( 'blog_page', $not_display_special_values ) ) {
 			return false;
 		}
 
-		if ( is_archive() && in_array( 'archive_page', array_column( $not_display_special, 'value' ) ) ) {
+		if ( is_archive() && in_array( 'archive_page', $not_display_special_values ) ) {
 			return false;
 		}
 
-		if ( is_404() && in_array( '404_page', array_column( $not_display_special, 'value' ) ) ) {
+		if ( is_search() && in_array( 'search_page', $not_display_special_values ) ) {
 			return false;
 		}
 
-		if ( $post && in_array( $post->ID, array_column( $not_display_custom, 'value' ) ) ) {
+		if ( is_404() && in_array( '404_page', $not_display_special_values ) ) {
 			return false;
 		}
 
-		return $should_display;
+		if ( is_singular() && $post && in_array( (string) $post->ID, $not_display_custom_values ) ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -283,9 +354,7 @@ class Theme_Builder {
 				break;
 
 			case 'single':
-				if ( apply_filters( 'sky_addons_pro_init', false ) ) {
-					$this->single_template = $template->ID;
-				}
+				$this->single_template = $template->ID;
 				break;
 
 			case 'archive':
@@ -297,23 +366,75 @@ class Theme_Builder {
 				break;
 
 			case 'custom_hooks':
-				$this->custom_hooks = $template->ID;
+				$this->custom_hooks[] = $template->ID;
 				break;
 		}
 	}
 
 	/**
 	 * Get All Templates IDs
+	 *
+	 * The archive-family keys (category / tag / author / date / home / search)
+	 * are aliases of the resolved `archive` template. There is deliberately no
+	 * separate template type for each: one Archive template covers every
+	 * archive screen, and narrowing is done with display conditions. The alias
+	 * keys exist so the per-screen template files stay meaningful override
+	 * points for theme authors.
 	 */
 	public static function template_ids() {
 		$instance = self::instance();
+		$archive  = $instance->archive_template;
+
 		return [
-			'header'  => $instance->header_template,
-			'footer'  => $instance->footer_template,
-			'single'  => $instance->single_template,
-			'archive' => $instance->archive_template,
-			'404'     => $instance->not_found_template,
+			'header'   => $instance->header_template,
+			'footer'   => $instance->footer_template,
+			'single'   => $instance->single_template,
+			'archive'  => $archive,
+			'404'      => $instance->not_found_template,
+			'category' => $archive,
+			'tag'      => $archive,
+			'author'   => $archive,
+			'date'     => $archive,
+			'home'     => $archive,
+			'search'   => $archive,
 		];
+	}
+
+	/**
+	 * Render a resolved Theme Builder template.
+	 *
+	 * Every template file in templates/ calls this, so the Elementor guard, the
+	 * before/after hooks and the postdata reset live in exactly one place.
+	 *
+	 * The Elementor content is printed *outside* the loop on purpose: widgets
+	 * resolve their post through Builder_Context (queried object), and archive
+	 * widgets read the untouched main query. Opening the loop here would leave
+	 * the global pointer on the last post of the archive.
+	 *
+	 * @param string $type Template type key from template_ids().
+	 */
+	public static function render_template( $type ) {
+		$templates = self::template_ids();
+
+		/**
+		 * Fires inside a Theme Builder template, before the Elementor content.
+		 *
+		 * @param string $type Template type being rendered.
+		 */
+		do_action( 'wowdevs_themes_builder_template_before_main_content', $type );
+
+		if ( ! empty( $templates[ $type ] ) && class_exists( '\Elementor\Plugin' ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor-rendered builder content.
+			echo wowdevs_render_elementor_content( $templates[ $type ] );
+			wp_reset_postdata();
+		}
+
+		/**
+		 * Fires inside a Theme Builder template, after the Elementor content.
+		 *
+		 * @param string $type Template type being rendered.
+		 */
+		do_action( 'wowdevs_themes_builder_template_after_main_content', $type );
 	}
 
 	/**
@@ -328,34 +449,14 @@ class Theme_Builder {
 	}
 
 	public function is_edit_mode() {
-
 		if ( 'wowdevs-hooks' === get_post_type() ) {
 			return true;
 		}
-
-    // phpcs:ignore
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( isset( $_REQUEST['wowdevs-hooks'] ) ) {
 			return true;
 		}
-	}
-
-	/**
-	 * Get Template Path
-	 *
-	 * @param $slug
-	 * @param $default_path
-	 *
-	 * @return mixed|string|void
-	 */
-	protected function get_template_path( $slug, $default_path = '' ) {
-		$phpSlug = "{$slug}.php";
-
-		$template = $this->get_plugin_template_path( $phpSlug );
-		if ( $template ) {
-			return $template;
-		}
-
-		return $default_path;
+		return false;
 	}
 
 	protected function set_edit_template( $template ) {
@@ -372,86 +473,13 @@ class Theme_Builder {
 			}
 		}
 
-		// single posts
-		if ( is_single() && 'post' === get_post_type() ) {
-			$custom_template = $this->get_template_id( 'single', 'post' );
-			if ( $custom_template ) {
-				$this->current_template = $custom_template;
-				return $this->get_template_path( 'posts/single', $template );
-			}
-		}
-
-		// archive page
-		if ( ( is_archive() || is_home() ) && get_post_type( get_the_ID() ) === 'post' ) {
-			if ( is_category() ) {
-				$custom_template = $this->get_template_id( 'category', 'post' );
-				if ( $custom_template ) {
-					$this->current_template = $custom_template;
-					return $this->get_template_path( 'posts/category', $template );
-				}
-			} elseif ( is_tag() ) {
-				$custom_template = $this->get_template_id( 'tag', 'post' );
-				if ( $custom_template ) {
-					$this->current_template = $custom_template;
-					return $this->get_template_path( 'posts/tag', $template );
-				}
-			} elseif ( is_author() ) {
-				$custom_template = $this->get_template_id( 'author', 'post' );
-				if ( $custom_template ) {
-					$this->current_template = $custom_template;
-					return $this->get_template_path( 'posts/author', $template );
-				}
-			} elseif ( is_date() ) {
-				$custom_template = $this->get_template_id( 'date', 'post' );
-				if ( $custom_template ) {
-					$this->current_template = $custom_template;
-					return $this->get_template_path( 'posts/date', $template );
-				}
-			} else {
-				$custom_template = $this->get_template_id( 'archive', 'post' );
-				if ( $custom_template ) {
-					$this->current_template = $custom_template;
-					return $this->get_template_path( 'posts/archive', $template );
-				}
-			}
-		}
-
-		// Pages
-		if ( is_page() && is_page_template() && 'page' === get_post_type() ) {
-			$custom_template = $this->get_template_id( 'single', 'page' );
-			if ( $custom_template ) {
-				$this->current_template = $custom_template;
-				return $this->get_template_path( 'pages/single', $template );
-			}
-		}
-
-		// 404 page
-		if ( is_404() ) {
-			$custom_template = $this->get_template_id( '404', 'page' );
-			if ( $custom_template ) {
-				$this->current_template = $custom_template;
-				return $this->get_template_path( 'pages/404', $template );
-			}
-		}
-
-		// search page
-		if ( is_search() ) {
-			$custom_template = $this->get_template_id( 'search', 'page' );
-			if ( $custom_template ) {
-				$this->current_template = $custom_template;
-				return $this->get_template_path( 'pages/search', $template );
-			}
-		}
-
-		return $template;
-	}
-
-	protected function get_template_id( $type, $post_type ) {
-		$template_ids = self::template_ids();
-		if ( isset( $template_ids[ $type ] ) ) {
-			return $template_ids[ $type ];
-		}
-		return false;
+		// $this->current_template is deliberately NOT written here. On the `wp`
+		// action hooks() stores a page-template *slug* in it and compares that
+		// slug to 'elementor_canvas'. Writing a template post ID into the same
+		// property would leave it holding two unrelated types, and nothing reads
+		// it after this point. Template_Router::get_matched_template_id() is the
+		// accessor if the resolved ID is ever needed.
+		return Template_Router::instance()->resolve( $template );
 	}
 
 	public function get_plugin_template_path( $slug ) {
@@ -462,20 +490,35 @@ class Theme_Builder {
 		}
 	}
 
+	/**
+	 * Register the Custom Hooks templates that matched the current page.
+	 *
+	 * Reads $this->custom_hooks — the list assign_template() builds from
+	 * condition-matched templates only.
+	 *
+	 * Before 4.5.0 this method re-walked $this->templates (every *enabled*
+	 * template, matched or not), so a Custom Hook restricted to, say, the front
+	 * page still rendered its full Elementor document on every page of the site:
+	 * the Display On / Exclude From settings were collected correctly and then
+	 * ignored. That also made unmatched hooks the single largest per-request
+	 * cost in the theme builder.
+	 */
 	public function get_custom_hooks() {
-		if ( apply_filters( 'sky_addons_pro_init', false ) ) {
-			$templates = $this->get_theme_templates();
-			$hooks     = [];
-			foreach ( $templates as $template ) {
-				$meta        = get_post_meta( $template->ID );
-				$type        = $meta['wowdevs_theme_builder_type'][0];
-				$template_id = $template->ID;
-				if ( 'custom_hooks' === $type ) {
-					$hook_name     = $meta['wowdevs_theme_builder_hook'][0];
-					$hook_priority = $meta['wowdevs_theme_builder_hook_priority'][0];
-					new \Sky_Addons\ThemeBuilder\Custom_Hooks( $hook_name, $hook_priority, $template_id );
-				}
+		if ( empty( $this->custom_hooks ) ) {
+			return;
+		}
+
+		foreach ( $this->custom_hooks as $template_id ) {
+			$hook_name = get_post_meta( $template_id, 'wowdevs_theme_builder_hook', true );
+
+			if ( empty( $hook_name ) ) {
+				continue;
 			}
+
+			$hook_priority = get_post_meta( $template_id, 'wowdevs_theme_builder_hook_priority', true );
+			$hook_priority = ( '' === $hook_priority || null === $hook_priority ) ? 10 : (int) $hook_priority;
+
+			new \Sky_Addons\ThemeBuilder\Custom_Hooks( $hook_name, $hook_priority, $template_id );
 		}
 	}
 

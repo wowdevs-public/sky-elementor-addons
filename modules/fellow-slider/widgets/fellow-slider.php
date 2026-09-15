@@ -12,7 +12,6 @@ use Elementor\Group_Control_Text_Shadow;
 use Elementor\Group_Control_Css_Filter;
 use Elementor\Widget_Base;
 
-use Elementor\Embed;
 use Elementor\Plugin;
 
 use Sky_Addons\Includes\Controls\GroupQuery\Group_Control;
@@ -22,7 +21,7 @@ use Sky_Addons\Traits\Global_Widget_Controls;
 
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 class Fellow_Slider extends Widget_Base {
@@ -58,14 +57,23 @@ class Fellow_Slider extends Widget_Base {
 	}
 
 	public function get_style_depends() {
-		return [
-			'swiper',
-			'elementor-icons-fa-solid',
-		];
+		if ( sky_addons_editor_mode() ) {
+			return [ 'swiper', 'elementor-icons-fa-solid', 'sky-addons-styles' ];
+		}
+
+		return [ 'swiper', 'elementor-icons-fa-solid', 'sa-fellow-slider' ];
 	}
 
 	public function get_script_depends() {
-		return [ 'swiper' ];
+		if ( sky_addons_editor_mode() ) {
+			return [ 'swiper', 'sky-addons-scripts' ];
+		}
+
+		return [ 'swiper', 'sa-fellow-slider' ];
+	}
+
+	public function has_widget_inner_wrapper(): bool {
+		return ! \Elementor\Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
 	}
 
 	protected function register_controls() {
@@ -97,6 +105,11 @@ class Fellow_Slider extends Widget_Base {
 				'selectors'  => [
 					'{{WRAPPER}} .sa-fellow-slider' => 'grid-gap: {{SIZE}}{{UNIT}};',
 				],
+				// This is the gap BETWEEN the player and the playlist columns. With the
+				// playlist off there is only one column, so there is nothing to space.
+				'condition'  => [
+					'show_playlist' => 'yes',
+				],
 			]
 		);
 
@@ -112,18 +125,18 @@ class Fellow_Slider extends Widget_Base {
 		$this->add_responsive_control(
 			'content_alignment',
 			[
-				'label'     => esc_html__( 'Alignment', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::CHOOSE,
-				'options'   => [
-					'left' => [
+				'label' => esc_html__( 'Alignment', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::CHOOSE,
+				'options' => [
+					'left'    => [
 						'title' => esc_html__( 'Left', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-left',
 					],
-					'center' => [
+					'center'  => [
 						'title' => esc_html__( 'Center', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-center',
 					],
-					'right' => [
+					'right'   => [
 						'title' => esc_html__( 'Right', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-right',
 					],
@@ -132,9 +145,44 @@ class Fellow_Slider extends Widget_Base {
 						'icon'  => 'eicon-text-align-justify',
 					],
 				],
+				// The rows inside a slide are flex containers, so text-align alone never moved
+				// them. Rather than listing every one here, the value is published as a custom
+				// property and the stylesheet applies it wherever a row needs aligning — new
+				// rows then inherit the behaviour instead of silently ignoring the control.
+				//
+				// `justify` is deliberately allowed to fall through: it is valid for text-align
+				// but NOT for justify-content, so the flex rows keep their default while the
+				// paragraph text justifies. That is the sane reading of "justified".
 				'selectors' => [
-					'{{WRAPPER}} .sa-post-item' => 'text-align: {{VALUE}};',
-					'{{WRAPPER}} .sa-post-meta, {{WRAPPER}} .sa-post-author-wrapper' => 'justify-content: {{VALUE}};',
+					'{{WRAPPER}} .sa-post-item' => 'text-align: {{VALUE}}; --sa-fellow-align: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'content_vertical_position',
+			[
+				'label'     => esc_html__( 'Text Position', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'type'      => Controls_Manager::CHOOSE,
+				'options'   => [
+					'flex-start' => [
+						'title' => esc_html__( 'Top', 'sky-elementor-addons' ),
+						'icon'  => 'eicon-v-align-top',
+					],
+					'center'     => [
+						'title' => esc_html__( 'Middle', 'sky-elementor-addons' ),
+						'icon'  => 'eicon-v-align-middle',
+					],
+					'flex-end'   => [
+						'title' => esc_html__( 'Bottom', 'sky-elementor-addons' ),
+						'icon'  => 'eicon-v-align-bottom',
+					],
+				],
+				'selectors' => [
+					'{{WRAPPER}} .sa-post-item .sa-post-content-wrapper' => 'justify-content: {{VALUE}};',
+					// The small items lay their image and text out in a ROW, so the text block's
+					// vertical placement is the parent's align-items, not its own justify-content.
+					'{{WRAPPER}} .sa-fellow-items .sa-post-item' => 'align-items: {{VALUE}};',
 				],
 			]
 		);
@@ -171,11 +219,15 @@ class Fellow_Slider extends Widget_Base {
 			]
 		);
 
+		// Was Controls_Manager::HIDDEN, which is why there was no way to turn the title off:
+		// render_post_title() in traits/global-widget-functions.php has always gated on this
+		// value, but the control had no UI. SWITCHER with the same ID and the same 'yes'
+		// default, so nothing changes for an existing site — the toggle simply becomes visible.
 		$this->add_control(
 			'show_title',
 			[
 				'label'   => esc_html__( 'Show Title', 'sky-elementor-addons' ),
-				'type'    => Controls_Manager::HIDDEN,
+				'type'    => Controls_Manager::SWITCHER,
 				'default' => 'yes',
 			]
 		);
@@ -183,18 +235,22 @@ class Fellow_Slider extends Widget_Base {
 		$this->add_control(
 			'title_tag',
 			[
-				'label'   => esc_html__( 'Title HTML Tag', 'sky-elementor-addons' ),
-				'type'    => Controls_Manager::SELECT,
-				'default' => 'h3',
-				'options' => sky_addons_title_tags(),
+				'label'     => esc_html__( 'Title HTML Tag', 'sky-elementor-addons' ),
+				'type'      => Controls_Manager::SELECT,
+				'default'   => 'h3',
+				'options'   => sky_addons_title_tags(),
+				'condition' => [
+					'show_title' => 'yes',
+				],
 			]
 		);
 
+		// Same story as show_title — gated in render_item_thumbnail(), but with no UI.
 		$this->add_control(
 			'show_image',
 			[
 				'label'   => esc_html__( 'Show Image', 'sky-elementor-addons' ),
-				'type'    => Controls_Manager::HIDDEN,
+				'type'    => Controls_Manager::SWITCHER,
 				'default' => 'yes',
 			]
 		);
@@ -243,9 +299,9 @@ class Fellow_Slider extends Widget_Base {
 		$this->add_control(
 			'strip_shortcode',
 			[
-				'label'     => esc_html__( 'Strip ShortCode', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SWITCHER,
-				'default'   => 'yes',
+				'label'   => esc_html__( 'Strip ShortCode', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::SWITCHER,
+				'default' => 'yes',
 				'condition' => [
 					'show_excerpt' => 'yes',
 				],
@@ -288,6 +344,28 @@ class Fellow_Slider extends Widget_Base {
 			]
 		);
 
+		$this->add_responsive_control(
+			'carousel_height',
+			[
+				'label'      => esc_html__( 'Height', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.0.0' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ 'px', 'em' ],
+				'range'      => [
+					'px' => [
+						'min' => 100,
+						'max' => 1000,
+					],
+				],
+				// Targets the wrapper, not `.swiper`. The height that defines this widget's
+				// box lives on `.sa-fellow-slider` (the two-column grid holding the player
+				// and the playlist); both swipers only stretch to fill it. Sizing `.swiper`
+				// instead would shrink the slides and leave the grid at its 600px.
+				'selectors'  => [
+					'{{WRAPPER}} .sa-fellow-slider' => 'height: {{SIZE}}{{UNIT}};',
+				],
+			]
+		);
+
 		$this->add_control(
 			'direction',
 			[
@@ -313,15 +391,15 @@ class Fellow_Slider extends Widget_Base {
 		$this->add_control(
 			'autoplay_speed',
 			[
-				'label'     => esc_html__( 'Autoplay Speed (ms)', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SLIDER,
-				'range'     => [
+				'label' => esc_html__( 'Autoplay Speed (ms)', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::SLIDER,
+				'range' => [
 					'px' => [
 						'min' => 1000,
 						'max' => 10000,
 					],
 				],
-				'default'   => [
+				'default' => [
 					'unit' => 'px',
 					'size' => 5000,
 				],
@@ -334,18 +412,18 @@ class Fellow_Slider extends Widget_Base {
 		$this->add_control(
 			'loop',
 			[
-				'label' => esc_html__( 'Loop', 'sky-elementor-addons' ),
-				'type'  => Controls_Manager::SWITCHER,
-				// 'default' => 'yes',
+				'label'   => esc_html__( 'Loop', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::SWITCHER,
+				'default' => 'yes',
 			]
 		);
 
 		$this->add_control(
 			'speed',
 			[
-				'label'   => esc_html__( 'Slide Speed (ms)', 'sky-elementor-addons' ),
-				'type'    => Controls_Manager::SLIDER,
-				'range'   => [
+				'label' => esc_html__( 'Slide Speed (ms)', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::SLIDER,
+				'range' => [
 					'px' => [
 						'min'  => 500,
 						'max'  => 5000,
@@ -362,8 +440,14 @@ class Fellow_Slider extends Widget_Base {
 		$this->add_control(
 			'pause_on_hover',
 			[
-				'label' => esc_html__( 'Pause On Hover', 'sky-elementor-addons' ),
-				'type'  => Controls_Manager::SWITCHER,
+				'label'     => esc_html__( 'Pause On Hover', 'sky-elementor-addons' ),
+				'type'      => Controls_Manager::SWITCHER,
+				// render() already gates this on autoplay ('yes' === autoplay && 'yes' ===
+				// pause_on_hover), so with autoplay off the switch was live in the panel and
+				// dead in the output.
+				'condition' => [
+					'autoplay' => 'yes',
+				],
 			]
 		);
 
@@ -391,29 +475,44 @@ class Fellow_Slider extends Widget_Base {
 		// );
 
 		$this->add_control(
-			'playlist_mouse_wheel',
+			'playlist_heading',
 			[
-				'label' => esc_html__( 'Mouse Wheel', 'sky-elementor-addons' ),
-				'type'  => Controls_Manager::SWITCHER,
+				'label'     => esc_html__( 'Playlist', 'sky-elementor-addons' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
 			]
 		);
 
 		$this->add_control(
-			'playlist_free_mode',
+			'show_playlist',
 			[
-				'label'   => esc_html__( 'Free Mode', 'sky-elementor-addons' ),
-				'type'    => Controls_Manager::SWITCHER,
-				'default' => 'yes',
+				'label'       => esc_html__( 'Show Playlist', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.0.0' ),
+				'type'        => Controls_Manager::SWITCHER,
+				'default'     => 'yes',
+				'description' => esc_html__( 'Turn off to show the player on its own, full width.', 'sky-elementor-addons' ),
 			]
 		);
+
+		/**
+		 * `playlist_mouse_wheel` and `playlist_free_mode` used to live here and have been
+		 * removed. Both configured the playlist's Swiper, which no longer exists — the list
+		 * scrolls natively, so wheel and touch momentum are unconditional and neither switch
+		 * had anything left to turn off. Their stored values simply go unread; nothing is
+		 * deleted, and re-adding a control with either ID would pick the old value back up.
+		 */
 
 		$this->add_control(
 			'playlist_show_scrollbar',
 			[
-				'label'       => esc_html__( 'Show Scrollbar', 'sky-elementor-addons' ),
-				'type'        => Controls_Manager::SWITCHER,
-				'description' => esc_html__( 'The scrollbar is not supported with loop mode, You should deactivate the Loop.', 'sky-elementor-addons' ),
-				'default'     => 'yes',
+				'label'     => esc_html__( 'Show Scrollbar', 'sky-elementor-addons' ),
+				'type'      => Controls_Manager::SWITCHER,
+				'default'   => 'yes',
+				// The old note here warned the scrollbar was unsupported with Loop. That was
+				// a Swiper scrollbar limitation; the playlist scrolls natively now, so Loop
+				// no longer has anything to do with it.
+				'condition' => [
+					'show_playlist' => 'yes',
+				],
 			]
 		);
 
@@ -431,8 +530,8 @@ class Fellow_Slider extends Widget_Base {
 		$this->start_controls_section(
 			'section_post_video_settings',
 			[
-				'label'     => esc_html__( 'Video Settings', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_CONTENT,
+				'label' => esc_html__( 'Video Settings', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_CONTENT,
 				'condition' => [
 					'show_video' => 'yes',
 				],
@@ -466,8 +565,13 @@ class Fellow_Slider extends Widget_Base {
 						'max' => 50,
 					],
 				],
+				// Was `.sa-fellow .sa-fellow-slider`, which matched nothing — .sa-fellow is a
+				// CHILD of .sa-fellow-slider, so that descendant selector can never resolve.
+				// The intent is the gap inside an item, between the image and the text
+				// (the stylesheet's `.sa-post-item { grid-gap: 20px }`), which is also what
+				// the Padding/Border/Radius controls beside it target.
 				'selectors'  => [
-					'{{WRAPPER}} .sa-fellow .sa-fellow-slider' => 'grid-gap: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .sa-post-item' => 'gap: {{SIZE}}{{UNIT}};',
 				],
 			]
 		);
@@ -477,9 +581,46 @@ class Fellow_Slider extends Widget_Base {
 			[
 				'label'      => esc_html__( 'Padding', 'sky-elementor-addons' ),
 				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => [ 'px', 'em', '%' ],
+				'size_units' => [ 'px', 'em', 'rem', '%' ],
+				// The panel read empty while .sa-post-item was already padded by the `sa-p-4`
+				// class in render() — so a value typed here replaced an invisible baseline
+				// instead of adding to it, and the same number meant different things from one
+				// widget to the next. This default makes the control state the truth.
+				//
+				// The class deliberately STAYS in the markup. Elementor serves a page's CSS
+				// from a cached file that only rebuilds on save, so a page saved before this
+				// default existed would otherwise render with no padding at all. The control
+				// always wins when it emits anything — `body .sa-p-4` is (0,1,1) against
+				// Elementor's (0,4,0) — including when set to 0, so the class only ever acts
+				// as the stale-cache fallback.
+				//
+				// No tablet/mobile default here: nothing in this widget's stylesheet overrides
+				// .sa-post-item padding at a breakpoint, so there is no rule to preserve.
+				//
+				// rem, not the 24px it usually resolves to, so it matches the class whatever
+				// root font-size the theme sets.
+				'default'    => [
+					'top'      => '1.5',
+					'right'    => '1.5',
+					'bottom'   => '1.5',
+					'left'     => '1.5',
+					'unit'     => 'rem',
+					'isLinked' => true,
+				],
 				'selectors'  => [
 					'{{WRAPPER}} .sa-post-item' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'content_padding',
+			[
+				'label'      => esc_html__( 'Content Padding', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.0.0' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', 'em', 'rem', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .sa-post-content-wrapper' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 			]
 		);
@@ -487,13 +628,13 @@ class Fellow_Slider extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Border::get_type(),
 			[
-				'name'           => 'item_border',
-				'label'          => esc_html__( 'Border', 'sky-elementor-addons' ),
+				'name'     => 'item_border',
+				'label'    => esc_html__( 'Border', 'sky-elementor-addons' ),
 				'fields_options' => [
 					'border' => [
 						'default' => 'solid',
 					],
-					'width' => [
+					'width'  => [
 						'default' => [
 							'top'      => '1',
 							'right'    => '1',
@@ -503,11 +644,11 @@ class Fellow_Slider extends Widget_Base {
 							'isLinked' => false,
 						],
 					],
-					'color' => [
+					'color'  => [
 						'default' => '#eaeaea',
 					],
 				],
-				'selector'       => '{{WRAPPER}} .sa-post-item',
+				'selector' => '{{WRAPPER}} .sa-post-item',
 			]
 		);
 
@@ -574,13 +715,124 @@ class Fellow_Slider extends Widget_Base {
 		$this->add_control(
 			'item_border_color_hover',
 			[
-				'label'     => esc_html__( 'Border Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Border Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-post-item:hover' => 'border-color: {{VALUE}};',
 				],
 				'condition' => [
 					'item_border_border!' => '',
+				],
+			]
+		);
+
+		$this->end_controls_tab();
+
+		/**
+		 * Active — the playlist row whose post the player is currently showing.
+		 *
+		 * Every selector is scoped through `.sa-fellow-row`, which only exists in the
+		 * playlist, so none of this can reach the player's own item.
+		 */
+		$this->start_controls_tab(
+			'item_style_active_tab',
+			[
+				'label'     => esc_html__( 'Active', 'sky-elementor-addons' ),
+				// "Active" only means anything for a playlist row, so the whole tab goes
+				// when the playlist does. Elementor treats a tab as a control, so a
+				// condition here hides the tab itself rather than emptying it.
+				'condition' => [
+					'show_playlist' => 'yes',
+				],
+			]
+		);
+
+		$this->add_control(
+			'active_indicator',
+			[
+				'label'       => esc_html__( 'Indicator Bar', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.0.0' ),
+				'type'        => Controls_Manager::SWITCHER,
+				'default'     => 'yes',
+				'description' => esc_html__( 'Accent bar down the edge of the row the player is on.', 'sky-elementor-addons' ),
+				// Drives the `sa-has-indicator` class in render(), NOT a `selectors` rule.
+				// Elementor caches a page's generated CSS to uploads/elementor/css/post-*.css
+				// and only rebuilds it when the page is saved or CSS is regenerated — so a
+				// brand new selector is invisible on an existing page until someone re-saves
+				// it. Driving it from markup means the widget stylesheet alone is enough and
+				// the bar shows on the very next page load.
+			]
+		);
+
+		$this->add_responsive_control(
+			'active_indicator_width',
+			[
+				'label'      => esc_html__( 'Indicator Width', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.0.0' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ 'px', 'em' ],
+				'range'      => [
+					'px' => [
+						'min' => 1,
+						'max' => 20,
+					],
+				],
+				// Custom property on the row, read by the ::before — a pseudo-element
+				// inherits from its originating element, so one declaration covers both.
+				'selectors'  => [
+					'{{WRAPPER}} .sa-fellow-row.sa-active .sa-post-item' => '--sa-fellow-indicator-width: {{SIZE}}{{UNIT}};',
+				],
+				'condition'  => [
+					'active_indicator' => 'yes',
+				],
+			]
+		);
+
+		$this->add_control(
+			'active_indicator_color',
+			[
+				'label'     => esc_html__( 'Indicator Color', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.0.0' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .sa-fellow-row.sa-active .sa-post-item' => '--sa-fellow-indicator-color: {{VALUE}};',
+				],
+				'condition' => [
+					'active_indicator' => 'yes',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
+			[
+				'name'     => 'item_background_active',
+				'label'    => esc_html__( 'Background', 'sky-elementor-addons' ),
+				'types'    => [ 'classic', 'gradient' ],
+				'selector' => '{{WRAPPER}} .sa-fellow-row.sa-active .sa-post-item',
+			]
+		);
+
+		$this->add_control(
+			'item_border_color_active',
+			[
+				'label'     => esc_html__( 'Border Color', 'sky-elementor-addons' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .sa-fellow-row.sa-active .sa-post-item' => 'border-color: {{VALUE}};',
+				],
+				// Mirrors the Hover tab: nothing to colour unless a border exists.
+				'condition' => [
+					'item_border_border!' => '',
+				],
+			]
+		);
+
+		$this->add_control(
+			'item_title_color_active',
+			[
+				'label'     => esc_html__( 'Title Color', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.0.0' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .sa-fellow-row.sa-active .sa-post-title'   => 'color: {{VALUE}};',
+					'{{WRAPPER}} .sa-fellow-row.sa-active .sa-post-title a' => 'color: {{VALUE}};',
 				],
 			]
 		);
@@ -594,8 +846,8 @@ class Fellow_Slider extends Widget_Base {
 		$this->start_controls_section(
 			'section_image_style',
 			[
-				'label'     => esc_html__( 'Image', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Image', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_image' => 'yes',
 				],
@@ -656,7 +908,12 @@ class Fellow_Slider extends Widget_Base {
 		$this->start_controls_tab(
 			'style_list_img_tab',
 			[
-				'label' => esc_html__( 'List Image', 'sky-elementor-addons' ),
+				'label'     => esc_html__( 'List Image', 'sky-elementor-addons' ),
+				// Every control in here targets .sa-fellow-items — nothing to style once
+				// the playlist is off.
+				'condition' => [
+					'show_playlist' => 'yes',
+				],
 			]
 		);
 
@@ -671,7 +928,7 @@ class Fellow_Slider extends Widget_Base {
 						'min' => 50,
 						'max' => 500,
 					],
-					'%' => [
+					'%'  => [
 						'min' => 0,
 						'max' => 100,
 					],
@@ -729,8 +986,8 @@ class Fellow_Slider extends Widget_Base {
 		$this->start_controls_section(
 			'section_title_style',
 			[
-				'label'     => esc_html__( 'Title', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Title', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_title' => 'yes',
 				],
@@ -769,8 +1026,8 @@ class Fellow_Slider extends Widget_Base {
 		$this->add_control(
 			'title_color',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-fellow .sa-post-title a' => 'color: {{VALUE}}',
 				],
@@ -780,8 +1037,8 @@ class Fellow_Slider extends Widget_Base {
 		$this->add_control(
 			'title_color_hover',
 			[
-				'label'     => esc_html__( 'Text Color Hover', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color Hover', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-fellow .sa-post-title a:hover' => 'color: {{VALUE}}',
 				],
@@ -811,7 +1068,11 @@ class Fellow_Slider extends Widget_Base {
 		$this->start_controls_tab(
 			'style_list_title_tab',
 			[
-				'label' => esc_html__( 'List Title', 'sky-elementor-addons' ),
+				'label'     => esc_html__( 'List Title', 'sky-elementor-addons' ),
+				// Targets .sa-fellow-items titles only.
+				'condition' => [
+					'show_playlist' => 'yes',
+				],
 			]
 		);
 
@@ -836,8 +1097,8 @@ class Fellow_Slider extends Widget_Base {
 		$this->add_control(
 			'list_title_color',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-fellow-items .sa-post-title a' => 'color: {{VALUE}}',
 				],
@@ -847,8 +1108,8 @@ class Fellow_Slider extends Widget_Base {
 		$this->add_control(
 			'list_title_color_hover',
 			[
-				'label'     => esc_html__( 'Text Color Hover', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color Hover', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-fellow-items .sa-post-title a:hover' => 'color: {{VALUE}}',
 				],
@@ -898,8 +1159,8 @@ class Fellow_Slider extends Widget_Base {
 		$this->start_controls_section(
 			'section_category_style',
 			[
-				'label'     => esc_html__( 'Category', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Category', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_category' => 'yes',
 				],
@@ -935,8 +1196,8 @@ class Fellow_Slider extends Widget_Base {
 		$this->start_controls_section(
 			'section_meta_style',
 			[
-				'label'      => esc_html__( 'Meta', 'sky-elementor-addons' ),
-				'tab'        => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Meta', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'conditions' => [
 					'relation' => 'or',
 					'terms'    => [
@@ -1000,8 +1261,8 @@ class Fellow_Slider extends Widget_Base {
 		$this->start_controls_section(
 			'section_author_style',
 			[
-				'label'     => esc_html__( 'Author', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Author', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_author' => 'yes',
 				],
@@ -1011,8 +1272,8 @@ class Fellow_Slider extends Widget_Base {
 		$this->add_control(
 			'author_color',
 			[
-				'label'     => esc_html__( 'Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-fellow .sa-post-author-text' => 'color: {{VALUE}}',
 				],
@@ -1022,8 +1283,8 @@ class Fellow_Slider extends Widget_Base {
 		$this->add_control(
 			'author_color_hover',
 			[
-				'label'     => esc_html__( 'Color Hover', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Color Hover', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-fellow .sa-post-author-wrapper:hover .sa-post-author-text' => 'color: {{VALUE}}',
 				],
@@ -1068,7 +1329,7 @@ class Fellow_Slider extends Widget_Base {
 						'min' => 50,
 						'max' => 500,
 					],
-					'%' => [
+					'%'  => [
 						'min' => 0,
 						'max' => 100,
 					],
@@ -1117,12 +1378,20 @@ class Fellow_Slider extends Widget_Base {
 			]
 		);
 
+		/**
+		 * Date sub-group. The section itself is gated on show_author, but everything below
+		 * styles the DATE — with Date switched off these were live in the panel and had
+		 * nothing to paint.
+		 */
 		$this->add_control(
 			'author_date_heading_style',
 			[
 				'label'     => esc_html__( 'Date', 'sky-elementor-addons' ),
 				'type'      => Controls_Manager::HEADING,
 				'separator' => 'before',
+				'condition' => [
+					'show_date' => 'yes',
+				],
 			]
 		);
 
@@ -1134,24 +1403,33 @@ class Fellow_Slider extends Widget_Base {
 				'selectors' => [
 					'{{WRAPPER}}' => '--sa-post-author-date-color: {{VALUE}}',
 				],
+				'condition' => [
+					'show_date' => 'yes',
+				],
 			]
 		);
 
 		$this->add_group_control(
 			Group_Control_Typography::get_type(),
 			[
-				'name'     => 'author_date_typography',
-				'label'    => esc_html__( 'Typography', 'sky-elementor-addons' ),
-				'selector' => '{{WRAPPER}} .sa-fellow .sa-post-date, {{WRAPPER}} .sa-fellow .sa-icon-wrap',
+				'name'      => 'author_date_typography',
+				'label'     => esc_html__( 'Typography', 'sky-elementor-addons' ),
+				'selector'  => '{{WRAPPER}} .sa-fellow .sa-post-date, {{WRAPPER}} .sa-fellow .sa-icon-wrap',
+				'condition' => [
+					'show_date' => 'yes',
+				],
 			]
 		);
 
 		$this->add_group_control(
 			Group_Control_Text_Shadow::get_type(),
 			[
-				'name'     => 'author_date_text_shadow',
-				'label'    => esc_html__( 'Text Shadow', 'sky-elementor-addons' ),
-				'selector' => '{{WRAPPER}} .sa-fellow .sa-post-date, {{WRAPPER}} .sa-fellow .sa-icon-wrap',
+				'name'      => 'author_date_text_shadow',
+				'label'     => esc_html__( 'Text Shadow', 'sky-elementor-addons' ),
+				'selector'  => '{{WRAPPER}} .sa-fellow .sa-post-date, {{WRAPPER}} .sa-fellow .sa-icon-wrap',
+				'condition' => [
+					'show_date' => 'yes',
+				],
 			]
 		);
 
@@ -1160,9 +1438,10 @@ class Fellow_Slider extends Widget_Base {
 		$this->start_controls_section(
 			'list_scrollbar_style',
 			[
-				'label'     => esc_html__( 'Scrollbar', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Scrollbar', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
+					'show_playlist'           => 'yes',
 					'playlist_show_scrollbar' => 'yes',
 				],
 			]
@@ -1181,8 +1460,16 @@ class Fellow_Slider extends Widget_Base {
 						'step' => .5,
 					],
 				],
+				// Native scrollbar now. Control IDs are untouched, so every saved value
+				// carries over — only the selector it writes to has moved.
+				//
+				// All three controls publish a custom property instead of styling the
+				// scrollbar directly. Two reasons: Firefox takes both colours in one
+				// `scrollbar-color` shorthand so they have to be composed somewhere, and a
+				// control writing `background` straight onto ::-webkit-scrollbar-thumb would
+				// outrank the stylesheet and defeat the hide-until-hover behaviour.
 				'selectors'  => [
-					'{{WRAPPER}} .sa-swiper-scrollbar' => 'width: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .sa-fellow-items' => '--sa-fellow-bar-size: {{SIZE}}{{UNIT}};',
 				],
 			]
 		);
@@ -1190,10 +1477,10 @@ class Fellow_Slider extends Widget_Base {
 		$this->add_control(
 			'list_scrollbar_color',
 			[
-				'label'     => esc_html__( 'Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .sa-swiper-scrollbar' => 'background-color: {{VALUE}}',
+					'{{WRAPPER}} .sa-fellow-items' => '--sa-fellow-track: {{VALUE}};',
 				],
 			]
 		);
@@ -1201,10 +1488,10 @@ class Fellow_Slider extends Widget_Base {
 		$this->add_control(
 			'list_scrollbar_drag_color',
 			[
-				'label'     => esc_html__( 'Drag Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Drag Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .swiper-scrollbar-drag' => 'background-color: {{VALUE}}',
+					'{{WRAPPER}} .sa-fellow-items' => '--sa-fellow-thumb: {{VALUE}};',
 				],
 			]
 		);
@@ -1214,8 +1501,8 @@ class Fellow_Slider extends Widget_Base {
 		$this->start_controls_section(
 			'play_btn_style',
 			[
-				'label'     => esc_html__( 'Play Button', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Play Button', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_video' => 'yes',
 				],
@@ -1235,8 +1522,8 @@ class Fellow_Slider extends Widget_Base {
 		$this->start_controls_section(
 			'item_play_btn_style',
 			[
-				'label'     => esc_html__( 'Play Button Items', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Play Button Items', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_video' => 'yes',
 				],
@@ -1297,89 +1584,13 @@ class Fellow_Slider extends Widget_Base {
 		$args = [];
 		if ( $posts_per_page ) {
 			$args['posts_per_page'] = $posts_per_page;
-			$args['paged'] = max( 1, get_query_var( 'paged' ), get_query_var( 'page' ) );
+			$args['paged']          = max( 1, get_query_var( 'paged' ), get_query_var( 'page' ) );
 		}
 
 		$default = $this->getGroupControlQueryArgs();
-		$args = array_merge( $default, $args );
+		$args    = array_merge( $default, $args );
 
 		$this->_query = new \WP_Query( $args );
-	}
-
-	public function get_embed_params() {
-		$settings = $this->get_settings_for_display();
-
-		$params = [];
-		$params['autoplay'] = '0';
-
-		if ( 'yes' === $settings['video_autoplay'] ) {
-			$params['autoplay'] = '1';
-			$params['mute'] = 1;
-		}
-
-		if ( $settings['mute'] ) {
-			$params['mute'] = 1;
-		}
-
-		return $params;
-	}
-
-	public function get_embed_options() {
-		$settings = $this->get_settings_for_display();
-		$embed_options = [];
-		$embed_options['lazy_load'] = ! empty( $settings['lazy_load'] );
-
-		return $embed_options;
-	}
-
-	public function render_video_lightbox( $video_url, $id ) {
-		$settings = $this->get_settings_for_display();
-
-		if ( empty( $video_url ) ) {
-			return;
-		}
-
-		$embed_params = $this->get_embed_params();
-		$embed_options = $this->get_embed_options();
-
-		$lightbox_url = Embed::get_embed_url( $video_url, $embed_params, $embed_options );
-
-		if ( $settings['video_open'] !== 'file' ) {
-
-			$lightbox_options = [
-				'type'         => 'video',
-				// 'videoType' => $settings['video_type'],
-				'url'          => $lightbox_url,
-				'modalOptions' => [
-					'id'                       => 'elementor-lightbox-' . $id,
-					'entranceAnimation'        => $settings['lightbox_content_animation'],
-					'entranceAnimation_tablet' => isset( $settings['lightbox_content_animation_tablet'] ) ? $settings['lightbox_content_animation_tablet'] : '',
-					'entranceAnimation_mobile' => isset( $settings['lightbox_content_animation_mobile'] ) ? $settings['lightbox_content_animation_mobile'] : '',
-					'videoAspectRatio'         => $settings['aspect_ratio'],
-				],
-			];
-
-			$this->add_render_attribute( 'lightbox-attr-' . $id, [
-				'data-elementor-open-lightbox' => 'yes',
-				'data-elementor-lightbox'      => wp_json_encode( $lightbox_options ),
-				'e-action-hash'                => Plugin::instance()->frontend->create_action_hash( 'lightbox', $lightbox_options ),
-			] );
-		} else {
-			$this->add_render_attribute( 'lightbox-attr-' . $id, [
-				'href' => $lightbox_url,
-			] );
-			if ( 'yes' === $settings['file_new_tab'] ) {
-				$this->add_render_attribute( 'lightbox-attr-' . $id, [
-					'target' => '_blank',
-				] );
-			}
-		}
-
-		if ( Plugin::$instance->editor->is_edit_mode() ) {
-			$this->add_render_attribute( 'lightbox-attr-' . $id, [
-				'class' => 'elementor-clickable',
-			] );
-		}
 	}
 
 	protected function render_item_thumbnail( $post_id, $image_size = 'full', $feature = '' ) {
@@ -1393,19 +1604,19 @@ class Fellow_Slider extends Widget_Base {
 		 * Video Feature enabled
 		 */
 
-		$video_url = get_post_meta( $post_id, 'sky_video_link_meta', true );
+		$video_url = $this->get_post_video_url( $post_id );
 
 		if ( 'yes' === $settings['show_video'] ) {
 			$tag = 'div';
-			$id = $this->get_id() . '-' . $post_id . $feature;
+			$id  = $this->get_id() . '-' . $post_id . $feature;
 
 			/**
 			 * Lightbox
 			 */
 
-			$this->render_video_lightbox( $video_url, $id );
+			$this->render_post_video_lightbox( $video_url, $id );
 
-			if ( $settings['video_open'] === 'file' ) {
+			if ( 'file' === $settings['video_open'] ) {
 				$tag = 'a';
 			}
 		}
@@ -1463,7 +1674,9 @@ class Fellow_Slider extends Widget_Base {
 			<a href="<?php echo esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ); ?>"
 				class="sa-d-inline-flex sa-align-items-center">
 				<div class="sa-icon-wrap sa-me-1">
-					<i class="eicon-user-circle-o"></i>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" aria-hidden="true">
+						<path d="M313 792C367 825 433 846 500 846 571 846 633 825 688 792 667 767 642 746 617 729 583 708 542 700 500 700 425 700 354 733 313 792ZM229 721C296 642 392 592 500 592 558 592 617 608 671 637 708 658 742 687 771 721 821 662 850 583 850 500 850 308 696 150 500 150S150 308 150 500C150 583 183 662 229 721ZM500 958C246 958 42 754 42 500S246 42 500 42 958 246 958 500 754 958 500 958ZM500 575C400 575 321 496 321 396S400 217 500 217 679 296 679 396 600 575 500 575ZM500 467C538 467 571 433 571 396S538 325 500 325 429 358 429 396 463 467 500 467Z"></path>
+					</svg>
 				</div>
 				<span class="sa-post-author-text">
 					<?php echo wp_kses_post( get_the_author() ); ?>
@@ -1505,7 +1718,9 @@ class Fellow_Slider extends Widget_Base {
 		?>
 		<div class="sa-post-date-wrapper sa-d-flex sa-align-items-center">
 			<div class="sa-icon-wrap sa-me-1">
-				<i class="eicon-calendar"></i>
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" aria-hidden="true">
+					<path d="M917 246V883C917 933 875 971 829 971H171C125 967 83 929 83 879V246C83 196 125 158 171 158H258V62C263 50 271 42 283 42H358C371 42 379 50 379 62V158H617V62C617 50 625 42 638 42H713C725 42 733 50 733 62V158H821C875 158 917 196 917 246ZM829 871V329H171V867C171 871 175 879 183 879H817C821 879 829 875 829 871ZM358 504H283C271 504 263 496 263 483V408C263 396 271 387 283 387H358C371 387 379 396 379 408V479C379 492 371 504 358 504ZM558 483C558 496 550 504 538 504H463C450 504 442 496 442 483V408C442 396 450 387 463 387H538C550 387 558 396 558 408V483ZM738 483C738 496 729 504 717 504H642C629 504 621 496 621 483V408C621 396 629 387 642 387H717C729 387 738 396 738 408V483ZM558 642C558 654 550 662 538 662H463C450 662 442 654 442 642V571C442 558 450 550 463 550H538C550 550 558 558 558 571V642ZM379 642C379 654 371 662 358 662H283C271 662 263 654 263 642V571C263 558 271 550 283 550H358C371 550 379 558 379 571V642ZM738 642C738 654 729 662 717 662H642C629 662 621 654 621 642V571C621 558 629 550 642 550H717C729 550 738 558 738 571V642ZM558 800C558 812 550 821 538 821H463C450 821 442 812 442 800V729C442 717 450 708 463 708H538C550 708 558 717 558 729V800ZM379 800C379 812 371 821 358 821H283C271 821 263 812 263 800V729C263 717 271 708 283 708H358C371 708 379 717 379 729V800ZM738 800C738 812 729 821 717 821H642C629 821 621 812 621 800V729C621 717 629 708 642 708H717C729 708 738 717 738 729V800Z"></path>
+				</svg>
 			</div>
 			<?php
 			$this->render_post_date();
@@ -1514,11 +1729,12 @@ class Fellow_Slider extends Widget_Base {
 		<?php
 	}
 
-	protected function render_item( $post_id, $image_size ) {
+	protected function render_item( $post_id, $image_size, $row_index = 0 ) {
 		// global $post;
 		$settings = $this->get_settings_for_display();
 		?>
-		<div class="swiper-slide">
+		<?php // data-index pairs the row with the player slide it selects — see fellow-slider.js. ?>
+		<div class="sa-fellow-row" data-index="<?php echo absint( $row_index ); ?>">
 			<div class="sa-post-item sa-d-flex sa-p-4">
 
 				<?php $this->render_item_thumbnail( $post_id, $image_size, 'item' ); ?>
@@ -1578,7 +1794,7 @@ class Fellow_Slider extends Widget_Base {
 
 	protected function render() {
 		$settings = $this->get_settings_for_display();
-		$id = 'sa-fellow-slider-' . $this->get_id();
+		$id       = 'sa-fellow-slider-' . $this->get_id();
 
 		$this->query_posts( $settings['posts_per_page'] );
 		$wp_query = $this->get_query();
@@ -1587,19 +1803,27 @@ class Fellow_Slider extends Widget_Base {
 			return;
 		}
 
+		// Widgets saved before this control existed have no stored value, so Elementor
+		// hands back the 'yes' default and they keep the playlist.
+		$show_playlist = 'yes' === ( $settings['show_playlist'] ?? 'yes' );
+
 		$this->add_render_attribute(
 			[
 				'fellow-slider' => [
-					'class'                  => 'sa-fellow-slider',
-					'id'                     => $id,
-					'data-player-settings'   => [
+					// sa-no-playlist collapses the two-column grid to one. Done with a class
+					// rather than a control selector because Elementor serves a page's
+					// generated CSS from a cached file that only rebuilds on save — the
+					// layout has to be right on the very next load.
+					'class' => 'sa-fellow-slider' . ( $show_playlist ? '' : ' sa-no-playlist' ),
+					'id'    => $id,
+					'data-player-settings' => [
 						wp_json_encode( array_filter( [
 							// 'autoHeight'    => true,
 							'direction'     => $settings['direction'],
-							'loop'          => ( $settings['loop'] === 'yes' ) ? true : false,
-							'autoplay'      => $settings['autoplay'] === 'yes' ? [ 'delay' => $settings['autoplay_speed']['size'] ] : false,
+							'loop'          => ( 'yes' === $settings['loop'] ) ? true : false,
+							'autoplay'      => 'yes' === $settings['autoplay'] ? [ 'delay' => $settings['autoplay_speed']['size'] ] : false,
 							'speed'         => ( ! empty( $settings['speed']['size'] ) ) ? $settings['speed']['size'] : 1500,
-							'pauseOnHover'  => ( $settings['autoplay'] === 'yes' && $settings['pause_on_hover'] === 'yes' ) ? true : false,
+							'pauseOnHover'  => ( 'yes' === $settings['autoplay'] && 'yes' === $settings['pause_on_hover'] ) ? true : false,
 							'effect'        => $settings['transition_effect'],
 							'slidesPerView' => 1,
 							'loopedSlides'  => 4,
@@ -1608,43 +1832,10 @@ class Fellow_Slider extends Widget_Base {
 							'parallax'      => true,
 						] ) ),
 					],
-					'data-playlist-settings' => [
-						wp_json_encode( array_filter( [
-							'direction'             => 'vertical',
-							'loop'                  => ( $settings['loop'] === 'yes' ) ? true : false,
-							'speed'                 => ( ! empty( $settings['speed']['size'] ) ) ? $settings['speed']['size'] : 1500,
-							'slidesPerView'         => 3,
-							'loopedSlides'          => 4,
-							'spaceBetween'          => 20,
-							'mousewheel'            => ( $settings['playlist_mouse_wheel'] === 'yes' ) ? true : false,
-							'freeMode'              => false, // ($settings['playlist_free_mode'] == 'yes') ? true : false,
-							'watchSlidesVisibility' => true,
-							'watchSlidesProgress'   => true,
-							'slideToClickedSlide'   => true,
-							// 'navigation'         => [
-							// 'nextEl'         => $settings['playlist_show_navigation'] == 'yes' ? "#$id .sa-swiper-button-next" : false,
-							// 'prevEl'         => $settings['playlist_show_navigation'] == 'yes' ? "#$id .sa-swiper-button-prev" : false
-							// ],
-							'scrollbar'             => [
-								'el'        => $settings['playlist_show_scrollbar'] === 'yes' ? "#$id .sa-swiper-scrollbar" : false,
-								'draggable' => $settings['playlist_show_scrollbar'] === 'yes' ? true : false,
-							],
-							'breakpoints'           => [
-								'320' => [
-									'direction'     => 'vertical',
-									'slidesPerView' => 2,
-								],
-								'768' => [
-									'direction'     => 'vertical',
-									'slidesPerView' => 3,
-								],
-								'991' => [
-									'direction'     => 'vertical',
-									'slidesPerView' => 3,
-								],
-							],
-						] ) ),
-					],
+					// No data-playlist-settings: the playlist is a plain scrolling list now, so
+					// there is no second Swiper to configure. Wheel and touch momentum come
+					// from the browser, which is why the old mousewheel/freeMode entries have
+					// no replacement — they are simply always on.
 				],
 			]
 		);
@@ -1666,9 +1857,40 @@ class Fellow_Slider extends Widget_Base {
 					?>
 				</div>
 			</div>
-			<div class="sa-fellow-items swiper sa-w-100 sa-h-100">
-				<div class="swiper-wrapper sa-w-100 sa-h-100">
+			<?php
+			/**
+			 * The playlist is a scrolling list, not a carousel — no Swiper here.
+			 *
+			 * Swiper keeps a row's height and the distance it travels as two separate
+			 * numbers, and any CSS that touches slide height desynchronises them, which is
+			 * what sliced the rows in half. Native overflow scrolling has no travel
+			 * distance: position IS layout, so it cannot drift. It also brings wheel,
+			 * touch momentum, keyboard and screen-reader scrolling for free, and drops a
+			 * whole Swiper instance (plus the two-way controller link) off the page.
+			 */
+			?>
+			<?php
+			// Show Playlist off — the rows are not rendered at all, rather than hidden with
+			// CSS, so the second query loop and all that markup cost nothing.
+			if ( $show_playlist ) :
+
+				$items_class = 'sa-fellow-items sa-w-100 sa-h-100';
+
+				if ( 'yes' !== $settings['playlist_show_scrollbar'] ) {
+					$items_class .= ' sa-scrollbar-hidden';
+				}
+
+				// Widgets saved before this control existed have no stored value, so Elementor
+				// hands back the 'yes' default and they get the bar too.
+				if ( 'yes' === ( $settings['active_indicator'] ?? 'yes' ) ) {
+					$items_class .= ' sa-has-indicator';
+				}
+				?>
+			<div class="<?php echo esc_attr( $items_class ); ?>">
+				<div class="sa-fellow-list">
 					<?php
+					$row_index = 0;
+
 					while ( $wp_query->have_posts() ) :
 						$wp_query->the_post();
 
@@ -1676,15 +1898,15 @@ class Fellow_Slider extends Widget_Base {
 
 						$this->get_posts_tags();
 
-						$this->render_item( get_the_ID(), $thumbnail_size );
+						$this->render_item( get_the_ID(), $thumbnail_size, $row_index );
+
+						$row_index++;
 
 					endwhile;
 					?>
 				</div>
-				<?php if ( $settings['playlist_show_scrollbar'] === 'yes' ) : ?>
-					<div class="sa-swiper-scrollbar"></div>
-				<?php endif; ?>
 			</div>
+				<?php endif; ?>
 		</div>
 
 		<?php

@@ -1,6 +1,62 @@
-= 3.3.3 [4th May 2026] =
+= 4.0.0 [15th September 2026] =
 
-* Improved: Security improved (Thanks to Athiwat Tiprasaharn (Jitlada))
+* Added: Dynamic Content Feature (Build Anything)
+* Added: [Advanced Table](https://skyaddons.com/elementor/table-widget/) widget
+* Added: [Fancy Testimonial](https://skyaddons.com/elementor/testimonial-widget/) widget
+* Added: Advanced [Tilt Effect](https://skyaddons.com/elementor/tilt-effect-extension/) Extension
+* Added: Advanced [Video Player](https://skyaddons.com/elementor/video-player-widget/) widget
+* Added: Advanced [WhatsApp Button](https://skyaddons.com/elementor/whatsapp-button-widget/) widget
+* Added: [Button Effects](https://skyaddons.com/elementor/button-effects-extension/) extension
+* Added: [Grid Canvas](https://skyaddons.com/elementor/grid-canvas-extension/) extension
+* Added: [Sticky Element](https://skyaddons.com/elementor/sticky-element-extension/) extension
+* Added: Dynamic Content and ACF in Accordion widget
+* Added: Dynamic Content and ACF in [Advanced Slider](https://skyaddons.com/elementor/advanced-slider-widget/) widget
+* Added: Dynamic Content and ACF in [List Group](https://skyaddons.com/elementor/list-group-widget/) & [Tidy List](https://skyaddons.com/elementor/tidy-list-widget/)
+* Added: Dynamic Content and ACF in [Panel Slider](https://skyaddons.com/elementor/panel-slider-widget/) widget
+* Added: Archive & Single Page Builder
+* Improved: [Audio Player](https://skyaddons.com/elementor/audio-player-widget/) widget completely refreshed
+* Improved: Dashboard UI & System Improved
+* Improved: Video Feature Improved in all Post releated widgets
+* Improved: Pagination of Blog releated widgets
+* Improved: Overall system performance and stability enhancements
+* Security: Fixed SQL injection vulnerability in Duplicator feature (Thanks to Ananda Dhakal - Patchstack)
+* Security: Fixed XSS via unsafe link URLs (javascript: protocol) in PDF Viewer, Card, Review & Info Box widgets (Thanks to Abu Hurayra - Patchstack)
+
+= 3.8.3 [1st June 2026] =
+
+* Improved: Assets Manager (Thanks to Lucas)
+
+= 3.8.2 [27th May 2026] =
+
+* Added: Assets Manager Added
+* Added: Theme Builder Completely Unlocked and Redesigned
+* Added: [Custom Scripts](https://skyaddons.com/docs/sky-addons/extensions/custom-scripts-css-js/) Improved & Redesigned
+* Added: [Review Carousel](https://skyaddons.com/elementor/review-carousel-widget/) Unlock to free
+* Added: [Testimonial Carousel](https://skyaddons.com/elementor/testimonial-carousel-widget/) Unlock to free
+* Added: Dynamic Content & ACF added in Accordion widget
+* Added: 
+* Added: Dynamic Content & ACF added in [List Group](https://skyaddons.com/elementor/list-group-widget/) & [Tidy List](https://skyaddons.com/elementor/tidy-list-widget/)
+* Added: New animation styles added in [Animated Heading](https://skyaddons.com/elementor/animated-heading-widget/)
+* Added: Brand Name, Lazy Loading, Effects added in [Logo Grid](https://skyaddons.com/elementor/logo-grid-widget/) & Carousel
+* Added: Targeted widget mode added in [Equal Height](https://skyaddons.com/elementor/equal-height-extensions/)
+* Added: Entrance Animations & Effects added in [Portion Effect](https://skyaddons.com/elementor/portion-effect-widget/) widget
+* Added: Header Bar, Badge added in [PDF Viewer](https://skyaddons.com/elementor/pdf-viewer-widget/) widget
+* Added: Styling added in Ninja, Fluent & Gravity Forms
+* Improved: [Info Box](https://skyaddons.com/elementor/info-box-widget/) & [Card](https://skyaddons.com/elementor/card-widget/) widgets
+* Improved: Updated documentation links and control labels plugin-wide
+* Improved: [Social Icons](https://skyaddons.com/elementor/social-icons-widget/) — removed dead `.sa-anim-2` empty CSS rule from LESS file
+* Improved: Redesigned [Changelog](https://skyaddons.com/elementor/changelog-widget/) widget [View Demo](https://skyaddons.com/changelog/)
+* Improved: [Backdrop Filter](https://skyaddons.com/elementor/backdrop-filter-extensions/) & Custom Clip path feature improved
+* Improved:
+* Improved: [Post Comments](https://skyaddons.com/elementor/post-comments-widget/) widget
+* Improved: [Reading Progress](https://skyaddons.com/elementor/reading-progress-widget/) widget
+* Improved: [Simple Parallax](https://skyaddons.com/elementor/parallax-effects-extensions/) Extensions
+* Improved: [Slinky Menu](https://skyaddons.com/elementor/slinky-menu-widget/) widget
+* Improved: [Social Icons](https://skyaddons.com/elementor/social-icons-widget/) widget
+* Improved: [Table Of Content](https://skyaddons.com/elementor/table-of-content-widget/) completely redesigned
+* Improved: [Team Member](https://skyaddons.com/elementor/team-member-widget/) widget
+* Fixed: Accessibility violations, tooltip bugs, and CSS specificity issues
+* Removed: Number, Page Title, Post Title, Featured Image, Post Excerpt widget
 
 = 3.3.2 [29th April 2026] =
 
@@ -12,13 +68,13 @@
 
 = 3.3.0 [20th March 2026] =
 
-* Improved: Glory Slider widget Improved (Thanks to Roosevelt)
+* Improved: [Glory Slider](https://skyaddons.com/elementor/glory-slider-widget/) widget Improved (Thanks to Roosevelt)
 * Improved: System improved
 
 = 3.2.4 [2nd March 2026] =
 
 * Added: WPML Support added
-* Added: Custom Scripts (Global Features) added
+* Added: [Custom Scripts](https://skyaddons.com/docs/sky-addons/extensions/custom-scripts-css-js/) (Global Features) added
 * Improved: Carousel Pagination improved
 
 = 3.2.3 [10th December 2025] =
@@ -47,8 +103,8 @@
 = 3.1.3 [21th June 2025] =
 
 * Improved: Media Position in InfoBox widget
-* Improved: Logo Carousel widget
-* Improved: Social Icons in Team Member widget
+* Improved: [Logo Carousel](https://skyaddons.com/elementor/logo-carousel-widget/) widget
+* Improved: [Social Icons](https://skyaddons.com/elementor/social-icons-widget/) in [Team Member](https://skyaddons.com/elementor/team-member-widget/) widget
 
 = 3.1.2 [4th June 2025] =
 
@@ -60,11 +116,11 @@
 
 = 3.1.0 [12th May 2025] =
 
-* Added: Gradient Text Extensions added
+* Added: [Gradient Text](https://skyaddons.com/elementor/gradient-text-extension/) Extensions added
 * Improved: Socail Icon widget improved
-* Improved: List Group widget improved
+* Improved: [List Group](https://skyaddons.com/elementor/list-group-widget/) widget improved
 * Improved: InfoBox widget improved
-* Improved: Card widget improved
+* Improved: [Card](https://skyaddons.com/elementor/card-widget/) widget improved
 * Improved: System improved
 
 = 3.0.3 [16th April 2025] =
@@ -74,7 +130,7 @@
 
 = 3.0.2 [27th March 2025] =
 
-* Fixed: Ripples Effect fixed (Thanks to Lucas)
+* Fixed: [Ripples Effect](https://skyaddons.com/elementor/ripples-effect-extensions/) fixed (Thanks to Lucas)
 
 = 3.0.1 [27th March 2025] =
 
@@ -83,9 +139,9 @@
 = 3.0.0 [25th March 2025] =
 
 * Added: Theme Builder Added
-* Added: Simple Parallax Effects added
-* Added: Duplicator Feature Added
-* Added: SVG Support Feature Added
+* Added: [Simple Parallax](https://skyaddons.com/elementor/parallax-effects-extensions/) Effects added
+* Added: [Duplicator](https://skyaddons.com/docs/sky-addons/extensions/duplicator/) Feature Added
+* Added: [SVG Support](https://skyaddons.com/docs/sky-addons/extensions/secure-svg-support/) Feature Added
 * Added: Post Title widget added
 * Added: Page Title widget added
 * Added: Post Excerpt widget added
@@ -112,8 +168,8 @@
 
 = 2.6.9 [18th January 2025] =
 
-* Fixed: Button Alignment isse fixed in Card widget (Thanks to Faye)
-* Improved: Templates Library improved
+* Fixed: Button Alignment isse fixed in [Card](https://skyaddons.com/elementor/card-widget/) widget (Thanks to Faye)
+* Improved: [Templates Library](https://skyaddons.com/docs/sky-addons/) improved
 
 = 2.6.8 [06th January 2025] =
 
@@ -188,18 +244,18 @@
 
 = 2.5.4 [28th May 2024] =
 
-* Fixed: List Align issue fixed in Tidy List widget
+* Fixed: List Align issue fixed in [Tidy List](https://skyaddons.com/elementor/tidy-list-widget/) widget
 
 = 2.5.3 [5th May 2024] =
 
-* Fixed: Spacing issue fixed in Tidy List widget
-* Fixed: Pagination Color fixed in Advanced Slider widget
+* Fixed: Spacing issue fixed in [Tidy List](https://skyaddons.com/elementor/tidy-list-widget/) widget
+* Fixed: Pagination Color fixed in [Advanced Slider](https://skyaddons.com/elementor/advanced-slider-widget/) widget
 
 = 2.5.2 [4th May 2024] =
 
-* Added: Image Contain feature added in Card widget
-* Fixed: Icon padding issue fixed in Advanced Accordion widget
-* Fixed: Icon Color issue fixed in Info Box widget
+* Added: Image Contain feature added in [Card](https://skyaddons.com/elementor/card-widget/) widget
+* Fixed: Icon padding issue fixed in [Advanced Accordion](https://skyaddons.com/elementor/advanced-accordion-widget/) widget
+* Fixed: Icon Color issue fixed in [Info Box](https://skyaddons.com/elementor/info-box-widget/) widget
 
 = 2.5.1 [9th April 2024] =
 
@@ -211,7 +267,7 @@
 
 = 2.4.0 [30th January 2024] =
 
-* Fixed: Design issue fixed in Mate Slider (Thanks to adqa)
+* Fixed: Design issue fixed in [Mate Slider](https://skyaddons.com/elementor/mate-slider-widget/) (Thanks to adqa)
 * Updated: Swiper Library upgrade.
 
 = 2.3.3 [26th December 2023] =
@@ -228,13 +284,13 @@
 
 = 2.3.0 [24th September 2023] =
 
-* Added: Audio Player widget added
-* Added: Changelog widget added
+* Added: [Audio Player](https://skyaddons.com/elementor/audio-player-widget/) widget added
+* Added: [Changelog](https://skyaddons.com/elementor/changelog-widget/) widget added
 
 = 2.1.5 [29th August 2023] =
 
-* Added: Link on feature added in Panel Slider widget
-* Added: Title Hover Color feature added in Panel Slider widget
+* Added: Link on feature added in [Panel Slider](https://skyaddons.com/elementor/panel-slider-widget/) widget
+* Added: Title Hover Color feature added in [Panel Slider](https://skyaddons.com/elementor/panel-slider-widget/) widget
 
 = 2.1.4 [12th August 2023] =
 
@@ -251,18 +307,18 @@
 
 = 2.1.1 [10th June 2023] =
 
-* Fixed: Inline/SVG Icon issue fixed in Card, Info Box, Advanced Slider, Panel Slider, PDF Viewer widget
+* Fixed: Inline/SVG Icon issue fixed in [Card](https://skyaddons.com/elementor/card-widget/), [Info Box](https://skyaddons.com/elementor/info-box-widget/), [Advanced Slider](https://skyaddons.com/elementor/advanced-slider-widget/), [Panel Slider](https://skyaddons.com/elementor/panel-slider-widget/), [PDF Viewer](https://skyaddons.com/elementor/pdf-viewer-widget/) widget
 
 = 2.1.0 [26th May 2023] =
 
-* Added: Animated Heading widget added
+* Added: [Animated Heading](https://skyaddons.com/elementor/animated-heading-widget/) widget added
 
 = 2.0.9 [13th May 2023] =
 
 * Fixed: BackdropFilter fixed for Container Layout
-* Fixed: Trigger Icon Size issue fixed in Advanced Accordion widget
-* Fixed: Target issue fixed in Tidy List & List Group widget
-* Fixed: Close Icon (SVG) fixed in Advanced Accordion widget
+* Fixed: Trigger Icon Size issue fixed in [Advanced Accordion](https://skyaddons.com/elementor/advanced-accordion-widget/) widget
+* Fixed: Target issue fixed in [Tidy List](https://skyaddons.com/elementor/tidy-list-widget/) & [List Group](https://skyaddons.com/elementor/list-group-widget/) widget
+* Fixed: Close Icon (SVG) fixed in [Advanced Accordion](https://skyaddons.com/elementor/advanced-accordion-widget/) widget
 
 = 2.0.8 [1st April 2023] =
 
@@ -280,7 +336,7 @@
 
 = 2.0.5 [05th February 2023] =
 
-* Added: Thumbnail option added in Advanced Slider
+* Added: Thumbnail option added in [Advanced Slider](https://skyaddons.com/elementor/advanced-slider-widget/)
 * Updated: System Improved for Better Performance
 
 = 2.0.4 [10th January 2023] =
@@ -289,65 +345,65 @@
 
 = 2.0.3 [25th December 2022] =
 
-* Added: Sub Title added in Advanced Slider Widget
-* Updated: Navigation & Pagination Style updated in Advanced Slider Widget
+* Added: Sub Title added in [Advanced Slider](https://skyaddons.com/elementor/advanced-slider-widget/) Widget
+* Updated: Navigation & Pagination Style updated in [Advanced Slider](https://skyaddons.com/elementor/advanced-slider-widget/) Widget
 * Updated: Number Widget Updated
 
 = 2.0.2 [10th December 2022] =
 
-* Updated: Navigation & Pagination updated in Stellar Slider Widget
+* Updated: Navigation & Pagination updated in [Stellar Slider](https://skyaddons.com/elementor/stellar-slider-widget/) Widget
 
 = 2.0.1 [23th November 2022] =
 
-* Added: Stellar Slider Widget Added
+* Added: [Stellar Slider](https://skyaddons.com/elementor/stellar-slider-widget/) Widget Added
 * Updated: All Section Extensions available now for Container also.
 
 = 2.0.0 [1st November 2022] =
 
-* Added: Templates Library Added
-* Added: Slinky Menu (Vertical) Widget Added
-* Added: Reveal Effects Extensions Added
+* Added: [Templates Library](https://skyaddons.com/docs/sky-addons/) Added
+* Added: [Slinky Menu (Vertical)](https://skyaddons.com/elementor/slinky-menu-widget/) Widget Added
+* Added: [Reveal Effects](https://skyaddons.com/elementor/reveal-effects-extensions/) Extensions Added
 
 = 1.5.0 [24th September 2022] =
 
-* Added: Mate List Widget Added
-* Added: Mate Carousel Widget Added
-* Added: Sapling Grid Widget Added
-* Added: Sapling Carousel Widget Added
-* Added: Luster Grid Widget Added
-* Added: Luster Carousel Widget Added
-* Added: Naive List Widget Added
-* Added: Naive Carousel Widget Added
-* Added: Ultra Grid Widget Added
-* Added: Ultra Carousel Widget Added
-* Added: Generic Grid Widget Added
-* Added: Generic Carousel Widget Added
-* Added: Video Feature added in Mate Slider, Post List Widgets
+* Added: [Mate List](https://skyaddons.com/elementor/mate-list-widget/) Widget Added
+* Added: [Mate Carousel](https://skyaddons.com/elementor/mate-carousel-widget/) Widget Added
+* Added: [Sapling Grid](https://skyaddons.com/elementor/sapling-grid-widget/) Widget Added
+* Added: [Sapling Carousel](https://skyaddons.com/elementor/sapling-carousel-widget/) Widget Added
+* Added: [Luster Grid](https://skyaddons.com/elementor/luster-grid-widget/) Widget Added
+* Added: [Luster Carousel](https://skyaddons.com/elementor/luster-carousel-widget/) Widget Added
+* Added: [Naive List](https://skyaddons.com/elementor/naive-list-widget/) Widget Added
+* Added: [Naive Carousel](https://skyaddons.com/elementor/naive-carousel-widget/) Widget Added
+* Added: [Ultra Grid](https://skyaddons.com/elementor/ultra-grid-widget/) Widget Added
+* Added: [Ultra Carousel](https://skyaddons.com/elementor/ultra-carousel-widget/) Widget Added
+* Added: [Generic Grid](https://skyaddons.com/elementor/generic-grid-widget/) Widget Added
+* Added: [Generic Carousel](https://skyaddons.com/elementor/generic-carousel-widget/) Widget Added
+* Added: Video Feature added in [Mate Slider](https://skyaddons.com/elementor/mate-slider-widget/), [Post List](https://skyaddons.com/elementor/post-list-widget/) Widgets
 * Fixed: Design Breaks issue fixed in Pagination
 
 = 1.0.11 [31th August 2022] =
 
-* Added: Fellow Slider Widget Added
-* Added: Mate Slider Widget Added
+* Added: [Fellow Slider](https://skyaddons.com/elementor/fellow-slider-widget/) Widget Added
+* Added: [Mate Slider](https://skyaddons.com/elementor/mate-slider-widget/) Widget Added
 
 = 1.0.10 [8th August 2022] =
 
-* Added: Panel Slider Widget added
-* Added: Post List Widget added
-* Added: Backdrop Filter Extensions added
+* Added: [Panel Slider](https://skyaddons.com/elementor/panel-slider-widget/) Widget added
+* Added: [Post List](https://skyaddons.com/elementor/post-list-widget/) Widget added
+* Added: [Backdrop Filter](https://skyaddons.com/elementor/backdrop-filter-extensions/) Extensions added
 * Added: Custom Clip-Path Extensions added in Image Widget
-* Added: Light-box feature added in Logo Carousel Widget
-* Fixed: Alignment Issue fixed in Testimonial Widget (Thanks to Said Hasyim)
+* Added: Light-box feature added in [Logo Carousel](https://skyaddons.com/elementor/logo-carousel-widget/) Widget
+* Fixed: Alignment Issue fixed in [Testimonial](https://skyaddons.com/elementor/testimonial-widget/) Widget (Thanks to Said Hasyim)
 
 = 1.0.9 [13th June 2022] =
 
-* Added: Ripples Effect Extensions added
-* Added: Table of Contents Widget added
-* Fixed: RTL issue fixed in Content Switcher Widget (Thanks to Zakaria Zahidi)
+* Added: [Ripples Effect](https://skyaddons.com/elementor/ripples-effect-extensions/) Extensions added
+* Added: [Table of Contents](https://skyaddons.com/elementor/table-of-content-widget/) Widget added
+* Fixed: RTL issue fixed in [Content Switcher](https://skyaddons.com/elementor/content-switcher-widget/) Widget (Thanks to Zakaria Zahidi)
 
 = 1.0.8 [17th May 2022] =
 
-* Added: Animated Gradient Background Extensions added
+* Added: [Animated Gradient Background](https://skyaddons.com/elementor/animated-gradient-background-extensions/) Extensions added
 
 = 1.0.7 [9th April 2022] =
 
@@ -362,13 +418,13 @@
 
 = 1.0.5 [2nd March 2022] =
 
-* Added: PDF Viewer Widget added
-* Added: Content Switcher Widget added
+* Added: [PDF Viewer](https://skyaddons.com/elementor/pdf-viewer-widget/) Widget added
+* Added: [Content Switcher](https://skyaddons.com/elementor/content-switcher-widget/) Widget added
 
 = 1.0.4 [1st Feb 2022] =
 
-* Added: Logo Carousel Widget added
-* Added: Equal Height Extensions added
+* Added: [Logo Carousel](https://skyaddons.com/elementor/logo-carousel-widget/) Widget added
+* Added: [Equal Height](https://skyaddons.com/elementor/equal-height-extensions/) Extensions added
 
 = 1.0.2 [19th Jan 2022] =
 

@@ -1,0 +1,10 @@
+;(function ($, elementor) {
+    'use strict';
+
+// This widget uses the global carousel handler
+
+    jQuery(window).on('elementor/frontend/init', function () {
+        elementorFrontend.hooks.addAction('frontend/element_ready/' + 'sky-team-member-carousel.default', widgetGlobalCarousel);
+    });
+
+}(jQuery, window.elementorFrontend));

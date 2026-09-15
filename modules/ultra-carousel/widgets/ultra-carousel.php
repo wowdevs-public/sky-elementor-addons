@@ -51,18 +51,27 @@ class Ultra_Carousel extends Widget_Base {
 	}
 
 	public function get_style_depends() {
-		return [
-			'swiper',
-			'elementor-icons-fa-solid',
-		];
+		if ( sky_addons_editor_mode() ) {
+			return [ 'swiper', 'elementor-icons-fa-solid', 'sky-addons-styles' ];
+		}
+
+		return [ 'swiper', 'elementor-icons-fa-solid', 'sa-ultra-carousel' ];
 	}
 
 	public function get_script_depends() {
-		return [ 'swiper' ];
+		if ( sky_addons_editor_mode() ) {
+			return [ 'swiper', 'sky-addons-scripts' ];
+		}
+
+		return [ 'swiper', 'sa-ultra-carousel' ];
 	}
 
 	public function get_query() {
 		return $this->_query;
+	}
+
+	public function has_widget_inner_wrapper(): bool {
+		return ! \Elementor\Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
 	}
 
 	protected function register_controls() {
@@ -106,18 +115,18 @@ class Ultra_Carousel extends Widget_Base {
 		$this->add_responsive_control(
 			'content_alignment',
 			[
-				'label'     => esc_html__( 'Alignment', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::CHOOSE,
-				'options'   => [
-					'left' => [
+				'label' => esc_html__( 'Alignment', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::CHOOSE,
+				'options' => [
+					'left'    => [
 						'title' => esc_html__( 'Left', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-left',
 					],
-					'center' => [
+					'center'  => [
 						'title' => esc_html__( 'Center', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-center',
 					],
-					'right' => [
+					'right'   => [
 						'title' => esc_html__( 'Right', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-right',
 					],
@@ -126,9 +135,12 @@ class Ultra_Carousel extends Widget_Base {
 						'icon'  => 'eicon-text-align-justify',
 					],
 				],
+				// `.sa-post-category` is `display: inline-flex` and shrink-wraps its chips, so it
+				// has no free space for `justify-content` to distribute — that clause was inert.
+				// The `text-align` above already moves it, since an inline-flex box is inline-level.
 				'selectors' => [
 					'{{WRAPPER}} .sa-post-item' => 'text-align: {{VALUE}};',
-					'{{WRAPPER}} .sa-post-meta, {{WRAPPER}} .sa-post-category' => 'justify-content: {{VALUE}};',
+					'{{WRAPPER}} .sa-post-meta' => 'justify-content: {{VALUE}};',
 				],
 			]
 		);
@@ -177,10 +189,10 @@ class Ultra_Carousel extends Widget_Base {
 		$this->add_control(
 			'title_tag',
 			[
-				'label'     => esc_html__( 'Title HTML Tag', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SELECT,
-				'default'   => 'h3',
-				'options'   => sky_addons_title_tags(),
+				'label'   => esc_html__( 'Title HTML Tag', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => 'h3',
+				'options' => sky_addons_title_tags(),
 				'condition' => [
 					'show_title' => 'yes',
 				],
@@ -239,9 +251,9 @@ class Ultra_Carousel extends Widget_Base {
 		$this->add_control(
 			'strip_shortcode',
 			[
-				'label'     => esc_html__( 'Strip ShortCode', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SWITCHER,
-				'default'   => 'yes',
+				'label'   => esc_html__( 'Strip ShortCode', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::SWITCHER,
+				'default' => 'yes',
 				'condition' => [
 					'show_excerpt' => 'yes',
 				],
@@ -289,8 +301,8 @@ class Ultra_Carousel extends Widget_Base {
 		$this->start_controls_section(
 			'section_post_video_settings',
 			[
-				'label'     => esc_html__( 'Video Settings', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_CONTENT,
+				'label' => esc_html__( 'Video Settings', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_CONTENT,
 				'condition' => [
 					'show_video' => 'yes',
 				],
@@ -307,8 +319,8 @@ class Ultra_Carousel extends Widget_Base {
 		$this->start_controls_section(
 			'section_button',
 			[
-				'label'     => esc_html__( 'Read More', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_CONTENT,
+				'label' => esc_html__( 'Read More', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_CONTENT,
 				'condition' => [
 					'show_button' => 'yes',
 				],
@@ -344,7 +356,7 @@ class Ultra_Carousel extends Widget_Base {
 						'title' => esc_html__( 'Before', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-left',
 					],
-					'after' => [
+					'after'  => [
 						'title' => esc_html__( 'After', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-right',
 					],
@@ -406,6 +418,13 @@ class Ultra_Carousel extends Widget_Base {
 						'max' => 1000,
 					],
 				],
+				// States the 360px the stylesheet already applies. Without it the slider read
+				// empty while a height was plainly in effect, and the first drag of the handle
+				// jumped the carousel from 360 to wherever the handle happened to land.
+				'default'    => [
+					'unit' => 'px',
+					'size' => 360,
+				],
 				'selectors'  => [
 					'{{WRAPPER}} .swiper' => 'height: {{SIZE}}{{UNIT}};',
 				],
@@ -462,8 +481,39 @@ class Ultra_Carousel extends Widget_Base {
 				'label'      => esc_html__( 'Padding', 'sky-elementor-addons' ),
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => [ 'px', 'em', '%' ],
+				// `.sa-post-content-wrapper` is position:absolute, so it resolves against the item's
+				// PADDING box and never sees the padding above — only the image gets inset. Re-apply
+				// the same values through the inset vars the stylesheet reads, so the overlay stays
+				// inside the padded area. Writing the offsets directly would tie with the
+				// stylesheet's own rule and the winner would depend on print order. An unlinked
+				// dimension with a blank side makes Elementor skip the whole control
+				// (core/files/css/base.php:401) and the vars fall back to 0.
 				'selectors'  => [
 					'{{WRAPPER}} .sa-post-item' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}}'               => '--sa-uc-inset-left: {{LEFT}}{{UNIT}}; --sa-uc-inset-right: {{RIGHT}}{{UNIT}}; --sa-uc-inset-bottom: {{BOTTOM}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'content_padding',
+			[
+				'label'      => esc_html__( 'Content Padding', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.0.0' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', 'em', 'rem', '%' ],
+				// The markup already puts `sa-p-4` (1.5rem) on .sa-post-content-wrapper, which
+				// this control could not see. Default states it; the class stays as the
+				// stale-cache fallback. See CONTROLS-REFERENCE.md § Dimensions with Default Values.
+				'default'    => [
+					'top'      => '1.5',
+					'right'    => '1.5',
+					'bottom'   => '1.5',
+					'left'     => '1.5',
+					'unit'     => 'rem',
+					'isLinked' => true,
+				],
+				'selectors'  => [
+					'{{WRAPPER}} .sa-post-content-wrapper' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 			]
 		);
@@ -491,9 +541,34 @@ class Ultra_Carousel extends Widget_Base {
 					'unit'     => 'em',
 					'isLinked' => true,
 				],
+				// Only the item. This used to round `.sa-post-img` too, which collided with the
+				// Image section's own Border Radius on the very same element — whichever was
+				// registered later silently won, so touching one control killed the other.
 				'selectors'  => [
-					'{{WRAPPER}} .sa-post-item, {{WRAPPER}} .sa-post-img' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}}; overflow: hidden;',
+					'{{WRAPPER}} .sa-post-item' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}}; overflow: hidden;',
 				],
+			]
+		);
+
+		$this->start_controls_tabs( 'item_style_tabs' );
+
+		$this->start_controls_tab(
+			'item_style_normal_tab',
+			[
+				'label' => esc_html__( 'Normal', 'sky-elementor-addons' ),
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
+			[
+				'name'     => 'item_background',
+				// Overlay layout: the image fills .sa-post-item, so this fill only shows where
+				// `item_padding` pulls the image away from the frame. That is what makes Padding
+				// a distinct control here rather than a second Item Gap.
+				'label'    => esc_html__( 'Background', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.0.0' ),
+				'types'    => [ 'classic', 'gradient' ],
+				'selector' => '{{WRAPPER}} .sa-post-item',
 			]
 		);
 
@@ -506,15 +581,108 @@ class Ultra_Carousel extends Widget_Base {
 			]
 		);
 
+		$this->end_controls_tab();
+
+		$this->start_controls_tab(
+			'item_style_hover_tab',
+			[
+				'label' => esc_html__( 'Hover', 'sky-elementor-addons' ),
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
+			[
+				'name'     => 'item_background_hover',
+				'label'    => esc_html__( 'Background', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.0.0' ),
+				'types'    => [ 'classic', 'gradient' ],
+				'selector' => '{{WRAPPER}} .sa-post-item:hover',
+			]
+		);
+
+		$this->end_controls_tab();
+
+		$this->end_controls_tabs();
+
 		$this->end_controls_section();
 
 		$this->start_controls_section(
 			'section_image_style',
 			[
-				'label'     => esc_html__( 'Image', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Image', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_image' => 'yes',
+				],
+			]
+		);
+
+		// Sizing first, appearance after — same order and same reasoning as Ultra Grid. The
+		// image is stretched by `width/height: 100%` and cropped with `object-fit: cover` in
+		// base.less, none of which the panel could reach, so how the photo sat inside the
+		// slide was the one thing this section could not touch. Pair these with Carousel
+		// Settings -> Height, which is what fixes the slide box these fit into.
+		$this->add_responsive_control(
+			'img_object_fit',
+			[
+				'label'     => esc_html__( 'Image Fit', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.0.0' ),
+				'type'      => Controls_Manager::SELECT,
+				'default'   => '',
+				'options'   => [
+					''        => esc_html__( 'Default', 'sky-elementor-addons' ),
+					'cover'   => esc_html__( 'Cover', 'sky-elementor-addons' ),
+					'contain' => esc_html__( 'Contain', 'sky-elementor-addons' ),
+					'fill'    => esc_html__( 'Fill', 'sky-elementor-addons' ),
+					'none'    => esc_html__( 'None', 'sky-elementor-addons' ),
+				],
+				'selectors' => [
+					'{{WRAPPER}} .sa-post-img' => 'object-fit: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'img_object_position',
+			[
+				'label'     => esc_html__( 'Image Position', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.0.0' ),
+				'type'      => Controls_Manager::SELECT,
+				'default'   => '',
+				'options'   => [
+					''              => esc_html__( 'Default', 'sky-elementor-addons' ),
+					'center center' => esc_html__( 'Center Center', 'sky-elementor-addons' ),
+					'center left'   => esc_html__( 'Center Left', 'sky-elementor-addons' ),
+					'center right'  => esc_html__( 'Center Right', 'sky-elementor-addons' ),
+					'top center'    => esc_html__( 'Top Center', 'sky-elementor-addons' ),
+					'top left'      => esc_html__( 'Top Left', 'sky-elementor-addons' ),
+					'top right'     => esc_html__( 'Top Right', 'sky-elementor-addons' ),
+					'bottom center' => esc_html__( 'Bottom Center', 'sky-elementor-addons' ),
+					'bottom left'   => esc_html__( 'Bottom Left', 'sky-elementor-addons' ),
+					'bottom right'  => esc_html__( 'Bottom Right', 'sky-elementor-addons' ),
+				],
+				'selectors' => [
+					'{{WRAPPER}} .sa-post-img' => 'object-position: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'img_hover_zoom',
+			[
+				'label'     => esc_html__( 'Hover Zoom', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.0.0' ),
+				'type'      => Controls_Manager::SLIDER,
+				'range'     => [
+					'px' => [
+						'min'  => 1,
+						'max'  => 2,
+						'step' => 0.05,
+					],
+				],
+				// Mirrors the `scale(1.1)` the shared `.sa-img-effect-1-1` utility already
+				// applies on item hover — the wrapper carries that class at render — so stating
+				// it changes nothing until the user moves the handle. 1 disables the zoom.
+				'default'   => [ 'size' => 1.1 ],
+				'selectors' => [
+					'{{WRAPPER}} .sa-post-item:hover .sa-post-img' => 'transform: scale({{SIZE}});',
 				],
 			]
 		);
@@ -522,17 +690,17 @@ class Ultra_Carousel extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Background::get_type(),
 			[
-				'name'           => 'image_overlay',
-				'label'          => esc_html__( 'Image Overlay', 'sky-elementor-addons' ),
-				'types'          => [ 'gradient' ],
-				'separator'      => 'before',
-				'exclude'        => [ 'image' ],
+				'name'      => 'image_overlay',
+				'label'     => esc_html__( 'Image Overlay', 'sky-elementor-addons' ),
+				'types'     => [ 'gradient' ],
+				'separator' => 'before',
+				'exclude'   => [ 'image' ],
 				'fields_options' => [
 					'background' => [
-						'label' => 'Image Overlay',
+						'label' => esc_html__( 'Image Overlay', 'sky-elementor-addons' ),
 					],
 				],
-				'selector'       => '{{WRAPPER}} .sa-post-img-wrapper:after',
+				'selector'  => '{{WRAPPER}} .sa-post-img-wrapper:after',
 			]
 		);
 
@@ -551,9 +719,12 @@ class Ultra_Carousel extends Widget_Base {
 				'label'      => esc_html__( 'Border Radius', 'sky-elementor-addons' ),
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => [ 'px', 'em', '%' ],
+				// The second selector was `.sa-post-img  ::after` — a descendant combinator on
+				// an `<img>`, which is childless, so it matched nothing. The scrim it was meant
+				// to round lives on `.sa-post-img-wrapper:after`.
 				'selectors'  => [
-					'{{WRAPPER}} .sa-post-img'          => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-					'{{WRAPPER}} .sa-post-img  ::after' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .sa-post-img'                 => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .sa-post-img-wrapper:after'   => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 			]
 		);
@@ -580,8 +751,8 @@ class Ultra_Carousel extends Widget_Base {
 		$this->start_controls_section(
 			'section_title_style',
 			[
-				'label'     => esc_html__( 'Title', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Title', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_title' => 'yes',
 				],
@@ -630,17 +801,17 @@ class Ultra_Carousel extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Background::get_type(),
 			[
-				'name'           => 'title_background',
-				'label'          => esc_html__( 'Title Background', 'sky-elementor-addons' ),
-				'types'          => [ 'classic', 'gradient' ],
-				'separator'      => 'before',
-				'exclude'        => [ 'image' ],
+				'name'      => 'title_background',
+				'label'     => esc_html__( 'Title Background', 'sky-elementor-addons' ),
+				'types'     => [ 'classic', 'gradient' ],
+				'separator' => 'before',
+				'exclude'   => [ 'image' ],
 				'fields_options' => [
 					'background' => [
 						'label' => 'Title Background',
 					],
 				],
-				'selector'       => '{{WRAPPER}} .sa-post-title a',
+				'selector'  => '{{WRAPPER}} .sa-post-title a',
 			]
 		);
 
@@ -665,8 +836,8 @@ class Ultra_Carousel extends Widget_Base {
 		$this->start_controls_section(
 			'section_category_style',
 			[
-				'label'     => esc_html__( 'Category', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Category', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_category' => 'yes',
 				],
@@ -720,8 +891,8 @@ class Ultra_Carousel extends Widget_Base {
 		$this->start_controls_section(
 			'section_meta_style',
 			[
-				'label'      => esc_html__( 'Meta', 'sky-elementor-addons' ),
-				'tab'        => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Meta', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'conditions' => [
 					'relation' => 'or',
 					'terms'    => [
@@ -791,8 +962,8 @@ class Ultra_Carousel extends Widget_Base {
 		$this->start_controls_section(
 			'section_button_style',
 			[
-				'label'     => esc_html__( 'Read More', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Read More', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_button' => 'yes',
 				],
@@ -809,8 +980,8 @@ class Ultra_Carousel extends Widget_Base {
 		$this->start_controls_section(
 			'play_btn_style',
 			[
-				'label'     => esc_html__( 'Play Button', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Play Button', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_video' => 'yes',
 				],
@@ -881,11 +1052,11 @@ class Ultra_Carousel extends Widget_Base {
 		$args = [];
 		if ( $posts_per_page ) {
 			$args['posts_per_page'] = $posts_per_page;
-			$args['paged'] = max( 1, get_query_var( 'paged' ), get_query_var( 'page' ) );
+			$args['paged']          = max( 1, get_query_var( 'paged' ), get_query_var( 'page' ) );
 		}
 
 		$default = $this->getGroupControlQueryArgs();
-		$args = array_merge( $default, $args );
+		$args    = array_merge( $default, $args );
 
 		$this->_query = new \WP_Query( $args );
 	}
@@ -899,10 +1070,12 @@ class Ultra_Carousel extends Widget_Base {
 			<a href="<?php echo esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ); ?>"
 				class="sa-d-inline-flex sa-align-items-center">
 				<div class="sa-icon-wrap sa-me-1">
-					<i class="eicon-user-circle-o"></i>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" aria-hidden="true">
+						<path d="M313 792C367 825 433 846 500 846 571 846 633 825 688 792 667 767 642 746 617 729 583 708 542 700 500 700 425 700 354 733 313 792ZM229 721C296 642 392 592 500 592 558 592 617 608 671 637 708 658 742 687 771 721 821 662 850 583 850 500 850 308 696 150 500 150S150 308 150 500C150 583 183 662 229 721ZM500 958C246 958 42 754 42 500S246 42 500 42 958 246 958 500 754 958 500 958ZM500 575C400 575 321 496 321 396S400 217 500 217 679 296 679 396 600 575 500 575ZM500 467C538 467 571 433 571 396S538 325 500 325 429 358 429 396 463 467 500 467Z"></path>
+					</svg>
 				</div>
 				<span class="sa-post-author-text">
-					<?php echo get_the_author(); ?>
+					<?php echo esc_html( get_the_author() ); ?>
 				</span>
 			</a>
 		</div>
@@ -913,13 +1086,17 @@ class Ultra_Carousel extends Widget_Base {
 		$settings = $this->get_settings_for_display();
 		if ( 'yes' !== $settings['show_date'] ) {
 			return;
-		} ?>
+		}
+		?>
 		<div class="sa-post-date-wrapper sa-d-flex sa-align-items-center">
 			<div class="sa-icon-wrap sa-me-1">
-				<i class="eicon-calendar"></i>
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" aria-hidden="true">
+					<path d="M917 246V883C917 933 875 971 829 971H171C125 967 83 929 83 879V246C83 196 125 158 171 158H258V62C263 50 271 42 283 42H358C371 42 379 50 379 62V158H617V62C617 50 625 42 638 42H713C725 42 733 50 733 62V158H821C875 158 917 196 917 246ZM829 871V329H171V867C171 871 175 879 183 879H817C821 879 829 875 829 871ZM358 504H283C271 504 263 496 263 483V408C263 396 271 387 283 387H358C371 387 379 396 379 408V479C379 492 371 504 358 504ZM558 483C558 496 550 504 538 504H463C450 504 442 496 442 483V408C442 396 450 387 463 387H538C550 387 558 396 558 408V483ZM738 483C738 496 729 504 717 504H642C629 504 621 496 621 483V408C621 396 629 387 642 387H717C729 387 738 396 738 408V483ZM558 642C558 654 550 662 538 662H463C450 662 442 654 442 642V571C442 558 450 550 463 550H538C550 550 558 558 558 571V642ZM379 642C379 654 371 662 358 662H283C271 662 263 654 263 642V571C263 558 271 550 283 550H358C371 550 379 558 379 571V642ZM738 642C738 654 729 662 717 662H642C629 662 621 654 621 642V571C621 558 629 550 642 550H717C729 550 738 558 738 571V642ZM558 800C558 812 550 821 538 821H463C450 821 442 812 442 800V729C442 717 450 708 463 708H538C550 708 558 717 558 729V800ZM379 800C379 812 371 821 358 821H283C271 821 263 812 263 800V729C263 717 271 708 283 708H358C371 708 379 717 379 729V800ZM738 800C738 812 729 821 717 821H642C629 821 621 812 621 800V729C621 717 629 708 642 708H717C729 708 738 717 738 729V800Z"></path>
+				</svg>
 			</div>
 			<?php
-			$this->render_post_date(); ?>
+			$this->render_post_date();
+			?>
 		</div>
 		<?php
 	}
@@ -934,29 +1111,49 @@ class Ultra_Carousel extends Widget_Base {
 				<?php $this->render_post_thumb_with_video( $post_id, $image_size ); ?>
 
 				<div class="sa-post-content-wrapper sa-w-100 sa-p-4">
-					<div class="sa-post-meta sa-d-flex sa-mb-1">
+					<div class="sa-post-content-main">
+						<?php
+						// Only emit the meta row when something goes in it. Category, title and
+						// excerpt each carry their own margin and disappear with their toggle, but
+						// this wrapper was unconditional — with Author and Date both off it left an
+						// empty flex box still holding `sa-mb-1` plus whatever Meta → Spacing set,
+						// so the content sat lower than the remaining elements accounted for.
+						$has_meta = ( 'yes' === $settings['show_author'] ) || ( 'yes' === $settings['show_date'] );
 
-						<?php $this->render_author(); ?>
+						if ( $has_meta ) :
+							?>
+							<div class="sa-post-meta sa-d-flex sa-mb-1">
 
-						<?php $this->render_date(); ?>
+								<?php $this->render_author(); ?>
 
+								<?php $this->render_date(); ?>
+
+							</div>
+							<?php
+						endif;
+
+						$this->render_post_category( [
+							'wrapper_class' => 'sa-post-category-style-1 sa-mb-3',
+						] );
+
+						$this->render_post_title( [
+							'wrapper_class' => 'sa-mb-2',
+						] );
+
+						$this->render_post_excerpt( $excerpt_length );
+						?>
 					</div>
 
-					<?php
-
-					$this->render_post_category( [
-						'wrapper_class' => 'sa-post-category-style-1 sa-mb-3',
-					] );
-
-					$this->render_post_title( [
-						'wrapper_class' => 'sa-mb-2',
-					] );
-
-					$this->render_post_excerpt( $excerpt_length );
-
-					$this->render_post_general_button();
-
-					?>
+					<div class="sa-post-content-cta">
+						<?php
+						// Outside `.sa-post-content-main` so the two can share one grid cell — see
+						// the stacking note in the stylesheet. The button needs this wrapper rather
+						// than being the grid item itself: a grid item is placed by `justify-self`,
+						// which the Alignment control's `text-align` cannot reach. The wrapper
+						// stretches, the inline-block anchor inside it follows `text-align`.
+						$this->render_post_general_button();
+						?>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -965,7 +1162,7 @@ class Ultra_Carousel extends Widget_Base {
 
 	public function render_header() {
 		$settings = $this->get_settings_for_display();
-		$id = 'sa-ultra-carousel-' . $this->get_id();
+		$id       = 'sa-ultra-carousel-' . $this->get_id();
 
 		/**
 		 * global function

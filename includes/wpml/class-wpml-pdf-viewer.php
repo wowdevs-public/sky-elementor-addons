@@ -6,13 +6,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Only define the class if WPML is available
-if ( ! class_exists( 'WPML_Elementor_Module_Without_Items' ) ) {
-	return;
-}
-
-use WPML_Elementor_Module_Without_Items;
-
 /**
  * Class WPML_PDF_Viewer
  */
@@ -30,8 +23,18 @@ class WPML_PDF_Viewer extends WPML_Module_Without_Items {
 	 */
 	public function get_fields() {
 		return [
-			'title',
-			'button_text',
+			'title'       => [
+				'title'       => esc_html__( 'PDF Viewer: Title', 'sky-elementor-addons' ),
+				'editor_type' => 'LINE',
+			],
+			'badge_text'  => [
+				'title'       => esc_html__( 'PDF Viewer: Badge Text', 'sky-elementor-addons' ),
+				'editor_type' => 'LINE',
+			],
+			'button_text' => [
+				'title'       => esc_html__( 'PDF Viewer: Button Text', 'sky-elementor-addons' ),
+				'editor_type' => 'LINE',
+			],
 		];
 	}
 
@@ -41,28 +44,6 @@ class WPML_PDF_Viewer extends WPML_Module_Without_Items {
 	 * @return string
 	 */
 	protected function get_title( $field ) {
-		switch ( $field ) {
-			case 'title':
-				return esc_html__( 'PDF Viewer: Title', 'sky-elementor-addons' );
-			case 'button_text':
-				return esc_html__( 'PDF Viewer: Button Text', 'sky-elementor-addons' );
-			default:
-				return '';
-		}
-	}
-
-	/**
-	 * @param string $field
-	 *
-	 * @return string
-	 */
-	protected function get_editor_type( $field ) {
-		switch ( $field ) {
-			case 'title':
-			case 'button_text':
-				return 'LINE';
-			default:
-				return '';
-		}
+		return isset( $this->get_fields()[ $field ]['title'] ) ? $this->get_fields()[ $field ]['title'] : '';
 	}
 }

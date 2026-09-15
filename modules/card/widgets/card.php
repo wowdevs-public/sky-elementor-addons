@@ -16,7 +16,7 @@ use Elementor\Icons_Manager;
 use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 class Card extends Widget_Base {
@@ -38,11 +38,23 @@ class Card extends Widget_Base {
 	}
 
 	public function get_keywords() {
-		return [ 'sky', 'card', 'box', 'informations', 'modern' ];
+		return [ 'sky', 'card', 'box', 'information', 'modern' ];
 	}
+	public function get_style_depends() {
+		if ( sky_addons_editor_mode() ) {
+			return [ 'sky-addons-styles' ];
+		}
+
+		return [ 'sa-card' ];
+	}
+
 
 	public function get_custom_help_url() {
 		return 'https://skyaddons.com/docs/sky-addons/widgets/card/';
+	}
+
+	public function has_widget_inner_wrapper(): bool {
+		return ! \Elementor\Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
 	}
 
 	protected function register_controls() {
@@ -79,15 +91,15 @@ class Card extends Widget_Base {
 		$this->add_responsive_control(
 			'image_position',
 			[
-				'label'                => esc_html__( 'Image Position', 'sky-elementor-addons' ),
-				'type'                 => Controls_Manager::CHOOSE,
-				'label_block'          => false,
-				'options'              => [
-					'left' => [
+				'label'           => esc_html__( 'Image Position', 'sky-elementor-addons' ),
+				'type'            => Controls_Manager::CHOOSE,
+				'label_block'     => false,
+				'options' => [
+					'left'  => [
 						'title' => esc_html__( 'Left', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-left',
 					],
-					'top' => [
+					'top'   => [
 						'title' => esc_html__( 'Top', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-v-align-top',
 					],
@@ -96,19 +108,19 @@ class Card extends Widget_Base {
 						'icon'  => 'eicon-h-align-right',
 					],
 				],
-				'toggle'               => false,
-				'desktop_default'      => 'top',
-				'tablet_default'       => 'top',
-				'mobile_default'       => 'top',
-				'prefix_class'         => 'sa-card-%s-',
-				'style_transfer'       => true,
-				'selectors'            => [
-					'{{WRAPPER}} .elementor-widget-container .sa-card' => '{{VALUE}};',
-				],
+				'toggle'          => false,
+				'desktop_default' => 'top',
+				'tablet_default'  => 'top',
+				'mobile_default'  => 'top',
+				'prefix_class'    => 'sa-card-%s-',
+				'style_transfer'  => true,
 				'selectors_dictionary' => [
-					'left'  => 'display: flex; flex-direction: row; text-align: left;',
-					'top'   => 'text-align: left; display: block; flex-direction: unset; flex-flow: unset;',
-					'right' => 'display: flex; flex-direction: row-reverse; text-align: right;',
+					'left'  => 'display: flex; flex-direction: row; text-align: left; align-items: center; --sa-card-img-area-width: 50%; --sa-content-flex-basis: calc(100% - var(--sa-card-img-area-width) + (-1 * var(--sky-media-h-offset, 0px))); --sa-content-margin-left: var(--sky-media-h-offset, 0px); --sa-content-margin-right: 0px; --sa-content-margin-top: 0px;',
+					'top'   => 'display: block; text-align: left; flex-direction: unset; flex-flow: unset; align-items: unset; --sa-card-img-area-width: 100%; --sa-content-flex-basis: auto; --sa-content-margin-left: 0px; --sa-content-margin-right: 0px; --sa-content-margin-top: var(--sky-media-v-offset, 0px);',
+					'right' => 'display: flex; flex-direction: row-reverse; text-align: right; align-items: center; --sa-card-img-area-width: 50%; --sa-content-flex-basis: calc(100% - var(--sa-card-img-area-width) + var(--sky-media-h-offset, 0px)); --sa-content-margin-left: 0px; --sa-content-margin-right: calc(-1 * var(--sky-media-h-offset, 0px)); --sa-content-margin-top: 0px;',
+				],
+				'selectors' => [
+					'{{WRAPPER}} .sa-card' => '{{VALUE}}',
 				],
 			]
 		);
@@ -163,10 +175,10 @@ class Card extends Widget_Base {
 		$this->add_control(
 			'sub_title_tag',
 			[
-				'label'     => esc_html__( 'Sub Title HTML Tag', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SELECT,
-				'default'   => 'h6',
-				'options'   => sky_addons_title_tags(),
+				'label'   => esc_html__( 'Sub Title HTML Tag', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => 'h6',
+				'options' => sky_addons_title_tags(),
 				'condition' => [
 					'show_sub_title' => 'yes',
 				],
@@ -216,7 +228,7 @@ class Card extends Widget_Base {
 				'label'     => esc_html__( 'Badge Position', 'sky-elementor-addons' ),
 				'type'      => Controls_Manager::SELECT,
 				'default'   => 'top-left',
-				'options'   => [
+				'options' => [
 					'top-left'      => esc_html__( 'Top Left', 'sky-elementor-addons' ),
 					'top-center'    => esc_html__( 'Top Center', 'sky-elementor-addons' ),
 					'top-right'     => esc_html__( 'Top Right', 'sky-elementor-addons' ),
@@ -227,8 +239,20 @@ class Card extends Widget_Base {
 					'bottom-center' => esc_html__( 'Bottom Center', 'sky-elementor-addons' ),
 					'bottom-right'  => esc_html__( 'Bottom Right', 'sky-elementor-addons' ),
 				],
-				'condition' => [
-					'show_badge' => 'yes',
+				'condition' => [ 'show_badge' => 'yes' ],
+				'selectors_dictionary' => [
+					'top-left'      => 'top: 15px; left: 15px; transform: translate(var(--sky-badge-h-offset, 0px), var(--sky-badge-v-offset, 0px)) rotate(var(--sky-badge-rotate, 0deg));',
+					'top-center'    => 'top: 15px; left: 50%; transform: translate(calc(-50% + var(--sky-badge-h-offset, 0px)), var(--sky-badge-v-offset, 0px)) rotate(var(--sky-badge-rotate, 0deg));',
+					'top-right'     => 'top: 15px; right: 15px; transform: translate(var(--sky-badge-h-offset, 0px), var(--sky-badge-v-offset, 0px)) rotate(var(--sky-badge-rotate, 0deg));',
+					'middle-left'   => 'top: 50%; left: 0; transform: translate(var(--sky-badge-h-offset, 0px), calc(-50% + var(--sky-badge-v-offset, 0px))) rotate(var(--sky-badge-rotate, 0deg));',
+					'middle-center' => 'top: 50%; left: 50%; transform: translate(calc(-50% + var(--sky-badge-h-offset, 0px)), calc(-50% + var(--sky-badge-v-offset, 0px))) rotate(var(--sky-badge-rotate, 0deg));',
+					'middle-right'  => 'top: 50%; right: 0; transform: translate(var(--sky-badge-h-offset, 0px), calc(-50% + var(--sky-badge-v-offset, 0px))) rotate(var(--sky-badge-rotate, 0deg));',
+					'bottom-left'   => 'bottom: 15px; left: 15px; transform: translate(var(--sky-badge-h-offset, 0px), var(--sky-badge-v-offset, 0px)) rotate(var(--sky-badge-rotate, 0deg));',
+					'bottom-center' => 'bottom: 15px; left: 50%; transform: translate(calc(-50% + var(--sky-badge-h-offset, 0px)), var(--sky-badge-v-offset, 0px)) rotate(var(--sky-badge-rotate, 0deg));',
+					'bottom-right'  => 'bottom: 15px; right: 15px; transform: translate(var(--sky-badge-h-offset, 0px), var(--sky-badge-v-offset, 0px)) rotate(var(--sky-badge-rotate, 0deg));',
+				],
+				'selectors' => [
+					'{{WRAPPER}} .sa-badge' => '{{VALUE}}',
 				],
 			]
 		);
@@ -263,8 +287,8 @@ class Card extends Widget_Base {
 		$this->start_controls_section(
 			'section_button',
 			[
-				'label'     => esc_html__( 'Button', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_CONTENT,
+				'label' => esc_html__( 'Button', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_CONTENT,
 				'condition' => [
 					'show_button' => 'yes',
 				],
@@ -293,10 +317,10 @@ class Card extends Widget_Base {
 		$this->add_responsive_control(
 			'button_alignment',
 			[
-				'label'     => esc_html__( 'Alignment', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::CHOOSE,
-				'options'   => [
-					'left' => [
+				'label'   => esc_html__( 'Alignment', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::CHOOSE,
+				'options' => [
+					'left'   => [
 						'title' => esc_html__( 'Left', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-left',
 					],
@@ -304,7 +328,7 @@ class Card extends Widget_Base {
 						'title' => esc_html__( 'Center', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-center',
 					],
-					'right' => [
+					'right'  => [
 						'title' => esc_html__( 'Right', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-right',
 					],
@@ -312,7 +336,7 @@ class Card extends Widget_Base {
 				'condition' => [
 					'button_full_width' => 'yes',
 				],
-				'default'   => 'center',
+				'default' => 'center',
 				'selectors' => [
 					'{{WRAPPER}} .sa-button' => 'justify-content: {{VALUE}};',
 				],
@@ -338,7 +362,7 @@ class Card extends Widget_Base {
 						'title' => esc_html__( 'Before', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-left',
 					],
-					'after' => [
+					'after'  => [
 						'title' => esc_html__( 'After', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-right',
 					],
@@ -387,18 +411,18 @@ class Card extends Widget_Base {
 		$this->add_responsive_control(
 			'card_alignment',
 			[
-				'label'     => esc_html__( 'Card Alignment', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::CHOOSE,
-				'options'   => [
-					'left' => [
+				'label' => esc_html__( 'Card Alignment', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::CHOOSE,
+				'options' => [
+					'left'    => [
 						'title' => esc_html__( 'Left', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-left',
 					],
-					'center' => [
+					'center'  => [
 						'title' => esc_html__( 'Center', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-center',
 					],
-					'right' => [
+					'right'   => [
 						'title' => esc_html__( 'Right', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-right',
 					],
@@ -428,10 +452,10 @@ class Card extends Widget_Base {
 		$this->add_control(
 			'widget_overflow_hidden',
 			[
-				'label'     => esc_html__( 'Overflow Hidden?', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SWITCHER,
+				'label' => esc_html__( 'Overflow Hidden?', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::SWITCHER,
 				'selectors' => [
-					'{{WRAPPER}} .elementor-widget-container' => 'overflow:hidden;',
+					'{{WRAPPER}}' => 'overflow:hidden;',
 				],
 			]
 		);
@@ -457,7 +481,7 @@ class Card extends Widget_Base {
 						'min' => 50,
 						'max' => 500,
 					],
-					'%' => [
+					'%'  => [
 						'min' => 0,
 						'max' => 100,
 					],
@@ -499,9 +523,9 @@ class Card extends Widget_Base {
 		$this->add_responsive_control(
 			'img_horizontal_offset',
 			[
-				'label'          => esc_html__( 'Horizontal Offset', 'sky-elementor-addons' ),
-				'type'           => Controls_Manager::SLIDER,
-				'default'        => [
+				'label'       => esc_html__( 'Horizontal Offset', 'sky-elementor-addons' ),
+				'type'        => Controls_Manager::SLIDER,
+				'default' => [
 					'size' => 0,
 				],
 				'tablet_default' => [
@@ -510,18 +534,18 @@ class Card extends Widget_Base {
 				'mobile_default' => [
 					'size' => 0,
 				],
-				'range'          => [
+				'range' => [
 					'px' => [
 						'min'  => -300,
 						'step' => 2,
 						'max'  => 300,
 					],
 				],
-				'render_type'    => 'ui',
-				'condition'      => [
+				'render_type' => 'ui',
+				'condition' => [
 					'img_offset_popover' => 'yes',
 				],
-				'selectors'      => [
+				'selectors' => [
 					'{{WRAPPER}} .sa-card' => '--sky-media-h-offset: {{SIZE}}px;',
 				],
 			]
@@ -530,9 +554,9 @@ class Card extends Widget_Base {
 		$this->add_responsive_control(
 			'img_vertical_offset',
 			[
-				'label'          => esc_html__( 'Vertical Offset', 'sky-elementor-addons' ),
-				'type'           => Controls_Manager::SLIDER,
-				'default'        => [
+				'label'       => esc_html__( 'Vertical Offset', 'sky-elementor-addons' ),
+				'type'        => Controls_Manager::SLIDER,
+				'default' => [
 					'size' => 0,
 				],
 				'tablet_default' => [
@@ -541,18 +565,18 @@ class Card extends Widget_Base {
 				'mobile_default' => [
 					'size' => 0,
 				],
-				'range'          => [
+				'range' => [
 					'px' => [
 						'min'  => -300,
 						'step' => 2,
 						'max'  => 300,
 					],
 				],
-				'render_type'    => 'ui',
-				'condition'      => [
+				'render_type' => 'ui',
+				'condition' => [
 					'img_offset_popover' => 'yes',
 				],
-				'selectors'      => [
+				'selectors' => [
 					'{{WRAPPER}} .sa-card' => '--sky-media-v-offset: {{SIZE}}px;',
 				],
 			]
@@ -561,10 +585,10 @@ class Card extends Widget_Base {
 		$this->add_responsive_control(
 			'img_rotate',
 			[
-				'label'          => esc_html__( 'Rotate', 'sky-elementor-addons' ),
-				'type'           => Controls_Manager::SLIDER,
-				'devices'        => [ 'desktop', 'tablet', 'mobile' ],
-				'default'        => [
+				'label'       => esc_html__( 'Rotate', 'sky-elementor-addons' ),
+				'type'        => Controls_Manager::SLIDER,
+				'devices'     => [ 'desktop', 'tablet', 'mobile' ],
+				'default' => [
 					'size' => 0,
 				],
 				'tablet_default' => [
@@ -573,18 +597,18 @@ class Card extends Widget_Base {
 				'mobile_default' => [
 					'size' => 0,
 				],
-				'range'          => [
+				'range' => [
 					'px' => [
 						'min'  => -360,
 						'max'  => 360,
 						'step' => 5,
 					],
 				],
-				'condition'      => [
+				'condition' => [
 					'img_offset_popover' => 'yes',
 				],
-				'render_type'    => 'ui',
-				'selectors'      => [
+				'render_type' => 'ui',
+				'selectors' => [
 					'{{WRAPPER}} .sa-card' => '--sky-media-rotate: {{SIZE}}deg;',
 				],
 			]
@@ -641,6 +665,9 @@ class Card extends Widget_Base {
 				'description'  => esc_html__( 'Default Cover', 'sky-elementor-addons' ),
 				'type'         => Controls_Manager::SWITCHER,
 				'prefix_class' => 'sa-img-contain-',
+				'selectors'    => [
+					'{{WRAPPER}} .sa-img-area img' => 'object-fit: contain;',
+				],
 			]
 		);
 
@@ -656,9 +683,9 @@ class Card extends Widget_Base {
 		$this->add_control(
 			'img_opacity',
 			[
-				'label'     => esc_html__( 'Opacity', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SLIDER,
-				'range'     => [
+				'label' => esc_html__( 'Opacity', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::SLIDER,
+				'range' => [
 					'px' => [
 						'max'  => 1,
 						'min'  => 0.10,
@@ -691,9 +718,9 @@ class Card extends Widget_Base {
 		$this->add_control(
 			'img_opacity_hover',
 			[
-				'label'     => esc_html__( 'Opacity', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SLIDER,
-				'range'     => [
+				'label' => esc_html__( 'Opacity', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::SLIDER,
+				'range' => [
 					'px' => [
 						'max'  => 1,
 						'min'  => 0.10,
@@ -717,9 +744,9 @@ class Card extends Widget_Base {
 		$this->add_control(
 			'img_transition',
 			[
-				'label'     => esc_html__( 'Transition Duration (s)', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SLIDER,
-				'range'     => [
+				'label' => esc_html__( 'Transition Duration (s)', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::SLIDER,
+				'range' => [
 					'px' => [
 						'max'  => 3,
 						'step' => 0.1,
@@ -748,8 +775,8 @@ class Card extends Widget_Base {
 		$this->start_controls_section(
 			'section_badge_style',
 			[
-				'label'     => esc_html__( 'Badge', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Badge', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_badge' => 'yes',
 				],
@@ -769,9 +796,9 @@ class Card extends Widget_Base {
 		$this->add_responsive_control(
 			'badge_horizontal_offset',
 			[
-				'label'          => esc_html__( 'Horizontal Offset', 'sky-elementor-addons' ),
-				'type'           => Controls_Manager::SLIDER,
-				'default'        => [
+				'label'       => esc_html__( 'Horizontal Offset', 'sky-elementor-addons' ),
+				'type'        => Controls_Manager::SLIDER,
+				'default' => [
 					'size' => 0,
 				],
 				'tablet_default' => [
@@ -780,18 +807,18 @@ class Card extends Widget_Base {
 				'mobile_default' => [
 					'size' => 0,
 				],
-				'range'          => [
+				'range' => [
 					'px' => [
 						'min'  => -300,
 						'step' => 2,
 						'max'  => 300,
 					],
 				],
-				'render_type'    => 'ui',
-				'condition'      => [
+				'render_type' => 'ui',
+				'condition' => [
 					'badge_offset_popover' => 'yes',
 				],
-				'selectors'      => [
+				'selectors' => [
 					'{{WRAPPER}}' => '--sky-badge-h-offset: {{SIZE}}px;',
 				],
 			]
@@ -800,9 +827,9 @@ class Card extends Widget_Base {
 		$this->add_responsive_control(
 			'badge_vertical_offset',
 			[
-				'label'          => esc_html__( 'Vertical Offset', 'sky-elementor-addons' ),
-				'type'           => Controls_Manager::SLIDER,
-				'default'        => [
+				'label'       => esc_html__( 'Vertical Offset', 'sky-elementor-addons' ),
+				'type'        => Controls_Manager::SLIDER,
+				'default' => [
 					'size' => 0,
 				],
 				'tablet_default' => [
@@ -811,18 +838,18 @@ class Card extends Widget_Base {
 				'mobile_default' => [
 					'size' => 0,
 				],
-				'range'          => [
+				'range' => [
 					'px' => [
 						'min'  => -300,
 						'step' => 2,
 						'max'  => 300,
 					],
 				],
-				'render_type'    => 'ui',
-				'condition'      => [
+				'render_type' => 'ui',
+				'condition' => [
 					'badge_offset_popover' => 'yes',
 				],
-				'selectors'      => [
+				'selectors' => [
 					'{{WRAPPER}}' => '--sky-badge-v-offset: {{SIZE}}px;',
 				],
 			]
@@ -831,10 +858,10 @@ class Card extends Widget_Base {
 		$this->add_responsive_control(
 			'badge_rotate',
 			[
-				'label'          => esc_html__( 'Rotate', 'sky-elementor-addons' ),
-				'type'           => Controls_Manager::SLIDER,
-				'devices'        => [ 'desktop', 'tablet', 'mobile' ],
-				'default'        => [
+				'label'       => esc_html__( 'Rotate', 'sky-elementor-addons' ),
+				'type'        => Controls_Manager::SLIDER,
+				'devices'     => [ 'desktop', 'tablet', 'mobile' ],
+				'default' => [
 					'size' => 0,
 				],
 				'tablet_default' => [
@@ -843,18 +870,18 @@ class Card extends Widget_Base {
 				'mobile_default' => [
 					'size' => 0,
 				],
-				'range'          => [
+				'range' => [
 					'px' => [
 						'min'  => -360,
 						'max'  => 360,
 						'step' => 5,
 					],
 				],
-				'render_type'    => 'ui',
-				'condition'      => [
+				'render_type' => 'ui',
+				'condition' => [
 					'badge_offset_popover' => 'yes',
 				],
-				'selectors'      => [
+				'selectors' => [
 					'{{WRAPPER}}' => '--sky-badge-rotate: {{SIZE}}deg;',
 				],
 			]
@@ -886,8 +913,8 @@ class Card extends Widget_Base {
 		$this->add_control(
 			'badge_color',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-img-area .sa-badge' => 'color: {{VALUE}}',
 				],
@@ -939,8 +966,8 @@ class Card extends Widget_Base {
 		$this->start_controls_section(
 			'section_sub_title_style',
 			[
-				'label'     => esc_html__( 'Sub Title', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Sub Title', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'sub_title!'     => '',
 					'show_sub_title' => 'yes',
@@ -960,7 +987,7 @@ class Card extends Widget_Base {
 						'max'  => 100,
 						'step' => 1,
 					],
-					'%' => [
+					'%'  => [
 						'min' => 0,
 						'max' => 100,
 					],
@@ -992,8 +1019,8 @@ class Card extends Widget_Base {
 		$this->add_control(
 			'sub_title_color',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-sub-title' => 'color: {{VALUE}}',
 				],
@@ -1021,10 +1048,10 @@ class Card extends Widget_Base {
 		$this->add_control(
 			'sub_title_color_hover',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .elementor-widget-container:hover .sa-sub-title' => 'color: {{VALUE}}',
+					'{{WRAPPER}} .sa-sub-title:hover' => 'color: {{VALUE}}',
 				],
 			]
 		);
@@ -1034,7 +1061,7 @@ class Card extends Widget_Base {
 			[
 				'name'     => 'sub_title_text_shadow_hover',
 				'label'    => esc_html__( 'Text Shadow', 'sky-elementor-addons' ),
-				'selector' => '{{WRAPPER}} .elementor-widget-container:hover .sa-sub-title',
+				'selector' => '{{WRAPPER}} .sa-sub-title:hover',
 			]
 		);
 
@@ -1047,8 +1074,8 @@ class Card extends Widget_Base {
 		$this->start_controls_section(
 			'section_title_style',
 			[
-				'label'     => esc_html__( 'Title', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Title', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'title!' => '',
 				],
@@ -1067,7 +1094,7 @@ class Card extends Widget_Base {
 						'max'  => 100,
 						'step' => 1,
 					],
-					'%' => [
+					'%'  => [
 						'min' => 0,
 						'max' => 100,
 					],
@@ -1099,8 +1126,8 @@ class Card extends Widget_Base {
 		$this->add_control(
 			'title_color',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-title' => 'color: {{VALUE}}',
 				],
@@ -1128,10 +1155,10 @@ class Card extends Widget_Base {
 		$this->add_control(
 			'title_color_hover',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .elementor-widget-container:hover .sa-title' => 'color: {{VALUE}}',
+					'{{WRAPPER}} .sa-card:hover .sa-title' => 'color: {{VALUE}}',
 				],
 			]
 		);
@@ -1141,7 +1168,7 @@ class Card extends Widget_Base {
 			[
 				'name'     => 'title_text_shadow_hover',
 				'label'    => esc_html__( 'Text Shadow', 'sky-elementor-addons' ),
-				'selector' => '{{WRAPPER}} .elementor-widget-container:hover .sa-title',
+				'selector' => '{{WRAPPER}} .sa-card:hover .sa-title',
 			]
 		);
 
@@ -1154,8 +1181,8 @@ class Card extends Widget_Base {
 		$this->start_controls_section(
 			'section_desc_style',
 			[
-				'label'     => esc_html__( 'Description', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Description', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'description!' => '',
 				],
@@ -1174,7 +1201,7 @@ class Card extends Widget_Base {
 						'max'  => 100,
 						'step' => 1,
 					],
-					'%' => [
+					'%'  => [
 						'min' => 0,
 						'max' => 100,
 					],
@@ -1206,8 +1233,8 @@ class Card extends Widget_Base {
 		$this->add_control(
 			'desc_color',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-desc' => 'color: {{VALUE}}',
 				],
@@ -1226,10 +1253,10 @@ class Card extends Widget_Base {
 		$this->add_control(
 			'desc_color_hover',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .elementor-widget-container:hover .sa-desc' => 'color: {{VALUE}}',
+					'{{WRAPPER}} .sa-card:hover .sa-desc' => 'color: {{VALUE}}',
 				],
 			]
 		);
@@ -1243,8 +1270,8 @@ class Card extends Widget_Base {
 		$this->start_controls_section(
 			'section_button_style',
 			[
-				'label'     => esc_html__( 'Button', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Button', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_button' => 'yes',
 				],
@@ -1305,8 +1332,8 @@ class Card extends Widget_Base {
 		$this->add_control(
 			'button_color',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-button, {{WRAPPER}} .sa-button:focus' => 'color: {{VALUE}}',
 				],
@@ -1353,8 +1380,8 @@ class Card extends Widget_Base {
 		$this->add_control(
 			'button_color_hover',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-button:hover' => 'color: {{VALUE}}',
 				],
@@ -1374,8 +1401,8 @@ class Card extends Widget_Base {
 		$this->add_control(
 			'button_border_color_hover',
 			[
-				'label'     => esc_html__( 'Border Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Border Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-button:hover' => 'border-color: {{VALUE}};',
 				],
@@ -1435,10 +1462,10 @@ class Card extends Widget_Base {
 		$this->add_control(
 			'card_h_btn_color',
 			[
-				'label'     => esc_html__( 'Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .elementor-widget-container:hover .sa-button' => 'color: {{VALUE}}',
+					'{{WRAPPER}} .sa-card:hover .sa-button' => 'color: {{VALUE}}',
 				],
 				'condition' => [
 					'card_h_btn_color_change' => 'yes',
@@ -1455,153 +1482,165 @@ class Card extends Widget_Base {
 
 	protected function render() {
 		$settings = $this->get_settings_for_display();
-
-		$this->add_render_attribute( 'badge_text', 'class', 'sa-badge sa-px-3 sa-py-2' );
-		$this->add_render_attribute( 'badge_text', 'class', ( $settings['show_badge'] === 'yes' ) ? 'sa-' . $settings['badge_position'] : '' );
-
-		if ( ! empty( $settings['image']['url'] ) ) {
-			$this->add_render_attribute( 'image', 'src', $settings['image']['url'] );
-			$this->add_render_attribute( 'image', 'alt', Control_Media::get_image_alt( $settings['image'] ) );
-			$this->add_render_attribute( 'image', 'title', Control_Media::get_image_title( $settings['image'] ) );
-
-			if ( $settings['img_hover_animation'] ) {
-				$settings['hover_animation'] = $settings['img_hover_animation'];
-				$this->add_render_attribute( 'image', 'class', 'elementor-animation-' . $settings['img_hover_animation'] );
-			}
-
-			$image_html = Group_Control_Image_Size::get_attachment_image_html( $settings, 'thumbnail', 'image' );
-		}
 		?>
 		<div class="sa-card">
-
-			<?php if ( ! empty( $settings['image']['url'] ) ) : ?>
-				<figure class="sa-img-area">
-					<?php
-					if ( ! empty( $settings['link']['url'] ) ) {
-						$this->add_render_attribute( 'link', 'class', 'sa-text-decoration-none' );
-						$this->add_link_attributes( 'link', $settings['link'] );
-						printf(
-							'<a %1$s>%2$s</a>',
-							wp_kses_post( $this->get_render_attribute_string( 'link' ) ),
-							wp_kses_post( $image_html )
-						);
-					} else {
-						printf(
-							'<a %1$s>%2$s</a>',
-							wp_kses_post( $this->get_render_attribute_string( 'link' ) ),
-							wp_kses_post( $image_html )
-						);
-					}
-
-					if ( $settings['show_badge'] === 'yes' && ! empty( $settings['badge_text'] ) ) {
-						$this->add_inline_editing_attributes( 'badge_text', 'none' );
-
-						printf(
-							'<span %1$s>%2$s</span>',
-							wp_kses_post( $this->get_render_attribute_string( 'badge_text' ) ),
-							wp_kses_post( $settings['badge_text'] )
-						);
-					}
-
-					?>
-				</figure>
-			<?php endif; ?>
-
+			<?php $this->render_image( $settings ); ?>
 			<div class="sa-content-area">
 				<?php
-				if ( $settings['show_sub_title'] === 'yes' && ! empty( $settings['sub_title'] ) ) {
-					printf(
-						'<%1$s class="%2$s">%3$s</%1$s>',
-						esc_attr( Utils::validate_html_tag( $settings['sub_title_tag'] ) ),
-						'sa--text-sub-title sa--sub-title sa-sub-title sa-mt-0 sa-mb-1 sa-fs-6',
-						wp_kses_post( $settings['sub_title'] )
-					);
-				}
-
-				if ( ! empty( $settings['title'] ) ) {
-					$this->add_link_attributes( 'link_title', $settings['link'] );
-					printf(
-						'<%1$s class="%2$s"><a class="sa-link sa-current-color" %4$s>%3$s</a></%1$s>',
-						esc_attr( Utils::validate_html_tag( $settings['title_tag'] ) ),
-						'sa-title sa--title sa--text-title sa-mt-0 sa-mb-1 sa-fs-4',
-						wp_kses_post( $settings['title'] ),
-            // phpcs:ignore
-						$this->get_render_attribute_string( 'link_title' )
-					);
-				}
-
-				if ( ! empty( $settings['description'] ) ) {
-					printf(
-						'<div class="%1$s">%2$s</div>',
-						'sa-desc sa--text-info sa-mb-3 sa-fs-6',
-						wp_kses_post( $settings['description'] )
-					);
-				}
+				$this->render_sub_title( $settings );
+				$this->render_title( $settings );
+				$this->render_description( $settings );
+				$this->render_button( $settings );
 				?>
-
-				<?php
-				if ( $settings['show_button'] === 'yes' ) :
-
-					$this->add_render_attribute( 'link_attr', 'class', 'sa-button sa-text-decoration-none sa-p-3 sa-rounded sa-align-items-center' );
-					$this->add_render_attribute( 'link_attr', 'class', ( $settings['button_full_width'] === 'yes' ) ? 'sa-d-flex' : 'sa-d-inline-flex' );
-
-					if ( ! empty( $settings['link']['url'] ) ) {
-						$this->add_render_attribute( 'link_attr', 'href', esc_url( $settings['link']['url'] ) );
-
-						if ( $settings['link']['is_external'] ) {
-							$this->add_render_attribute( 'link_attr', 'target', '_blank' );
-						}
-
-						if ( $settings['link']['nofollow'] ) {
-							$this->add_render_attribute( 'link_attr', 'rel', 'nofollow' );
-						}
-					} else {
-						$this->add_render_attribute( 'link_attr', 'href', 'javascript:void(0);' );
-					}
-
-					if ( $settings['button_hover_animation'] ) {
-						$this->add_render_attribute( 'link_attr', 'class', 'elementor-animation-' . $settings['button_hover_animation'] );
-					}
-
-					if ( ! empty( $settings['button_text'] ) ) :
-						$this->add_render_attribute( 'link_attr', 'class', 'sa-button-icon-' . $settings['button_icon_position'] );
-					endif;
-					?>
-					<a <?php $this->print_render_attribute_string( 'link_attr' ); ?>>
-
-						<?php
-						if ( ! empty( $settings['button_icon']['value'] ) && $settings['button_icon_position'] === 'before' ) {
-							echo '<span class="sa-icon-wrap sa-button-icon">';
-							Icons_Manager::render_icon( $settings['button_icon'], [
-								'aria-hidden' => 'true',
-							] );
-							echo '</span>';
-						}
-
-						if ( ! empty( $settings['button_text'] ) ) :
-							$this->add_render_attribute( 'button_text', 'class', 'sa-button-text' );
-							$this->add_inline_editing_attributes( 'button_text', 'none' );
-
-							printf(
-								'<span %1$s>%2$s</span>',
-								wp_kses_post( $this->get_render_attribute_string( 'button_text' ) ),
-								esc_html( $settings['button_text'] )
-							);
-
-						endif;
-
-						if ( ! empty( $settings['button_icon']['value'] ) && $settings['button_icon_position'] === 'after' ) {
-							echo '<span class="sa-icon-wrap sa-button-icon">';
-							Icons_Manager::render_icon( $settings['button_icon'], [
-								'aria-hidden' => 'true',
-							] );
-							echo '</span>';
-						}
-						?>
-					</a>
-				<?php endif; ?>
 			</div>
 		</div>
+		<?php
+	}
+
+	private function render_image( $settings ) {
+		if ( empty( $settings['image']['url'] ) ) {
+			return;
+		}
+
+		$this->add_render_attribute( 'image', 'src', esc_url( $settings['image']['url'] ) );
+		$this->add_render_attribute( 'image', 'alt', Control_Media::get_image_alt( $settings['image'] ) );
+		$this->add_render_attribute( 'image', 'title', Control_Media::get_image_title( $settings['image'] ) );
+
+		if ( $settings['img_hover_animation'] ) {
+			$this->add_render_attribute( 'image', 'class', 'elementor-animation-' . $settings['img_hover_animation'] );
+		}
+
+		$image_html = Group_Control_Image_Size::get_attachment_image_html( $settings, 'thumbnail', 'image' );
+
+		if ( ! empty( $settings['link']['url'] ) ) {
+			$this->add_render_attribute( 'link', 'class', 'sa-text-decoration-none' );
+			$this->add_link_attributes( 'link', $settings['link'] );
+		}
+		?>
+		<figure class="sa-img-area">
+			<?php
+			printf(
+				'<a %1$s>%2$s</a>',
+				wp_kses_post( $this->get_render_attribute_string( 'link' ) ),
+				wp_kses_post( $image_html )
+			);
+			$this->render_badge( $settings );
+			?>
+		</figure>
+		<?php
+	}
+
+	private function render_badge( $settings ) {
+		if ( 'yes' !== $settings['show_badge'] || empty( $settings['badge_text'] ) ) {
+			return;
+		}
+
+		$this->add_render_attribute( 'badge_text', 'class', 'sa-badge sa-px-3 sa-py-2' );
+		$this->add_inline_editing_attributes( 'badge_text', 'none' );
+
+		printf(
+			'<span %1$s>%2$s</span>',
+			wp_kses_post( $this->get_render_attribute_string( 'badge_text' ) ),
+			wp_kses_post( $settings['badge_text'] )
+		);
+	}
+
+	private function render_sub_title( $settings ) {
+		if ( 'yes' !== $settings['show_sub_title'] || empty( $settings['sub_title'] ) ) {
+			return;
+		}
+
+		printf(
+			'<%1$s class="%2$s">%3$s</%1$s>',
+			esc_attr( Utils::validate_html_tag( $settings['sub_title_tag'] ) ),
+			'sa--text-sub-title sa--sub-title sa-sub-title sa-mt-0 sa-mb-1 sa-fs-6',
+			wp_kses_post( $settings['sub_title'] )
+		);
+	}
+
+	private function render_title( $settings ) {
+		if ( empty( $settings['title'] ) ) {
+			return;
+		}
+
+		$this->add_link_attributes( 'link_title', $settings['link'] );
+		printf(
+			'<%1$s class="%2$s"><a class="sa-link sa-current-color" %4$s>%3$s</a></%1$s>',
+			esc_attr( Utils::validate_html_tag( $settings['title_tag'] ) ),
+			'sa-title sa--title sa--text-title sa-mt-0 sa-mb-1 sa-fs-4',
+			wp_kses_post( $settings['title'] ),
+			// phpcs:ignore
+			$this->get_render_attribute_string( 'link_title' )
+		);
+	}
+
+	private function render_description( $settings ) {
+		if ( empty( $settings['description'] ) ) {
+			return;
+		}
+
+		printf(
+			'<div class="%1$s">%2$s</div>',
+			'sa-desc sa--text-info sa-mb-3 sa-fs-6',
+			wp_kses_post( $settings['description'] )
+		);
+	}
+
+	private function render_button( $settings ) {
+		if ( 'yes' !== $settings['show_button'] ) {
+			return;
+		}
+
+		$this->add_render_attribute( 'link_attr', 'class', 'sa-button sa-text-decoration-none sa-p-3 sa-rounded sa-align-items-center' );
+		$this->add_render_attribute( 'link_attr', 'class', ( 'yes' === $settings['button_full_width'] ) ? 'sa-d-flex' : 'sa-d-inline-flex' );
+
+		if ( ! empty( $settings['link']['url'] ) ) {
+			$this->add_render_attribute( 'link_attr', 'href', esc_url( $settings['link']['url'] ) );
+
+			if ( $settings['link']['is_external'] ) {
+				$this->add_render_attribute( 'link_attr', 'target', '_blank' );
+			}
+
+			if ( $settings['link']['nofollow'] ) {
+				$this->add_render_attribute( 'link_attr', 'rel', 'nofollow' );
+			}
+		} else {
+			$this->add_render_attribute( 'link_attr', 'href', 'javascript:void(0);' );
+		}
+
+		if ( $settings['button_hover_animation'] ) {
+			$this->add_render_attribute( 'link_attr', 'class', 'elementor-animation-' . $settings['button_hover_animation'] );
+		}
+
+		if ( ! empty( $settings['button_text'] ) ) {
+			$this->add_render_attribute( 'link_attr', 'class', 'sa-button-icon-' . $settings['button_icon_position'] );
+		}
+		?>
+		<a <?php $this->print_render_attribute_string( 'link_attr' ); ?>>
+			<?php
+			if ( ! empty( $settings['button_icon']['value'] ) && 'before' === $settings['button_icon_position'] ) {
+				echo '<span class="sa-icon-wrap sa-button-icon">';
+				Icons_Manager::render_icon( $settings['button_icon'], [ 'aria-hidden' => 'true' ] );
+				echo '</span>';
+			}
+
+			if ( ! empty( $settings['button_text'] ) ) :
+				$this->add_render_attribute( 'button_text', 'class', 'sa-button-text' );
+				$this->add_inline_editing_attributes( 'button_text', 'none' );
+				printf(
+					'<span %1$s>%2$s</span>',
+					wp_kses_post( $this->get_render_attribute_string( 'button_text' ) ),
+					esc_html( $settings['button_text'] )
+				);
+			endif;
+
+			if ( ! empty( $settings['button_icon']['value'] ) && 'after' === $settings['button_icon_position'] ) {
+				echo '<span class="sa-icon-wrap sa-button-icon">';
+				Icons_Manager::render_icon( $settings['button_icon'], [ 'aria-hidden' => 'true' ] );
+				echo '</span>';
+			}
+			?>
+		</a>
 		<?php
 	}
 }

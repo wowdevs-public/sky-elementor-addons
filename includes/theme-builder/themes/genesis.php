@@ -24,16 +24,16 @@ class Genesis {
 
 		if ( null !== $this->header ) {
 			add_action( 'template_redirect', [ $this, 'remove_theme_header_markup' ], 10 );
-			add_action( 'ocean_header', [ $this, 'add_plugin_header_markup' ] );
 			add_action( 'genesis_header', [ $this, 'genesis_header_markup_open' ], 16 );
+			add_action( 'genesis_header', [ $this, 'add_plugin_header_markup' ], 20 );
 			add_action( 'genesis_header', [ $this, 'genesis_header_markup_close' ], 25 );
 		}
 
 		if ( null !== $this->footer ) {
 			add_action( 'template_redirect', [ $this, 'remove_theme_footer_markup' ], 10 );
 			add_action( 'genesis_footer', [ $this, 'genesis_footer_markup_open' ], 16 );
+			add_action( 'genesis_footer', [ $this, 'add_plugin_footer_markup' ], 20 );
 			add_action( 'genesis_footer', [ $this, 'genesis_footer_markup_close' ], 25 );
-			add_action( 'ocean_footer', [ $this, 'add_plugin_footer_markup' ] );
 		}
 	}
 

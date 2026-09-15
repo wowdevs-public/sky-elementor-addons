@@ -19,7 +19,7 @@ use Sky_Addons\Traits\Global_Widget_Controls;
 use Sky_Addons\Traits\Global_Swiper_Controls;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 class Generic_Carousel extends Widget_Base {
@@ -49,22 +49,31 @@ class Generic_Carousel extends Widget_Base {
 	}
 
 	public function get_keywords() {
-		return [ 'sky', 'post', 'list', 'blogs', 'generic', 'grid' ];
+		return [ 'sky', 'post', 'list', 'blogs', 'generic', 'carousel' ];
 	}
 
 	public function get_style_depends() {
-		return [
-			'swiper',
-			'elementor-icons-fa-solid',
-		];
+		if ( sky_addons_editor_mode() ) {
+			return [ 'swiper', 'elementor-icons-fa-solid', 'sky-addons-styles' ];
+		}
+
+		return [ 'swiper', 'elementor-icons-fa-solid', 'sa-generic-carousel' ];
 	}
 
 	public function get_script_depends() {
-		return [ 'swiper' ];
+		if ( sky_addons_editor_mode() ) {
+			return [ 'swiper', 'sky-addons-scripts' ];
+		}
+
+		return [ 'swiper', 'sa-generic-carousel' ];
 	}
 
 	public function get_query() {
 		return $this->_query;
+	}
+
+	public function has_widget_inner_wrapper(): bool {
+		return ! \Elementor\Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
 	}
 
 	protected function register_controls() {
@@ -109,9 +118,9 @@ class Generic_Carousel extends Widget_Base {
 		$this->add_responsive_control(
 			'content_alignment',
 			[
-				'label'     => esc_html__( 'Alignment', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::CHOOSE,
-				'options'   => [
+				'label'   => esc_html__( 'Alignment', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::CHOOSE,
+				'options' => [
 					'left'    => [
 						'title' => esc_html__( 'Left', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-left',
@@ -129,8 +138,8 @@ class Generic_Carousel extends Widget_Base {
 						'icon'  => 'eicon-text-align-justify',
 					],
 				],
-				'default'   => 'center',
-				'toggle'    => false,
+				'default' => 'center',
+				'toggle'  => false,
 				'selectors' => [
 					'{{WRAPPER}} .sa-post-item' => 'text-align: {{VALUE}};',
 					'{{WRAPPER}} .sa-post-meta' => 'justify-content: {{VALUE}};',
@@ -182,10 +191,10 @@ class Generic_Carousel extends Widget_Base {
 		$this->add_control(
 			'title_tag',
 			[
-				'label'     => esc_html__( 'Title HTML Tag', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SELECT,
-				'default'   => 'h3',
-				'options'   => sky_addons_title_tags(),
+				'label'   => esc_html__( 'Title HTML Tag', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => 'h3',
+				'options' => sky_addons_title_tags(),
 				'condition' => [
 					'show_title' => 'yes',
 				],
@@ -236,9 +245,9 @@ class Generic_Carousel extends Widget_Base {
 		$this->add_control(
 			'strip_shortcode',
 			[
-				'label'     => esc_html__( 'Strip ShortCode', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SWITCHER,
-				'default'   => 'yes',
+				'label'   => esc_html__( 'Strip ShortCode', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::SWITCHER,
+				'default' => 'yes',
 				'condition' => [
 					'show_excerpt' => 'yes',
 				],
@@ -276,8 +285,8 @@ class Generic_Carousel extends Widget_Base {
 		$this->start_controls_section(
 			'section_post_video_settings',
 			[
-				'label'     => esc_html__( 'Video Settings', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_CONTENT,
+				'label' => esc_html__( 'Video Settings', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_CONTENT,
 				'condition' => [
 					'show_video' => 'yes',
 				],
@@ -352,7 +361,36 @@ class Generic_Carousel extends Widget_Base {
 			[
 				'label'      => esc_html__( 'Padding', 'sky-elementor-addons' ),
 				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => [ 'px', 'em', '%' ],
+				'size_units' => [ 'px', 'em', 'rem', '%' ],
+				// The panel read empty while .sa-post-item was already padded by the `sa-p-4`
+				// class in render() — so a value typed here replaced an invisible baseline
+				// instead of adding to it, and the same number meant different things from one
+				// widget to the next. This default makes the control state the truth.
+				//
+				// The class deliberately STAYS in the markup. Elementor serves a page's CSS
+				// from a cached file that only rebuilds on save, so a page saved before this
+				// default existed would otherwise render with no padding at all. The control
+				// always wins when it emits anything — `body .sa-p-4` is (0,1,1) against
+				// Elementor's (0,4,0) — including when set to 0, so the class only ever acts
+				// as the stale-cache fallback.
+				//
+				// rem, not the 24px it usually resolves to, so it matches the class whatever
+				// root font-size the theme sets.
+				//
+				// Deliberately NO tablet_default/mobile_default, even though the stylesheet
+				// sets `padding: 1rem` on .sa-post-item below 1024px. Adding them materialises
+				// a value on every widget whose owner never touched the control, and a
+				// materialised breakpoint value OVERRIDES the desktop one they did set — a
+				// customised 40px would silently become 1rem on tablet. Leaving them unset
+				// keeps Elementor's desktop-cascades-down behaviour, which is what shipped.
+				'default'    => [
+					'top'      => '1.5',
+					'right'    => '1.5',
+					'bottom'   => '1.5',
+					'left'     => '1.5',
+					'unit'     => 'rem',
+					'isLinked' => true,
+				],
 				'selectors'  => [
 					'{{WRAPPER}} .sa-post-item' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
@@ -363,7 +401,7 @@ class Generic_Carousel extends Widget_Base {
 			[
 				'label'      => esc_html__( 'Content Padding', 'sky-elementor-addons' ),
 				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => [ 'px', 'em', '%' ],
+				'size_units' => [ 'px', 'em', 'rem', '%' ],
 				'selectors'  => [
 					'{{WRAPPER}} .sa-post-content-wrapper' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
@@ -373,8 +411,8 @@ class Generic_Carousel extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Border::get_type(),
 			[
-				'name'           => 'item_border',
-				'label'          => esc_html__( 'Border', 'sky-elementor-addons' ),
+				'name'     => 'item_border',
+				'label'    => esc_html__( 'Border', 'sky-elementor-addons' ),
 				'fields_options' => [
 					'border' => [
 						'default' => 'solid',
@@ -393,7 +431,7 @@ class Generic_Carousel extends Widget_Base {
 						'default' => '#eaeaea',
 					],
 				],
-				'selector'       => '{{WRAPPER}} .sa-post-item',
+				'selector' => '{{WRAPPER}} .sa-post-item',
 			]
 		);
 
@@ -478,8 +516,8 @@ class Generic_Carousel extends Widget_Base {
 		$this->add_control(
 			'item_border_color_hover',
 			[
-				'label'     => esc_html__( 'Border Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Border Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-post-item:hover' => 'border-color: {{VALUE}};',
 				],
@@ -498,8 +536,8 @@ class Generic_Carousel extends Widget_Base {
 		$this->start_controls_section(
 			'section_image_style',
 			[
-				'label'     => esc_html__( 'Image', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Image', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_image' => 'yes',
 				],
@@ -519,7 +557,14 @@ class Generic_Carousel extends Widget_Base {
 					],
 				],
 				'selectors'  => [
-					'{{WRAPPER}} .sa-post-img-wrapper' => 'min-height: {{SIZE}}{{UNIT}}; max-height: {{SIZE}}{{UNIT}};',
+					// `height` as well as min/max — without it the box is sized but the percentage
+					// inside it is not. `.sa-post-img-wrapper img` is `height: 100%` (base.less), and a
+					// percentage height resolves against the containing block's `height` property. With
+					// only min/max-height set, `height` stays `auto`, the percentage is indeterminate and
+					// collapses to `auto` — so the image kept its natural ratio inside a taller box,
+					// leaving dead space, and `object-fit: cover` never engaged. min/max are kept so the
+					// box is still pinned if anything else tries to stretch it.
+					'{{WRAPPER}} .sa-post-img-wrapper' => 'height: {{SIZE}}{{UNIT}}; min-height: {{SIZE}}{{UNIT}}; max-height: {{SIZE}}{{UNIT}};',
 				],
 			]
 		);
@@ -591,8 +636,8 @@ class Generic_Carousel extends Widget_Base {
 		$this->start_controls_section(
 			'section_title_style',
 			[
-				'label'     => esc_html__( 'Title', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Title', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_title' => 'yes',
 				],
@@ -643,8 +688,8 @@ class Generic_Carousel extends Widget_Base {
 		$this->start_controls_section(
 			'section_category_style',
 			[
-				'label'     => esc_html__( 'Category', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Category', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_category' => 'yes',
 				],
@@ -698,20 +743,14 @@ class Generic_Carousel extends Widget_Base {
 		$this->start_controls_section(
 			'section_meta_style',
 			[
-				'label'      => esc_html__( 'Meta', 'sky-elementor-addons' ),
-				'tab'        => Controls_Manager::TAB_STYLE,
-				'conditions' => [
-					'relation' => 'or',
-					'terms'    => [
-						[
-							'name'  => 'show_author',
-							'value' => 'yes',
-						],
-						[
-							'name'  => 'show_date',
-							'value' => 'yes',
-						],
-					],
+				'label' => esc_html__( 'Meta', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+				// No `show_author` term here: this widget never registers that control and its
+				// `.sa-post-meta` renders only the day/month badge. Referencing it made Elementor
+				// read a key that is not in the settings array — "Undefined array key" at
+				// includes/conditions.php:87. generic-grid already had it removed.
+				'condition' => [
+					'show_date' => 'yes',
 				],
 			]
 		);
@@ -719,10 +758,10 @@ class Generic_Carousel extends Widget_Base {
 		$this->add_responsive_control(
 			'meta_position',
 			[
-				'label'                => esc_html__( 'Position', 'sky-elementor-addons' ),
-				'type'                 => Controls_Manager::CHOOSE,
-				'options'              => [
-					'top_left' => [
+				'label'   => esc_html__( 'Position', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::CHOOSE,
+				'options' => [
+					'top_left'  => [
 						'title' => esc_html__( 'Top Left', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-left',
 					],
@@ -731,8 +770,10 @@ class Generic_Carousel extends Widget_Base {
 						'icon'  => 'eicon-h-align-right',
 					],
 				],
-				'default'              => 'center',
-				'selectors'            => [
+				// Was `center` — a value with no matching key in `options` or in the dictionary
+				// below, so an untouched widget showed no selected button and emitted nothing.
+				'default' => 'top_left',
+				'selectors' => [
 					'{{WRAPPER}} .sa-post-meta' => '{{VALUE}}',
 				],
 				'selectors_dictionary' => [
@@ -765,7 +806,20 @@ class Generic_Carousel extends Widget_Base {
 			[
 				'label'      => esc_html__( 'Padding', 'sky-elementor-addons' ),
 				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => [ 'px', 'em', '%' ],
+				'size_units' => [ 'px', 'em', 'rem', '%' ],
+				// Same story as item_padding: the markup carries `sa-px-3 sa-py-2` on
+				// .sa-post-meta (1rem sides, 0.5rem top/bottom), which this control could not
+				// see — so it read empty while the block was already padded. Those classes
+				// stay as the stale-cache fallback; this default just makes the panel honest.
+				// isLinked false because the value is genuinely asymmetric.
+				'default'    => [
+					'top'      => '0.5',
+					'right'    => '1',
+					'bottom'   => '0.5',
+					'left'     => '1',
+					'unit'     => 'rem',
+					'isLinked' => false,
+				],
 				'selectors'  => [
 					'{{WRAPPER}} .sa-post-meta' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
@@ -778,6 +832,36 @@ class Generic_Carousel extends Widget_Base {
 				'name'     => 'meta_background',
 				'label'    => esc_html__( 'Background', 'sky-elementor-addons' ),
 				'types'    => [ 'classic', 'gradient' ],
+				'selector' => '{{WRAPPER}} .sa-post-meta',
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			[
+				'name'     => 'meta_border',
+				'label'    => esc_html__( 'Border', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.0.0' ),
+				'selector' => '{{WRAPPER}} .sa-post-meta',
+			]
+		);
+
+		$this->add_responsive_control(
+			'meta_border_radius',
+			[
+				'label'      => esc_html__( 'Border Radius', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.0.0' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', 'em', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .sa-post-meta' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			[
+				'name'     => 'meta_box_shadow',
+				'label'    => esc_html__( 'Box Shadow', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.0.0' ),
 				'selector' => '{{WRAPPER}} .sa-post-meta',
 			]
 		);
@@ -796,8 +880,8 @@ class Generic_Carousel extends Widget_Base {
 		$this->add_control(
 			'meta_color',
 			[
-				'label'     => esc_html__( 'Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-post-day' => 'color: {{VALUE}}',
 				],
@@ -834,8 +918,8 @@ class Generic_Carousel extends Widget_Base {
 		$this->add_control(
 			'month_color',
 			[
-				'label'     => esc_html__( 'Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-post-month' => 'color: {{VALUE}}',
 				],
@@ -869,8 +953,8 @@ class Generic_Carousel extends Widget_Base {
 		$this->start_controls_section(
 			'play_btn_style',
 			[
-				'label'     => esc_html__( 'Play Button', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Play Button', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_video' => 'yes',
 				],
@@ -941,11 +1025,11 @@ class Generic_Carousel extends Widget_Base {
 		$args = [];
 		if ( $posts_per_page ) {
 			$args['posts_per_page'] = $posts_per_page;
-			$args['paged']  = max( 1, get_query_var( 'paged' ), get_query_var( 'page' ) );
+			$args['paged']          = max( 1, get_query_var( 'paged' ), get_query_var( 'page' ) );
 		}
 
 		$default = $this->getGroupControlQueryArgs();
-		$args = array_merge( $default, $args );
+		$args    = array_merge( $default, $args );
 
 		$this->_query = new \WP_Query( $args );
 	}

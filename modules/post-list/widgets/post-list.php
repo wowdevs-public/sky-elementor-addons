@@ -17,7 +17,7 @@ use Sky_Addons\Traits\Global_Widget_Functions;
 use Sky_Addons\Traits\Global_Widget_Controls;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 class Post_List extends Widget_Base {
@@ -49,13 +49,19 @@ class Post_List extends Widget_Base {
 	}
 
 	public function get_style_depends() {
-		return [
-			'elementor-icons-fa-solid',
-		];
+		if ( sky_addons_editor_mode() ) {
+			return [ 'elementor-icons-fa-solid', 'sky-addons-styles' ];
+		}
+
+		return [ 'elementor-icons-fa-solid', 'sa-post-list' ];
 	}
 
 	public function get_query() {
 		return $this->_query;
+	}
+
+	public function has_widget_inner_wrapper(): bool {
+		return ! \Elementor\Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
 	}
 
 	protected function register_controls() {
@@ -122,16 +128,16 @@ class Post_List extends Widget_Base {
 		$this->add_responsive_control(
 			'content_layout',
 			[
-				'label'                => esc_html__( 'Content Position', 'sky-elementor-addons' ),
-				'type'                 => Controls_Manager::SELECT,
-				'options'              => [
+				'label'          => esc_html__( 'Content Position', 'sky-elementor-addons' ),
+				'type'           => Controls_Manager::SELECT,
+				'options' => [
 					'default'      => esc_html__( 'Default', 'sky-elementor-addons' ),
 					'block_layout' => esc_html__( 'Block Layout', 'sky-elementor-addons' ),
 				],
-				'default'              => 'default',
-				'tablet_default'       => 'default',
-				'mobile_default'       => 'default',
-				'selectors'            => [
+				'default'        => 'default',
+				'tablet_default' => 'default',
+				'mobile_default' => 'default',
+				'selectors' => [
 					'{{WRAPPER}} .sa-post-item' => '{{VALUE}};',
 				],
 				'selectors_dictionary' => [
@@ -144,18 +150,18 @@ class Post_List extends Widget_Base {
 		$this->add_responsive_control(
 			'content_alignment',
 			[
-				'label'                => esc_html__( 'Alignment', 'sky-elementor-addons' ),
-				'type'                 => Controls_Manager::CHOOSE,
-				'options'              => [
-					'left' => [
+				'label' => esc_html__( 'Alignment', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::CHOOSE,
+				'options' => [
+					'left'    => [
 						'title' => esc_html__( 'Left', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-left',
 					],
-					'center' => [
+					'center'  => [
 						'title' => esc_html__( 'Center', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-center',
 					],
-					'right' => [
+					'right'   => [
 						'title' => esc_html__( 'Right', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-right',
 					],
@@ -168,7 +174,7 @@ class Post_List extends Widget_Base {
 				// '{{WRAPPER}} .sa-post-item' => 'text-align: {{VALUE}};',
 				// '{{WRAPPER}} .sa-post-meta' => 'justify-content: {{VALUE}};',
 				// ],
-				'selectors'            => [
+				'selectors' => [
 					'{{WRAPPER}} .sa-post-item' => '{{VALUE}};',
 					'{{WRAPPER}} .sa-post-meta' => '{{VALUE}};',
 				],
@@ -189,7 +195,7 @@ class Post_List extends Widget_Base {
 		$this->start_controls_section(
 			'section_post_query_builder',
 			[
-				'label' => __( 'Query', 'sky-elementor-addons' ),
+				'label' => esc_html__( 'Query', 'sky-elementor-addons' ),
 				'tab'   => Controls_Manager::TAB_CONTENT,
 			]
 		);
@@ -225,10 +231,10 @@ class Post_List extends Widget_Base {
 		$this->add_control(
 			'title_tag',
 			[
-				'label'     => esc_html__( 'Title HTML Tag', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SELECT,
-				'default'   => 'h3',
-				'options'   => sky_addons_title_tags(),
+				'label'   => esc_html__( 'Title HTML Tag', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => 'h3',
+				'options' => sky_addons_title_tags(),
 				'condition' => [
 					'show_title' => 'yes',
 				],
@@ -287,9 +293,9 @@ class Post_List extends Widget_Base {
 		$this->add_control(
 			'strip_shortcode',
 			[
-				'label'     => esc_html__( 'Strip ShortCode', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SWITCHER,
-				'default'   => 'yes',
+				'label'   => esc_html__( 'Strip ShortCode', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::SWITCHER,
+				'default' => 'yes',
 				'condition' => [
 					'show_excerpt' => 'yes',
 				],
@@ -336,8 +342,8 @@ class Post_List extends Widget_Base {
 		$this->start_controls_section(
 			'section_post_video_settings',
 			[
-				'label'     => esc_html__( 'Video Settings', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_CONTENT,
+				'label' => esc_html__( 'Video Settings', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_CONTENT,
 				'condition' => [
 					'show_video' => 'yes',
 				],
@@ -364,9 +370,50 @@ class Post_List extends Widget_Base {
 			[
 				'label'      => esc_html__( 'Padding', 'sky-elementor-addons' ),
 				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => [ 'px', 'em', '%' ],
+				'size_units' => [ 'px', 'em', 'rem', '%' ],
+				// The panel read empty while .sa-post-item was already padded by the `sa-p-4`
+				// class in render() — so a value typed here replaced an invisible baseline
+				// instead of adding to it, and the same number meant different things from one
+				// widget to the next. This default makes the control state the truth.
+				//
+				// The class deliberately STAYS in the markup. Elementor serves a page's CSS
+				// from a cached file that only rebuilds on save, so a page saved before this
+				// default existed would otherwise render with no padding at all. The control
+				// always wins when it emits anything — `body .sa-p-4` is (0,1,1) against
+				// Elementor's (0,4,0) — including when set to 0, so the class only ever acts
+				// as the stale-cache fallback.
+				//
+				// rem, not the 24px it usually resolves to, so it matches the class whatever
+				// root font-size the theme sets.
+				//
+				// Deliberately NO tablet_default/mobile_default, even though the stylesheet
+				// sets `padding: 1rem` on .sa-post-item below 1024px. Adding them materialises
+				// a value on every widget whose owner never touched the control, and a
+				// materialised breakpoint value OVERRIDES the desktop one they did set — a
+				// customised 40px would silently become 1rem on tablet. Leaving them unset
+				// keeps Elementor's desktop-cascades-down behaviour, which is what shipped.
+				'default'    => [
+					'top'      => '1.5',
+					'right'    => '1.5',
+					'bottom'   => '1.5',
+					'left'     => '1.5',
+					'unit'     => 'rem',
+					'isLinked' => true,
+				],
 				'selectors'  => [
 					'{{WRAPPER}} .sa-post-item' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'content_padding',
+			[
+				'label'      => esc_html__( 'Content Padding', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.0.0' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', 'em', 'rem', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .sa-post-content-wrapper' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 			]
 		);
@@ -374,13 +421,13 @@ class Post_List extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Border::get_type(),
 			[
-				'name'           => 'item_border',
-				'label'          => esc_html__( 'Border', 'sky-elementor-addons' ),
+				'name'     => 'item_border',
+				'label'    => esc_html__( 'Border', 'sky-elementor-addons' ),
 				'fields_options' => [
 					'border' => [
 						'default' => 'solid',
 					],
-					'width' => [
+					'width'  => [
 						'default' => [
 							'top'      => '1',
 							'right'    => '1',
@@ -390,11 +437,11 @@ class Post_List extends Widget_Base {
 							'isLinked' => false,
 						],
 					],
-					'color' => [
+					'color'  => [
 						'default' => '#eaeaea',
 					],
 				],
-				'selector'       => '{{WRAPPER}} .sa-post-item',
+				'selector' => '{{WRAPPER}} .sa-post-item',
 			]
 		);
 
@@ -479,8 +526,8 @@ class Post_List extends Widget_Base {
 		$this->add_control(
 			'item_border_color_hover',
 			[
-				'label'     => esc_html__( 'Border Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Border Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-post-item:hover' => 'border-color: {{VALUE}};',
 				],
@@ -499,8 +546,8 @@ class Post_List extends Widget_Base {
 		$this->start_controls_section(
 			'section_image_style',
 			[
-				'label'     => esc_html__( 'Image', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Image', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_image' => 'yes',
 				],
@@ -518,7 +565,7 @@ class Post_List extends Widget_Base {
 						'min' => 50,
 						'max' => 500,
 					],
-					'%' => [
+					'%'  => [
 						'min' => 0,
 						'max' => 100,
 					],
@@ -542,7 +589,14 @@ class Post_List extends Widget_Base {
 					],
 				],
 				'selectors'  => [
-					'{{WRAPPER}} .sa-post-img-wrapper' => 'min-height: {{SIZE}}{{UNIT}}; max-height: {{SIZE}}{{UNIT}};',
+					// `height` as well as min/max — without it the box is sized but the percentage
+					// inside it is not. `.sa-post-img-wrapper img` is `height: 100%` (base.less), and a
+					// percentage height resolves against the containing block's `height` property. With
+					// only min/max-height set, `height` stays `auto`, the percentage is indeterminate and
+					// collapses to `auto` — so the image kept its natural ratio inside a taller box,
+					// leaving dead space, and `object-fit: cover` never engaged. min/max are kept so the
+					// box is still pinned if anything else tries to stretch it.
+					'{{WRAPPER}} .sa-post-img-wrapper' => 'height: {{SIZE}}{{UNIT}}; min-height: {{SIZE}}{{UNIT}}; max-height: {{SIZE}}{{UNIT}};',
 				],
 			]
 		);
@@ -614,8 +668,8 @@ class Post_List extends Widget_Base {
 		$this->start_controls_section(
 			'section_title_style',
 			[
-				'label'     => esc_html__( 'Title', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Title', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_title' => 'yes',
 				],
@@ -666,8 +720,8 @@ class Post_List extends Widget_Base {
 		$this->start_controls_section(
 			'section_category_style',
 			[
-				'label'     => esc_html__( 'Category', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Category', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_category' => 'yes',
 				],
@@ -721,8 +775,8 @@ class Post_List extends Widget_Base {
 		$this->start_controls_section(
 			'section_meta_style',
 			[
-				'label'      => esc_html__( 'Meta', 'sky-elementor-addons' ),
-				'tab'        => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Meta', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'conditions' => [
 					'relation' => 'or',
 					'terms'    => [
@@ -791,8 +845,8 @@ class Post_List extends Widget_Base {
 		$this->start_controls_section(
 			'play_btn_style',
 			[
-				'label'     => esc_html__( 'Play Button', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Play Button', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_video' => 'yes',
 				],
@@ -853,11 +907,11 @@ class Post_List extends Widget_Base {
 		$args = [];
 		if ( $posts_per_page ) {
 			$args['posts_per_page'] = $posts_per_page;
-			$args['paged'] = max( 1, get_query_var( 'paged' ), get_query_var( 'page' ) );
+			$args['paged']          = max( 1, get_query_var( 'paged' ), get_query_var( 'page' ) );
 		}
 
 		$default = $this->getGroupControlQueryArgs();
-		$args = array_merge( $default, $args );
+		$args    = array_merge( $default, $args );
 
 		$this->_query = new \WP_Query( $args );
 	}
@@ -873,7 +927,9 @@ class Post_List extends Widget_Base {
 			<a href="<?php echo esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ); ?>"
 				class="sa-d-inline-flex sa-align-items-center">
 				<div class="sa-icon-wrap sa-me-1">
-					<i class="eicon-user-circle-o"></i>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" aria-hidden="true">
+						<path d="M313 792C367 825 433 846 500 846 571 846 633 825 688 792 667 767 642 746 617 729 583 708 542 700 500 700 425 700 354 733 313 792ZM229 721C296 642 392 592 500 592 558 592 617 608 671 637 708 658 742 687 771 721 821 662 850 583 850 500 850 308 696 150 500 150S150 308 150 500C150 583 183 662 229 721ZM500 958C246 958 42 754 42 500S246 42 500 42 958 246 958 500 754 958 500 958ZM500 575C400 575 321 496 321 396S400 217 500 217 679 296 679 396 600 575 500 575ZM500 467C538 467 571 433 571 396S538 325 500 325 429 358 429 396 463 467 500 467Z"></path>
+					</svg>
 				</div>
 				<span class="sa-post-author-text">
 					<?php echo wp_kses_post( get_the_author() ); ?>
@@ -891,7 +947,9 @@ class Post_List extends Widget_Base {
 		?>
 		<div class="sa-post-date-wrapper sa-d-flex sa-align-items-center">
 			<div class="sa-icon-wrap sa-me-1">
-				<i class="eicon-calendar"></i>
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" aria-hidden="true">
+					<path d="M917 246V883C917 933 875 971 829 971H171C125 967 83 929 83 879V246C83 196 125 158 171 158H258V62C263 50 271 42 283 42H358C371 42 379 50 379 62V158H617V62C617 50 625 42 638 42H713C725 42 733 50 733 62V158H821C875 158 917 196 917 246ZM829 871V329H171V867C171 871 175 879 183 879H817C821 879 829 875 829 871ZM358 504H283C271 504 263 496 263 483V408C263 396 271 387 283 387H358C371 387 379 396 379 408V479C379 492 371 504 358 504ZM558 483C558 496 550 504 538 504H463C450 504 442 496 442 483V408C442 396 450 387 463 387H538C550 387 558 396 558 408V483ZM738 483C738 496 729 504 717 504H642C629 504 621 496 621 483V408C621 396 629 387 642 387H717C729 387 738 396 738 408V483ZM558 642C558 654 550 662 538 662H463C450 662 442 654 442 642V571C442 558 450 550 463 550H538C550 550 558 558 558 571V642ZM379 642C379 654 371 662 358 662H283C271 662 263 654 263 642V571C263 558 271 550 283 550H358C371 550 379 558 379 571V642ZM738 642C738 654 729 662 717 662H642C629 662 621 654 621 642V571C621 558 629 550 642 550H717C729 550 738 558 738 571V642ZM558 800C558 812 550 821 538 821H463C450 821 442 812 442 800V729C442 717 450 708 463 708H538C550 708 558 717 558 729V800ZM379 800C379 812 371 821 358 821H283C271 821 263 812 263 800V729C263 717 271 708 283 708H358C371 708 379 717 379 729V800ZM738 800C738 812 729 821 717 821H642C629 821 621 812 621 800V729C621 717 629 708 642 708H717C729 708 738 717 738 729V800Z"></path>
+				</svg>
 			</div>
 			<?php
 			$this->render_post_date();
@@ -906,7 +964,8 @@ class Post_List extends Widget_Base {
 		?>
 		<div class="sa-post-item sa-d-flex sa-p-4">
 
-			<?php $this->render_post_thumb_with_video(
+			<?php
+			$this->render_post_thumb_with_video(
 				$post_id,
 				$image_size,
 				[ 'play_class' => 'sa-p-3' ]

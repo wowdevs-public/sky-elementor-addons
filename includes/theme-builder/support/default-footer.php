@@ -1,3 +1,4 @@
+<?php if ( ! defined( 'ABSPATH' ) ) { exit; } ?>
 <?php do_action( 'wowdevs_themes_builder_template_before_footer' ); ?>
 <div class="wowdevs-template-content-markup wowdevs-template-content-footer wowdevs-template-content-theme-support">
 	<?php

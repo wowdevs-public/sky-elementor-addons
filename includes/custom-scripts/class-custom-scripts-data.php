@@ -14,8 +14,28 @@ defined( 'ABSPATH' ) || exit;
 class Custom_Scripts_Data {
 	private static $instance = null;
 
+	/**
+	 * All meta keys carried by a custom script post — used by clone_script().
+	 */
+	const SCRIPT_META_KEYS = [
+		'sky_script_type',
+		'sky_script_content',
+		'sky_script_position',
+		'sky_script_status',
+		'sky_script_start_date',
+		'sky_script_end_date',
+		'sky_script_display_on',
+		'sky_script_not_display_on',
+		'sky_script_display_special_pages',
+		'sky_script_not_display_special_pages',
+		'sky_script_display_custom_pages',
+		'sky_script_not_display_custom_pages',
+		'sky_script_display_roles',
+	];
+
 	private function __construct() {
 		add_action( 'init', [ $this, 'register_post_type' ] );
+		add_action( 'rest_api_init', [ $this, 'register_rest_routes' ] );
 		add_filter( 'rest_pre_insert_sky-custom-scripts', [ $this, 'rest_pre_insert' ], 10, 2 );
 		add_filter( 'rest_prepare_sky-custom-scripts', [ $this, 'rest_prepare' ], 10, 3 );
 	}
@@ -234,7 +254,7 @@ class Custom_Scripts_Data {
 			register_post_meta( 'sky-custom-scripts', $meta_field, [
 				'show_in_rest' => [
 					'schema' => [
-						'type'  => 'array',
+						'type' => 'array',
 						'items' => [
 							'type' => 'string',
 						],
@@ -246,6 +266,74 @@ class Custom_Scripts_Data {
 				'auth_callback' => $admin_only,
 			]);
 		}
+	}
+
+	/**
+	 * Register custom REST routes.
+	 */
+	public function register_rest_routes() {
+		register_rest_route( 'skyaddons/v1', '/clone-script', [
+			'methods'  => \WP_REST_Server::CREATABLE,
+			'callback' => [ $this, 'clone_script' ],
+			'permission_callback' => function () {
+				return current_user_can( 'manage_options' );
+			},
+			'args' => [
+				'id' => [
+					'required'          => true,
+					'sanitize_callback' => 'absint',
+					'validate_callback' => function ( $value ) {
+						return is_numeric( $value );
+					},
+				],
+			],
+		] );
+	}
+
+	/**
+	 * Duplicate a custom script post with all its meta.
+	 *
+	 * @param \WP_REST_Request $request
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function clone_script( $request ) {
+		$source_id = absint( $request->get_param( 'id' ) );
+		$source    = get_post( $source_id );
+
+		if ( ! $source || 'sky-custom-scripts' !== $source->post_type ) {
+			return new \WP_Error(
+				'rest_not_found',
+				__( 'Script not found.', 'sky-elementor-addons' ),
+				[ 'status' => 404 ]
+			);
+		}
+
+		$new_id = wp_insert_post( [
+			'post_type'   => 'sky-custom-scripts',
+			'post_status' => 'publish',
+			'post_title'  => $source->post_title . ' ' . __( '(Copy)', 'sky-elementor-addons' ),
+		], true );
+
+		if ( is_wp_error( $new_id ) ) {
+			return new \WP_Error(
+				'rest_clone_failed',
+				__( 'Could not duplicate the script.', 'sky-elementor-addons' ),
+				[ 'status' => 500 ]
+			);
+		}
+
+		foreach ( self::SCRIPT_META_KEYS as $key ) {
+			$value = get_post_meta( $source_id, $key, true );
+			if ( '' !== $value && [] !== $value ) {
+				update_post_meta( $new_id, $key, $value );
+			}
+		}
+
+		$controller = new \WP_REST_Posts_Controller( 'sky-custom-scripts' );
+		$req        = new \WP_REST_Request( 'GET' );
+		$req->set_param( 'context', 'edit' );
+
+		return $controller->prepare_item_for_response( get_post( $new_id ), $req );
 	}
 }
 

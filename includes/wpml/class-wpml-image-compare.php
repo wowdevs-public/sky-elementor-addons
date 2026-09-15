@@ -2,8 +2,6 @@
 
 namespace Sky_Addons\Includes;
 
-use WPML_Elementor_Module_Without_Items;
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

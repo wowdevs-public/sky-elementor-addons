@@ -108,7 +108,8 @@ class Dynamic_Select extends Base_Data_Control {
 	 * @since 1.1.0
 	 */
 	public function enqueue() {
-		wp_enqueue_script( 'sky-dynamic-select', SKY_ADDONS_URL . 'includes/controls/assets/js/sky-dynamic-select.min.js', [ 'jquery' ], SKY_ADDONS_VERSION );
+		wp_register_script( 'sky-dynamic-select', SKY_ADDONS_URL . 'includes/controls/assets/js/sky-dynamic-select.min.js', [ 'jquery' ], SKY_ADDONS_VERSION );
+		wp_enqueue_script( 'sky-dynamic-select' );
 
 		wp_localize_script(
 			'sky-dynamic-select',

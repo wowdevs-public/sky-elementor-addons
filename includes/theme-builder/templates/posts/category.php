@@ -1,17 +1,19 @@
 <?php
+/**
+ * Sky Addons Theme Builder — Category archive template.
+ *
+ * Swapped in by Theme_Builder::set_builder_template() when a matching
+ * "category" template is enabled. Copy this file into your theme only if you
+ * need markup around the builder content; the content itself is rendered by
+ * Theme_Builder::render_template().
+ *
+ * @package Sky_Addons
+ */
 
 defined( 'ABSPATH' ) || exit;
 
 get_header();
 
-
-if ( class_exists( 'Elementor\Plugin' ) ) {
-	$templates = \Sky_Addons\ThemeBuilder\Theme_Builder::template_ids();
-	if ( isset( $templates['category'] ) && ! empty( $templates['category'] ) ) {
-    //phpcs:ignore
-		echo wowdevs_render_elementor_content( $templates['category'] );
-	}
-}
-
+\Sky_Addons\ThemeBuilder\Theme_Builder::render_template( 'category' );
 
 get_footer();

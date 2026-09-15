@@ -11,7 +11,7 @@ use Elementor\Core\Kits\Documents\Tabs\Global_Typography;
 use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 class NinjaForms extends Widget_Base {
@@ -40,12 +40,20 @@ class NinjaForms extends Widget_Base {
 		return 'https://skyaddons.com/docs/sky-addons/forms/ninja-forms/';
 	}
 
+	public function is_reload_preview_required() {
+		return false;
+	}
+
+	public function has_widget_inner_wrapper(): bool {
+		return ! \Elementor\Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
+	}
+
 	protected function register_controls() {
 
 		$this->start_controls_section(
-			'_section_ninjaforms',
+			'section_ninjaforms',
 			[
-				'label' => sky_addons_is_ninjaforms_activated() ? __( 'Ninja Forms Settings', 'sky-elementor-addons' ) : __( 'Missing Notice', 'sky-elementor-addons' ),
+				'label' => sky_addons_is_ninjaforms_activated() ? esc_html__( 'Ninja Forms', 'sky-elementor-addons' ) : esc_html__( 'Missing Notice', 'sky-elementor-addons' ),
 				'tab'   => Controls_Manager::TAB_CONTENT,
 			]
 		);
@@ -53,23 +61,24 @@ class NinjaForms extends Widget_Base {
 		if ( ! sky_addons_is_ninjaforms_activated() ) {
 
 			$this->add_control(
-				'_ninjaforms_missing_notice',
+				'ninjaforms_missing_notice',
 				[
 					'type'            => Controls_Manager::RAW_HTML,
 					'raw'             => sprintf(
-						__( 'Hello %2$s! It looks like %1$s is not installed or activated on your site. Please install and activate it to use this widget. Click the link below to install/activate %1$s, then refresh this page.', 'sky-elementor-addons' ),
+						/* translators: 1: plugin link, 2: user display name */
+						esc_html__( 'Hello %2$s! It looks like %1$s is not installed or activated on your site. Please install and activate it to use this widget.', 'sky-elementor-addons' ),
 						'<a href="' . esc_url( admin_url( 'plugin-install.php?s=Ninja+Forms&tab=search&type=term' ) ) . '" target="_blank" rel="noopener"><strong>Ninja Forms</strong></a>',
-						sky_addons_get_current_user_display_name()
+						esc_html( sky_addons_get_current_user_display_name() )
 					),
 					'content_classes' => 'elementor-panel-alert elementor-panel-alert-danger',
 				]
 			);
 
 			$this->add_control(
-				'_ninjaforms_install',
+				'ninjaforms_install_link',
 				[
 					'type' => Controls_Manager::RAW_HTML,
-					'raw'  => '<a href="' . esc_url( admin_url( 'plugin-install.php?s=Ninja+Forms&tab=search&type=term' ) ) . '" target="_blank" rel="noopener">Click to install or activate Ninja Forms</a>',
+					'raw'  => '<a href="' . esc_url( admin_url( 'plugin-install.php?s=Ninja+Forms&tab=search&type=term' ) ) . '" target="_blank" rel="noopener">' . esc_html__( 'Click to install or activate Ninja Forms', 'sky-elementor-addons' ) . '</a>',
 				]
 			);
 
@@ -78,28 +87,32 @@ class NinjaForms extends Widget_Base {
 			$this->add_control(
 				'form_id',
 				[
-					'label'       => __( 'Select Ninja Form', 'sky-elementor-addons' ),
+					'label'       => esc_html__( 'Select Ninja Form', 'sky-elementor-addons' ),
 					'type'        => Controls_Manager::SELECT,
 					'label_block' => true,
-					'options'     => [ '' => __( 'Choose a form...', 'sky-elementor-addons' ) ] + \sky_addons_get_ninjaform(),
-					'description' => __( 'Select the Ninja Form you want to display.', 'sky-elementor-addons' ),
+					'options'     => [ '' => esc_html__( 'Choose a form...', 'sky-elementor-addons' ) ] + \sky_addons_get_ninjaform(),
+					'description' => esc_html__( 'Select the Ninja Form you want to display.', 'sky-elementor-addons' ),
 				]
 			);
 
 		}
+
 		$this->end_controls_section();
 
 		$this->__fields_style_controls();
 		$this->__label_style_controls();
 		$this->__submit_style_controls();
+		$this->__container_style_controls();
+		$this->__error_style_controls();
+		$this->__success_style_controls();
 	}
 
 	protected function __fields_style_controls() {
 
 		$this->start_controls_section(
-			'_section_fields_style',
+			'section_fields_style',
 			[
-				'label' => __( 'Input Fields', 'sky-elementor-addons' ),
+				'label' => esc_html__( 'Input Fields', 'sky-elementor-addons' ),
 				'tab'   => Controls_Manager::TAB_STYLE,
 			]
 		);
@@ -107,7 +120,7 @@ class NinjaForms extends Widget_Base {
 		$this->add_responsive_control(
 			'field_margin',
 			[
-				'label'      => __( 'Field Spacing', 'sky-elementor-addons' ),
+				'label'      => esc_html__( 'Field Spacing', 'sky-elementor-addons' ),
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => [ 'px', '%' ],
 				'selectors'  => [
@@ -119,11 +132,18 @@ class NinjaForms extends Widget_Base {
 		$this->add_responsive_control(
 			'field_padding',
 			[
-				'label'      => __( 'Padding', 'sky-elementor-addons' ),
+				'label'      => esc_html__( 'Padding', 'sky-elementor-addons' ),
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => [ 'px', 'em', '%' ],
 				'selectors'  => [
-					'{{WRAPPER}} .textbox-wrap input[type=text], {{WRAPPER}} .email-wrap input, {{WRAPPER}} .textarea-wrap textarea' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .nf-field-element input[type=text],
+					{{WRAPPER}} .nf-field-element input[type=email],
+					{{WRAPPER}} .nf-field-element input[type=tel],
+					{{WRAPPER}} .nf-field-element input[type=number],
+					{{WRAPPER}} .nf-field-element input[type=url],
+					{{WRAPPER}} .nf-field-element input[type=date],
+					{{WRAPPER}} .nf-field-element textarea,
+					{{WRAPPER}} .nf-field-element select' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 			]
 		);
@@ -131,17 +151,23 @@ class NinjaForms extends Widget_Base {
 		$this->add_responsive_control(
 			'field_height',
 			[
-				'label'      => __( 'Field Height', 'sky-elementor-addons' ),
+				'label'      => esc_html__( 'Field Height', 'sky-elementor-addons' ),
 				'type'       => Controls_Manager::SLIDER,
 				'size_units' => [ 'px' ],
 				'range'      => [
 					'px' => [
 						'min' => 30,
-						'max' => 80,
+						'max' => 100,
 					],
 				],
 				'selectors'  => [
-					'{{WRAPPER}} .textbox-wrap input[type=text], {{WRAPPER}} .email-wrap input' => 'height: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .nf-field-element input[type=text],
+					{{WRAPPER}} .nf-field-element input[type=email],
+					{{WRAPPER}} .nf-field-element input[type=tel],
+					{{WRAPPER}} .nf-field-element input[type=number],
+					{{WRAPPER}} .nf-field-element input[type=url],
+					{{WRAPPER}} .nf-field-element input[type=date],
+					{{WRAPPER}} .nf-field-element select' => 'height: {{SIZE}}{{UNIT}};',
 				],
 				'separator'  => 'before',
 			]
@@ -150,11 +176,18 @@ class NinjaForms extends Widget_Base {
 		$this->add_responsive_control(
 			'field_border_radius',
 			[
-				'label'      => __( 'Border Radius', 'sky-elementor-addons' ),
+				'label'      => esc_html__( 'Border Radius', 'sky-elementor-addons' ),
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => [ 'px', '%' ],
 				'selectors'  => [
-					'{{WRAPPER}} .textbox-wrap input[type=text], {{WRAPPER}} .email-wrap input, {{WRAPPER}} .textarea-wrap textarea' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .nf-field-element input[type=text],
+					{{WRAPPER}} .nf-field-element input[type=email],
+					{{WRAPPER}} .nf-field-element input[type=tel],
+					{{WRAPPER}} .nf-field-element input[type=number],
+					{{WRAPPER}} .nf-field-element input[type=url],
+					{{WRAPPER}} .nf-field-element input[type=date],
+					{{WRAPPER}} .nf-field-element textarea,
+					{{WRAPPER}} .nf-field-element select' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 			]
 		);
@@ -162,22 +195,35 @@ class NinjaForms extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Typography::get_type(),
 			[
-				'name'     => 'field_typography',
-				'label'    => __( 'Typography', 'sky-elementor-addons' ),
-				'selector' => '{{WRAPPER}} .textbox-wrap input[type=text], {{WRAPPER}} .email-wrap input, {{WRAPPER}} .textarea-wrap textarea',
-				'global'   => [
+				'name' => 'field_typography',
+				'selector' => '{{WRAPPER}} .nf-field-element input[type=text],
+					{{WRAPPER}} .nf-field-element input[type=email],
+					{{WRAPPER}} .nf-field-element input[type=tel],
+					{{WRAPPER}} .nf-field-element input[type=number],
+					{{WRAPPER}} .nf-field-element input[type=url],
+					{{WRAPPER}} .nf-field-element input[type=date],
+					{{WRAPPER}} .nf-field-element textarea,
+					{{WRAPPER}} .nf-field-element select',
+				'global' => [
 					'default' => Global_Typography::TYPOGRAPHY_TEXT,
 				],
 			]
 		);
 
 		$this->add_control(
-			'field_textcolor',
+			'field_text_color',
 			[
-				'label'     => __( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .textbox-wrap input[type=text], {{WRAPPER}} .email-wrap input, {{WRAPPER}} .textarea-wrap textarea' => 'color: {{VALUE}}',
+					'{{WRAPPER}} .nf-field-element input[type=text],
+					{{WRAPPER}} .nf-field-element input[type=email],
+					{{WRAPPER}} .nf-field-element input[type=tel],
+					{{WRAPPER}} .nf-field-element input[type=number],
+					{{WRAPPER}} .nf-field-element input[type=url],
+					{{WRAPPER}} .nf-field-element input[type=date],
+					{{WRAPPER}} .nf-field-element textarea,
+					{{WRAPPER}} .nf-field-element select' => 'color: {{VALUE}};',
 				],
 			]
 		);
@@ -185,12 +231,13 @@ class NinjaForms extends Widget_Base {
 		$this->add_control(
 			'field_placeholder_color',
 			[
-				'label'     => __( 'Placeholder Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Placeholder Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} ::-webkit-input-placeholder' => 'color: {{VALUE}};',
 					'{{WRAPPER}} ::-moz-placeholder'      => 'color: {{VALUE}};',
 					'{{WRAPPER}} ::-ms-input-placeholder' => 'color: {{VALUE}};',
+					'{{WRAPPER}} ::placeholder'           => 'color: {{VALUE}};',
 				],
 			]
 		);
@@ -200,33 +247,53 @@ class NinjaForms extends Widget_Base {
 		$this->start_controls_tab(
 			'tab_field_normal',
 			[
-				'label' => __( 'Normal', 'sky-elementor-addons' ),
+				'label' => esc_html__( 'Normal', 'sky-elementor-addons' ),
 			]
 		);
 
 		$this->add_group_control(
 			Group_Control_Border::get_type(),
 			[
-				'name'     => 'field_border',
-				'selector' => '{{WRAPPER}} .textbox-wrap input[type=text], {{WRAPPER}} .email-wrap input, {{WRAPPER}} .textarea-wrap textarea',
+				'name' => 'field_border',
+				'selector' => '{{WRAPPER}} .nf-field-element input[type=text],
+					{{WRAPPER}} .nf-field-element input[type=email],
+					{{WRAPPER}} .nf-field-element input[type=tel],
+					{{WRAPPER}} .nf-field-element input[type=number],
+					{{WRAPPER}} .nf-field-element input[type=url],
+					{{WRAPPER}} .nf-field-element input[type=date],
+					{{WRAPPER}} .nf-field-element textarea,
+					{{WRAPPER}} .nf-field-element select',
 			]
 		);
 
 		$this->add_group_control(
 			Group_Control_Box_Shadow::get_type(),
 			[
-				'name'     => 'field_box_shadow',
-				'selector' => '{{WRAPPER}} .textbox-wrap input[type=text], {{WRAPPER}} .email-wrap input, {{WRAPPER}} .textarea-wrap textarea',
+				'name' => 'field_box_shadow',
+				'selector' => '{{WRAPPER}} .nf-field-element input[type=text],
+					{{WRAPPER}} .nf-field-element input[type=email],
+					{{WRAPPER}} .nf-field-element input[type=tel],
+					{{WRAPPER}} .nf-field-element input[type=number],
+					{{WRAPPER}} .nf-field-element input[type=url],
+					{{WRAPPER}} .nf-field-element input[type=date],
+					{{WRAPPER}} .nf-field-element textarea,
+					{{WRAPPER}} .nf-field-element select',
 			]
 		);
 
 		$this->add_group_control(
 			Group_Control_Background::get_type(),
 			[
-				'name'     => 'field_bg_color',
-				'label'    => esc_html__( 'Background', 'sky-elementor-addons' ),
-				'types'    => [ 'classic', 'gradient' ],
-				'selector' => '{{WRAPPER}} .textbox-wrap input[type=text], {{WRAPPER}} .email-wrap input, {{WRAPPER}} .textarea-wrap textarea',
+				'name'  => 'field_background',
+				'types' => [ 'classic', 'gradient' ],
+				'selector' => '{{WRAPPER}} .nf-field-element input[type=text],
+					{{WRAPPER}} .nf-field-element input[type=email],
+					{{WRAPPER}} .nf-field-element input[type=tel],
+					{{WRAPPER}} .nf-field-element input[type=number],
+					{{WRAPPER}} .nf-field-element input[type=url],
+					{{WRAPPER}} .nf-field-element input[type=date],
+					{{WRAPPER}} .nf-field-element textarea,
+					{{WRAPPER}} .nf-field-element select',
 			]
 		);
 
@@ -235,36 +302,53 @@ class NinjaForms extends Widget_Base {
 		$this->start_controls_tab(
 			'tab_field_focus',
 			[
-				'label' => __( 'Focus', 'sky-elementor-addons' ),
+				'label' => esc_html__( 'Focus', 'sky-elementor-addons' ),
 			]
 		);
 
 		$this->add_group_control(
 			Group_Control_Border::get_type(),
 			[
-				'name'     => 'field_focus_border',
-				'selector' => '{{WRAPPER}} .textbox-wrap input[type=text]:focus, {{WRAPPER}} .email-wrap input:focus, {{WRAPPER}} .textarea-wrap textarea:focus',
+				'name' => 'field_focus_border',
+				'selector' => '{{WRAPPER}} .nf-field-element input[type=text]:focus,
+					{{WRAPPER}} .nf-field-element input[type=email]:focus,
+					{{WRAPPER}} .nf-field-element input[type=tel]:focus,
+					{{WRAPPER}} .nf-field-element input[type=number]:focus,
+					{{WRAPPER}} .nf-field-element input[type=url]:focus,
+					{{WRAPPER}} .nf-field-element input[type=date]:focus,
+					{{WRAPPER}} .nf-field-element textarea:focus,
+					{{WRAPPER}} .nf-field-element select:focus',
 			]
 		);
 
 		$this->add_group_control(
 			Group_Control_Box_Shadow::get_type(),
 			[
-				'name'     => 'field_focus_box_shadow',
-				'exclude'  => [
-					'box_shadow_position',
-				],
-				'selector' => '{{WRAPPER}} .textbox-wrap input[type=text]:focus, {{WRAPPER}} .email-wrap input:focus, {{WRAPPER}} .textarea-wrap textarea:focus',
+				'name' => 'field_focus_box_shadow',
+				'selector' => '{{WRAPPER}} .nf-field-element input[type=text]:focus,
+					{{WRAPPER}} .nf-field-element input[type=email]:focus,
+					{{WRAPPER}} .nf-field-element input[type=tel]:focus,
+					{{WRAPPER}} .nf-field-element input[type=number]:focus,
+					{{WRAPPER}} .nf-field-element input[type=url]:focus,
+					{{WRAPPER}} .nf-field-element input[type=date]:focus,
+					{{WRAPPER}} .nf-field-element textarea:focus,
+					{{WRAPPER}} .nf-field-element select:focus',
 			]
 		);
 
 		$this->add_group_control(
 			Group_Control_Background::get_type(),
 			[
-				'name'     => 'field_focus_bg_color',
-				'label'    => esc_html__( 'Background', 'sky-elementor-addons' ),
-				'types'    => [ 'classic', 'gradient' ],
-				'selector' => '{{WRAPPER}} .textbox-wrap input[type=text]:focus, {{WRAPPER}} .email-wrap input:focus, {{WRAPPER}} .textarea-wrap textarea:focus',
+				'name'  => 'field_focus_background',
+				'types' => [ 'classic', 'gradient' ],
+				'selector' => '{{WRAPPER}} .nf-field-element input[type=text]:focus,
+					{{WRAPPER}} .nf-field-element input[type=email]:focus,
+					{{WRAPPER}} .nf-field-element input[type=tel]:focus,
+					{{WRAPPER}} .nf-field-element input[type=number]:focus,
+					{{WRAPPER}} .nf-field-element input[type=url]:focus,
+					{{WRAPPER}} .nf-field-element input[type=date]:focus,
+					{{WRAPPER}} .nf-field-element textarea:focus,
+					{{WRAPPER}} .nf-field-element select:focus',
 			]
 		);
 
@@ -277,9 +361,9 @@ class NinjaForms extends Widget_Base {
 	protected function __label_style_controls() {
 
 		$this->start_controls_section(
-			'ninjaf-form-label',
+			'section_label_style',
 			[
-				'label' => __( 'Field Labels', 'sky-elementor-addons' ),
+				'label' => esc_html__( 'Field Labels', 'sky-elementor-addons' ),
 				'tab'   => Controls_Manager::TAB_STYLE,
 			]
 		);
@@ -287,11 +371,11 @@ class NinjaForms extends Widget_Base {
 		$this->add_responsive_control(
 			'label_margin',
 			[
-				'label'      => __( 'Margin', 'sky-elementor-addons' ),
+				'label'      => esc_html__( 'Margin', 'sky-elementor-addons' ),
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => [ 'px', '%' ],
 				'selectors'  => [
-					'{{WRAPPER}} .textbox-wrap label, {{WRAPPER}} .email-wrap label, {{WRAPPER}} .textarea-wrap label' => 'display: inline-block; padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .nf-field-label label' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 			]
 		);
@@ -299,17 +383,17 @@ class NinjaForms extends Widget_Base {
 		$this->add_responsive_control(
 			'label_padding',
 			[
-				'label'      => __( 'Padding', 'sky-elementor-addons' ),
+				'label'      => esc_html__( 'Padding', 'sky-elementor-addons' ),
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => [ 'px', 'em', '%' ],
 				'selectors'  => [
-					'{{WRAPPER}} .textbox-wrap label, {{WRAPPER}} .email-wrap label, {{WRAPPER}} .textarea-wrap label' => 'display: inline-block; padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .nf-field-label label' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 			]
 		);
 
 		$this->add_control(
-			'hr3',
+			'label_divider',
 			[
 				'type'  => Controls_Manager::DIVIDER,
 				'style' => 'thick',
@@ -320,8 +404,7 @@ class NinjaForms extends Widget_Base {
 			Group_Control_Typography::get_type(),
 			[
 				'name'     => 'label_typography',
-				'label'    => __( 'Typography', 'sky-elementor-addons' ),
-				'selector' => '{{WRAPPER}} .textbox-wrap label, {{WRAPPER}} .email-wrap label, {{WRAPPER}} .textarea-wrap label',
+				'selector' => '{{WRAPPER}} .nf-field-label label',
 				'global'   => [
 					'default' => Global_Typography::TYPOGRAPHY_TEXT,
 				],
@@ -332,7 +415,7 @@ class NinjaForms extends Widget_Base {
 			Group_Control_Typography::get_type(),
 			[
 				'name'     => 'desc_typography',
-				'label'    => __( 'Description Typography', 'sky-elementor-addons' ),
+				'label'    => esc_html__( 'Description Typography', 'sky-elementor-addons' ),
 				'selector' => '{{WRAPPER}} .nf-field-description p',
 				'global'   => [
 					'default' => Global_Typography::TYPOGRAPHY_TEXT,
@@ -343,21 +426,21 @@ class NinjaForms extends Widget_Base {
 		$this->add_control(
 			'label_color',
 			[
-				'label'     => __( 'Label Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Label Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .textbox-wrap label, {{WRAPPER}} .email-wrap label, {{WRAPPER}} .textarea-wrap label' => 'color: {{VALUE}}',
+					'{{WRAPPER}} .nf-field-label label' => 'color: {{VALUE}};',
 				],
 			]
 		);
 
 		$this->add_control(
-			'requered_label',
+			'required_label_color',
 			[
-				'label'     => __( 'Required Symbol Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Required Symbol Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .ninja-forms-req-symbol' => 'color: {{VALUE}}',
+					'{{WRAPPER}} .ninja-forms-req-symbol' => 'color: {{VALUE}};',
 				],
 			]
 		);
@@ -365,10 +448,10 @@ class NinjaForms extends Widget_Base {
 		$this->add_control(
 			'desc_color',
 			[
-				'label'     => __( 'Description Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Description Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .nf-field-description p' => 'color: {{VALUE}}',
+					'{{WRAPPER}} .nf-field-description p' => 'color: {{VALUE}};',
 				],
 			]
 		);
@@ -379,37 +462,41 @@ class NinjaForms extends Widget_Base {
 	protected function __submit_style_controls() {
 
 		$this->start_controls_section(
-			'submit',
+			'section_submit_style',
 			[
-				'label' => __( 'Submit Button', 'sky-elementor-addons' ),
+				'label' => esc_html__( 'Submit Button', 'sky-elementor-addons' ),
 				'tab'   => Controls_Manager::TAB_STYLE,
 			]
 		);
 
-		$this->add_responsive_control(
+		$this->add_control(
 			'submit_btn_position',
 			[
-				'label'           => __( 'Button Position', 'sky-elementor-addons' ),
-				'type'            => Controls_Manager::CHOOSE,
-				'options'         => [
-					'left' => [
-						'title' => __( 'Left', 'sky-elementor-addons' ),
+				'label'   => esc_html__( 'Button Position', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::CHOOSE,
+				'options' => [
+					'left'   => [
+						'title' => esc_html__( 'Left', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-left',
 					],
 					'center' => [
-						'title' => __( 'Center', 'sky-elementor-addons' ),
+						'title' => esc_html__( 'Center', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-center',
 					],
-					'right' => [
-						'title' => __( 'Right', 'sky-elementor-addons' ),
+					'right'  => [
+						'title' => esc_html__( 'Right', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-right',
 					],
 				],
-				'desktop_default' => 'left',
-				'toggle'          => false,
-				'prefix_class'    => 'sky-form-btn--%s',
-				'selectors'       => [
-					'{{WRAPPER}} .field-wrap.submit-wrap' => 'text-align: {{Value}};',
+				'default' => 'left',
+				'toggle'  => false,
+				'selectors_dictionary' => [
+					'left'   => 'text-align: left;',
+					'center' => 'text-align: center;',
+					'right'  => 'text-align: right;',
+				],
+				'selectors' => [
+					'{{WRAPPER}} .field-wrap.submit-wrap' => '{{VALUE}}',
 				],
 			]
 		);
@@ -417,11 +504,11 @@ class NinjaForms extends Widget_Base {
 		$this->add_responsive_control(
 			'submit_margin',
 			[
-				'label'      => __( 'Margin', 'sky-elementor-addons' ),
+				'label'      => esc_html__( 'Margin', 'sky-elementor-addons' ),
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => [ 'px', '%' ],
 				'selectors'  => [
-					'{{WRAPPER}} .submit-container input' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .submit-container input[type=submit]' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 			]
 		);
@@ -429,11 +516,11 @@ class NinjaForms extends Widget_Base {
 		$this->add_responsive_control(
 			'submit_padding',
 			[
-				'label'      => __( 'Padding', 'sky-elementor-addons' ),
+				'label'      => esc_html__( 'Padding', 'sky-elementor-addons' ),
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => [ 'px', 'em', '%' ],
 				'selectors'  => [
-					'{{WRAPPER}} .submit-container input' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .submit-container input[type=submit]' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 			]
 		);
@@ -442,7 +529,7 @@ class NinjaForms extends Widget_Base {
 			Group_Control_Typography::get_type(),
 			[
 				'name'     => 'submit_typography',
-				'selector' => '{{WRAPPER}} .submit-container input',
+				'selector' => '{{WRAPPER}} .submit-container input[type=submit]',
 				'global'   => [
 					'default' => Global_Typography::TYPOGRAPHY_ACCENT,
 				],
@@ -453,18 +540,18 @@ class NinjaForms extends Widget_Base {
 			Group_Control_Border::get_type(),
 			[
 				'name'     => 'submit_border',
-				'selector' => '{{WRAPPER}} .submit-container input',
+				'selector' => '{{WRAPPER}} .submit-container input[type=submit]',
 			]
 		);
 
-		$this->add_control(
+		$this->add_responsive_control(
 			'submit_border_radius',
 			[
-				'label'      => __( 'Border Radius', 'sky-elementor-addons' ),
+				'label'      => esc_html__( 'Border Radius', 'sky-elementor-addons' ),
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => [ 'px', '%' ],
 				'selectors'  => [
-					'{{WRAPPER}} .submit-container input' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .submit-container input[type=submit]' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 			]
 		);
@@ -472,16 +559,9 @@ class NinjaForms extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Box_Shadow::get_type(),
 			[
-				'name'     => 'submit_box_shadow',
-				'selector' => '{{WRAPPER}} .submit-container input',
-			]
-		);
-
-		$this->add_control(
-			'hr4',
-			[
-				'type'  => Controls_Manager::DIVIDER,
-				'style' => 'thick',
+				'name'      => 'submit_box_shadow',
+				'selector'  => '{{WRAPPER}} .submit-container input[type=submit]',
+				'separator' => 'after',
 			]
 		);
 
@@ -490,18 +570,17 @@ class NinjaForms extends Widget_Base {
 		$this->start_controls_tab(
 			'tab_button_normal',
 			[
-				'label' => __( 'Normal', 'sky-elementor-addons' ),
+				'label' => esc_html__( 'Normal', 'sky-elementor-addons' ),
 			]
 		);
 
 		$this->add_control(
 			'submit_color',
 			[
-				'label'     => __( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '',
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .submit-container input' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .submit-container input[type=submit]' => 'color: {{VALUE}};',
 				],
 			]
 		);
@@ -509,10 +588,9 @@ class NinjaForms extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Background::get_type(),
 			[
-				'name'     => 'submit_bg_color',
-				'label'    => esc_html__( 'Background', 'sky-elementor-addons' ),
+				'name'     => 'submit_background',
 				'types'    => [ 'classic', 'gradient' ],
-				'selector' => '{{WRAPPER}} .submit-container input',
+				'selector' => '{{WRAPPER}} .submit-container input[type=submit]',
 			]
 		);
 
@@ -521,17 +599,18 @@ class NinjaForms extends Widget_Base {
 		$this->start_controls_tab(
 			'tab_button_hover',
 			[
-				'label' => __( 'Hover', 'sky-elementor-addons' ),
+				'label' => esc_html__( 'Hover', 'sky-elementor-addons' ),
 			]
 		);
 
 		$this->add_control(
 			'submit_hover_color',
 			[
-				'label'     => __( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .submit-container input:hover, {{WRAPPER}} .submit-container input:focus' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .submit-container input[type=submit]:hover,
+					{{WRAPPER}} .submit-container input[type=submit]:focus' => 'color: {{VALUE}};',
 				],
 			]
 		);
@@ -539,20 +618,21 @@ class NinjaForms extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Background::get_type(),
 			[
-				'name'     => 'submit_hover_bg_color',
-				'label'    => esc_html__( 'Background', 'sky-elementor-addons' ),
-				'types'    => [ 'classic', 'gradient' ],
-				'selector' => '{{WRAPPER}} .submit-container input:hover, {{WRAPPER}} .submit-container input:focus',
+				'name'  => 'submit_hover_background',
+				'types' => [ 'classic', 'gradient' ],
+				'selector' => '{{WRAPPER}} .submit-container input[type=submit]:hover,
+					{{WRAPPER}} .submit-container input[type=submit]:focus',
 			]
 		);
 
 		$this->add_control(
 			'submit_hover_border_color',
 			[
-				'label'     => __( 'Border Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Border Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .submit-container input:hover, {{WRAPPER}} .submit-container input:focus' => 'border-color: {{VALUE}};',
+					'{{WRAPPER}} .submit-container input[type=submit]:hover,
+					{{WRAPPER}} .submit-container input[type=submit]:focus' => 'border-color: {{VALUE}};',
 				],
 			]
 		);
@@ -563,23 +643,295 @@ class NinjaForms extends Widget_Base {
 		$this->end_controls_section();
 	}
 
+	protected function __container_style_controls() {
+
+		$this->start_controls_section(
+			'section_container_style',
+			[
+				'label' => esc_html__( 'Form Container', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			]
+		);
+
+		$this->add_responsive_control(
+			'container_padding',
+			[
+				'label'      => esc_html__( 'Padding', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .sa-ninja-form-wrapper' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'container_margin',
+			[
+				'label'      => esc_html__( 'Margin', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .sa-ninja-form-wrapper' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
+			[
+				'name'     => 'container_background',
+				'types'    => [ 'classic', 'gradient' ],
+				'selector' => '{{WRAPPER}} .sa-ninja-form-wrapper',
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			[
+				'name'     => 'container_border',
+				'selector' => '{{WRAPPER}} .sa-ninja-form-wrapper',
+			]
+		);
+
+		$this->add_responsive_control(
+			'container_border_radius',
+			[
+				'label'      => esc_html__( 'Border Radius', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .sa-ninja-form-wrapper' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			[
+				'name'     => 'container_box_shadow',
+				'selector' => '{{WRAPPER}} .sa-ninja-form-wrapper',
+			]
+		);
+
+		$this->end_controls_section();
+	}
+
+	protected function __error_style_controls() {
+
+		$this->start_controls_section(
+			'section_error_style',
+			[
+				'label' => esc_html__( 'Validation Error', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			[
+				'name' => 'error_field_border',
+				'selector' => '{{WRAPPER}} .nf-error .nf-field-element input,
+					{{WRAPPER}} .nf-error .nf-field-element textarea,
+					{{WRAPPER}} .nf-error .nf-field-element select',
+			]
+		);
+
+		$this->add_control(
+			'error_field_text_color',
+			[
+				'label' => esc_html__( 'Error Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .nf-error .nf-field-element input,
+					{{WRAPPER}} .nf-error .nf-field-element textarea,
+					{{WRAPPER}} .nf-error .nf-field-element select' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
+			[
+				'name'  => 'error_field_background',
+				'types' => [ 'classic', 'gradient' ],
+				'selector' => '{{WRAPPER}} .nf-error .nf-field-element input,
+					{{WRAPPER}} .nf-error .nf-field-element textarea,
+					{{WRAPPER}} .nf-error .nf-field-element select',
+			]
+		);
+
+		$this->add_control(
+			'error_message_heading',
+			[
+				'label'     => esc_html__( 'Error Message', 'sky-elementor-addons' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			[
+				'name'     => 'error_message_typography',
+				'selector' => '{{WRAPPER}} .nf-error-msg',
+				'global'   => [
+					'default' => Global_Typography::TYPOGRAPHY_TEXT,
+				],
+			]
+		);
+
+		$this->add_control(
+			'error_message_color',
+			[
+				'label' => esc_html__( 'Message Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .nf-error-msg' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'error_message_padding',
+			[
+				'label'      => esc_html__( 'Message Padding', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .nf-error-msg' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->end_controls_section();
+	}
+
+	protected function __success_style_controls() {
+
+		$this->start_controls_section(
+			'section_success_style',
+			[
+				'label' => esc_html__( 'Success Message', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			]
+		);
+
+		$this->add_responsive_control(
+			'success_message_padding',
+			[
+				'label'      => esc_html__( 'Padding', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', 'em', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .nf-response-msg' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'success_message_margin',
+			[
+				'label'      => esc_html__( 'Margin', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', 'em', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .nf-response-msg' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			[
+				'name'     => 'success_message_typography',
+				'selector' => '{{WRAPPER}} .nf-response-msg',
+				'global'   => [
+					'default' => Global_Typography::TYPOGRAPHY_TEXT,
+				],
+			]
+		);
+
+		$this->add_control(
+			'success_message_color',
+			[
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .nf-response-msg' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
+			[
+				'name'     => 'success_message_background',
+				'types'    => [ 'classic', 'gradient' ],
+				'selector' => '{{WRAPPER}} .nf-response-msg',
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			[
+				'name'     => 'success_message_border',
+				'selector' => '{{WRAPPER}} .nf-response-msg',
+			]
+		);
+
+		$this->add_responsive_control(
+			'success_message_border_radius',
+			[
+				'label'      => esc_html__( 'Border Radius', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .nf-response-msg' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			[
+				'name'     => 'success_message_box_shadow',
+				'selector' => '{{WRAPPER}} .nf-response-msg',
+			]
+		);
+
+		$this->end_controls_section();
+	}
+
 	protected function render() {
 		if ( ! sky_addons_is_ninjaforms_activated() ) {
-			sky_addons_show_plugin_missing_alert( __( 'Ninja Forms', 'sky-elementor-addons' ) );
+			sky_addons_show_plugin_missing_alert( esc_html__( 'Ninja Forms', 'sky-elementor-addons' ) );
 			return;
 		}
 
 		$settings = $this->get_settings_for_display();
 
 		if ( empty( $settings['form_id'] ) ) {
-			echo '<div class="elementor-alert elementor-alert-warning">';
-			echo __( 'Please select a Ninja Form from the widget settings.', 'sky-elementor-addons' );
-			echo '</div>';
+			?>
+			<div class="elementor-alert elementor-alert-warning">
+				<?php esc_html_e( 'Please select a Ninja Form from the widget settings.', 'sky-elementor-addons' ); ?>
+			</div>
+			<?php
 			return;
 		}
 
-		echo sky_addons_do_shortcode( 'ninja_form', [
-			'id' => $settings['form_id'],
-		] );
+		$this->add_render_attribute( 'ninja-form-wrapper', 'class', 'sa-ninja-form-wrapper' );
+
+		$output = sky_addons_do_shortcode( 'ninja_form', [ 'id' => absint( $settings['form_id'] ) ] );
+
+		if ( false === $output ) {
+			return;
+		}
+
+		?>
+		<div <?php $this->print_render_attribute_string( 'ninja-form-wrapper' ); ?>>
+			<?php echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Ninja Forms shortcode output ?>
+		</div>
+		<?php
 	}
 }

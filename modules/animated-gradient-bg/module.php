@@ -87,6 +87,14 @@ class Module extends Module_Base {
 		);
 
 		$repeater->add_control(
+			'sa_agbg_mid_color',
+			[
+				'label' => esc_html__( 'Mid Color', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'type'  => Controls_Manager::COLOR,
+			]
+		);
+
+		$repeater->add_control(
 			'sa_agbg_end_color',
 			[
 				'label' => esc_html__( 'End Color', 'sky-elementor-addons' ),
@@ -132,6 +140,9 @@ class Module extends Module_Base {
 			[
 				'label'              => esc_html__( 'Transition Speed (ms)', 'sky-elementor-addons' ),
 				'type'               => Controls_Manager::SLIDER,
+				'default'            => [
+					'size' => 7000,
+				],
 				'range'              => [
 					'px' => [
 						'min'  => 1000,
@@ -149,6 +160,38 @@ class Module extends Module_Base {
 		);
 
 		$element->add_control(
+			'sa_agbg_pause_on_scroll',
+			[
+				'label'              => esc_html__( 'Pause When Not Visible', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'type'               => Controls_Manager::SWITCHER,
+				'default'            => 'yes',
+				'render_type'        => 'template',
+				'frontend_available' => true,
+				'condition'          => [
+					'sa_agbg_enable' => 'yes',
+				],
+			]
+		);
+
+		$element->add_control(
+			'sa_agbg_loop_count',
+			[
+				'label'              => esc_html__( 'Loop Count', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'description'        => esc_html__( '0 = infinite', 'sky-elementor-addons' ),
+				'type'               => Controls_Manager::NUMBER,
+				'min'                => 0,
+				'max'                => 100,
+				'step'               => 1,
+				'default'            => 0,
+				'render_type'        => 'template',
+				'frontend_available' => true,
+				'condition'          => [
+					'sa_agbg_enable' => 'yes',
+				],
+			]
+		);
+
+		$element->add_control(
 			'sa_agbg_z_index',
 			[
 				'label'              => esc_html__( 'Z-index', 'sky-elementor-addons' ),
@@ -157,20 +200,20 @@ class Module extends Module_Base {
 				'condition'          => [
 					'sa_agbg_enable' => 'yes',
 				],
-				// 'render_type'        => 'template',
 				'selectors'          => [
 					'#sa-agbg-{{ID}}' => 'z-index: {{VALUE}}',
 				],
 				'frontend_available' => true,
+				'separator'          => 'before',
 			]
 		);
 
 		$element->add_control(
 			'sa_agbg_opacity',
 			[
-				'label'     => esc_html__( 'Opacity', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SLIDER,
-				'range'     => [
+				'label' => esc_html__( 'Opacity', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::SLIDER,
+				'range' => [
 					'px' => [
 						'max'  => 1,
 						'min'  => 0.10,
@@ -185,12 +228,43 @@ class Module extends Module_Base {
 				],
 			]
 		);
+
+		$element->add_control(
+			'sa_agbg_blend_mode',
+			[
+				'label'   => esc_html__( 'Blend Mode', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => 'normal',
+				'options' => [
+					'normal'      => esc_html__( 'Normal', 'sky-elementor-addons' ),
+					'multiply'    => esc_html__( 'Multiply', 'sky-elementor-addons' ),
+					'screen'      => esc_html__( 'Screen', 'sky-elementor-addons' ),
+					'overlay'     => esc_html__( 'Overlay', 'sky-elementor-addons' ),
+					'darken'      => esc_html__( 'Darken', 'sky-elementor-addons' ),
+					'lighten'     => esc_html__( 'Lighten', 'sky-elementor-addons' ),
+					'color-dodge' => esc_html__( 'Color Dodge', 'sky-elementor-addons' ),
+					'saturation'  => esc_html__( 'Saturation', 'sky-elementor-addons' ),
+					'color'       => esc_html__( 'Color', 'sky-elementor-addons' ),
+					'luminosity'  => esc_html__( 'Luminosity', 'sky-elementor-addons' ),
+				],
+				'selectors' => [
+					'#sa-agbg-{{ID}}' => 'mix-blend-mode: {{VALUE}}',
+				],
+				'condition' => [
+					'sa_agbg_enable' => 'yes',
+				],
+			]
+		);
 	}
 
 	public function widget_before_render( $widget ) {
-		$settings                      = $widget->get_settings_for_display();
-		if ( 'yes' === $settings['sa_agbg_enable'] ) {
+		$settings = $widget->get_settings_for_display();
+		if ( isset( $settings['sa_agbg_enable'] ) && 'yes' === $settings['sa_agbg_enable'] ) {
 			wp_enqueue_script( 'granim' );
+			// Handler JS. With the Asset Manager OFF this is the real per-extension file;
+			// with it ON the handle resolves to the combined-bundle alias. Either way the
+			// gradient animation needs it — it is no longer carried by an always-on monolith.
+			wp_enqueue_script( 'sa-animated-gradient-bg' );
 		}
 	}
 

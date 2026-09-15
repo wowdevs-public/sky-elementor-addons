@@ -2,7 +2,6 @@
 
 namespace Sky_Addons\Modules\WrapperLink;
 
-use Sky_Addons;
 use Elementor\Controls_Manager;
 use Sky_Addons\Base\Module_Base;
 
@@ -60,10 +59,12 @@ class Module extends Module_Base {
 		if ( $wrapper_link && ! empty( $wrapper_link['url'] ) ) {
 			$wrapper_link['url'] = esc_url( $wrapper_link['url'] );
 
+			wp_enqueue_script( 'sa-wrapper-link' );
+
 			$widget->add_render_attribute(
 				'_wrapper',
 				[
-					'data-sa-element-link' => wp_json_encode( $wrapper_link, true ),
+					'data-sa-element-link' => wp_json_encode( $wrapper_link ),
 					'class'                => 'sa-element-link',
 					'style'                => 'cursor: pointer',
 				]

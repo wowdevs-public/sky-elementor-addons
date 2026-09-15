@@ -7,12 +7,11 @@ use Elementor\Group_Control_Typography;
 use Elementor\Group_Control_Background;
 use Elementor\Group_Control_Border;
 use Elementor\Group_Control_Box_Shadow;
-use Elementor\Group_Control_Text_Shadow;
 use Elementor\Core\Kits\Documents\Tabs\Global_Typography;
 use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 class WpForms extends Widget_Base {
@@ -45,6 +44,10 @@ class WpForms extends Widget_Base {
 		return true;
 	}
 
+	public function has_widget_inner_wrapper(): bool {
+		return ! \Elementor\Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
+	}
+
 	protected function register_controls() {
 
 		$this->start_controls_section(
@@ -52,7 +55,7 @@ class WpForms extends Widget_Base {
 			[
 				'label' => sky_addons_is_wpforms_activated() ? __( 'WPForms', 'sky-elementor-addons' ) : __( 'Missing Notice',
 				'sky-elementor-addons' ),
-				'tab'   => Controls_Manager::TAB_CONTENT,
+				'tab' => Controls_Manager::TAB_CONTENT,
 			]
 		);
 
@@ -63,9 +66,10 @@ class WpForms extends Widget_Base {
 				[
 					'type'            => Controls_Manager::RAW_HTML,
 					'raw'             => sprintf(
+						/* translators: %1$s: plugin name linked to its install page, %2$s: current user's display name. */
 						__( 'Hello %2$s, looks like %1$s is missing in your site. Please click on the link below and install/activate %1$s. Make sure to refresh this page after installation or activation.', 'sky-elementor-addons' ),
 						'<a href="' . esc_url( admin_url( 'plugin-install.php?s=WPForms&tab=search&type=term' ) ) . '" target="_blank" rel="noopener">WPForms</a>',
-						sky_addons_get_current_user_display_name()
+						esc_html( sky_addons_get_current_user_display_name() )
 					),
 					'content_classes' => 'elementor-panel-alert elementor-panel-alert-danger',
 				]
@@ -75,7 +79,7 @@ class WpForms extends Widget_Base {
 				'_wpforms_install',
 				[
 					'type' => Controls_Manager::RAW_HTML,
-					'raw'  => '<a href="' . esc_url( admin_url( 'plugin-install.php?s=WPForms&tab=search&type=term' ) ) . '" target="_blank" rel="noopener">Click to install or activate WPForms</a>',
+					'raw'  => '<a href="' . esc_url( admin_url( 'plugin-install.php?s=WPForms&tab=search&type=term' ) ) . '" target="_blank" rel="noopener">' . __( 'Click to install or activate WPForms', 'sky-elementor-addons' ) . '</a>',
 				]
 			);
 
@@ -118,7 +122,7 @@ class WpForms extends Widget_Base {
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => [ 'px', '%' ],
 				'selectors'  => [
-					'{{WRAPPER}} .wpforms-field:not(.wpforms-submit), .wpforms-field-required:not(.wpforms-submit)' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .wpforms-field:not(.wpforms-submit), {{WRAPPER}} .wpforms-field-required:not(.wpforms-submit)' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 			]
 		);
@@ -164,8 +168,8 @@ class WpForms extends Widget_Base {
 		$this->add_control(
 			'field_textcolor',
 			[
-				'label'     => __( 'Field Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Field Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .wpforms-field input, {{WRAPPER}} .wpforms-field-textarea textarea' => 'color: {{VALUE}}',
 				],
@@ -175,9 +179,10 @@ class WpForms extends Widget_Base {
 		$this->add_control(
 			'field_placeholder_color',
 			[
-				'label'     => __( 'Field Placeholder Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Field Placeholder Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
+					'{{WRAPPER}} ::placeholder'           => 'color: {{VALUE}};',
 					'{{WRAPPER}} ::-webkit-input-placeholder' => 'color: {{VALUE}};',
 					'{{WRAPPER}} ::-moz-placeholder'      => 'color: {{VALUE}};',
 					'{{WRAPPER}} ::-ms-input-placeholder' => 'color: {{VALUE}};',
@@ -269,7 +274,7 @@ class WpForms extends Widget_Base {
 	protected function __label_style_controls() {
 
 		$this->start_controls_section(
-			'wpf-form-label',
+			'wpf_form_label',
 			[
 				'label' => __( 'Form Labels', 'sky-elementor-addons' ),
 				'tab'   => Controls_Manager::TAB_STYLE,
@@ -283,7 +288,7 @@ class WpForms extends Widget_Base {
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => [ 'px', '%' ],
 				'selectors'  => [
-					'{{WRAPPER}} .wpforms-field-container label.wpforms-field-label' => 'display: inline-block; padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .wpforms-field-container label.wpforms-field-label' => 'display: inline-block; margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 			]
 		);
@@ -349,7 +354,7 @@ class WpForms extends Widget_Base {
 			[
 				'label'        => __( 'Colors', 'sky-elementor-addons' ),
 				'type'         => Controls_Manager::POPOVER_TOGGLE,
-				'label_off'    => __( '', 'sky-elementor-addons' ),
+				'label_off'    => '',
 				'label_on'     => __( 'Custom', 'sky-elementor-addons' ),
 				'return_value' => 'yes',
 			]
@@ -360,8 +365,8 @@ class WpForms extends Widget_Base {
 		$this->add_control(
 			'label_color',
 			[
-				'label'     => __( 'Label Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Label Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .wpforms-field-container label.wpforms-field-label' => 'color: {{VALUE}}',
 				],
@@ -374,8 +379,8 @@ class WpForms extends Widget_Base {
 		$this->add_control(
 			'requered_label',
 			[
-				'label'     => __( 'Required Label Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Required Label Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .wpforms-required-label' => 'color: {{VALUE}}',
 				],
@@ -388,8 +393,8 @@ class WpForms extends Widget_Base {
 		$this->add_control(
 			'sublabel_color',
 			[
-				'label'     => __( 'Sub Label Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Sub Label Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .wpforms-field-sublabel' => 'color: {{VALUE}}',
 				],
@@ -402,8 +407,8 @@ class WpForms extends Widget_Base {
 		$this->add_control(
 			'desc_label_color',
 			[
-				'label'     => __( 'Description Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Description Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .wpforms-field-description' => 'color: {{VALUE}}',
 				],
@@ -454,7 +459,7 @@ class WpForms extends Widget_Base {
 					'size' => 100,
 				],
 				'range'      => [
-					'%' => [
+					'%'  => [
 						'min' => 1,
 						'max' => 100,
 					],
@@ -475,7 +480,7 @@ class WpForms extends Widget_Base {
 				'label'           => __( 'Button Position', 'sky-elementor-addons' ),
 				'type'            => Controls_Manager::CHOOSE,
 				'options'         => [
-					'left' => [
+					'left'   => [
 						'title' => __( 'Left', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-left',
 					],
@@ -483,7 +488,7 @@ class WpForms extends Widget_Base {
 						'title' => __( 'Center', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-center',
 					],
-					'right' => [
+					'right'  => [
 						'title' => __( 'Right', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-right',
 					],
@@ -494,9 +499,9 @@ class WpForms extends Widget_Base {
 				],
 				'desktop_default' => 'left',
 				'toggle'          => false,
-				'prefix_class'    => 'sky-form-btn--%s',
+				'prefix_class'    => 'sa-form-btn--%s',
 				'selectors'       => [
-					'{{WRAPPER}} .wpforms-submit-container' => 'text-align: {{Value}};',
+					'{{WRAPPER}} .wpforms-submit-container' => 'text-align: {{VALUE}};',
 				],
 			]
 		);
@@ -584,9 +589,9 @@ class WpForms extends Widget_Base {
 		$this->add_control(
 			'submit_color',
 			[
-				'label'     => __( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '',
+				'label'   => __( 'Text Color', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::COLOR,
+				'default' => '',
 				'selectors' => [
 					'{{WRAPPER}} .wpforms-container .wpforms-submit' => 'color: {{VALUE}};',
 				],
@@ -615,8 +620,8 @@ class WpForms extends Widget_Base {
 		$this->add_control(
 			'submit_hover_color',
 			[
-				'label'     => __( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .wpforms-container .wpforms-submit:hover, {{WRAPPER}} .wpforms-container .wpforms-submit:focus' => 'color: {{VALUE}};',
 				],
@@ -636,8 +641,8 @@ class WpForms extends Widget_Base {
 		$this->add_control(
 			'submit_hover_border_color',
 			[
-				'label'     => __( 'Border Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Border Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .wpforms-container .wpforms-submit:hover, {{WRAPPER}} .wpforms-container .wpforms-submit:focus' => 'border-color: {{VALUE}};',
 				],
@@ -659,10 +664,11 @@ class WpForms extends Widget_Base {
 		$settings = $this->get_settings_for_display();
 
 		if ( ! empty( $settings['form_id'] ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Form markup from WPForms' shortcode, escaped by that plugin; wp_kses_post() would strip the form fields.
 			echo sky_addons_do_shortcode( 'wpforms', [
-				'id' => $settings['form_id'],
+				'id' => (int) $settings['form_id'],
 			] );
-		} else {
+		} elseif ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
 			echo '<div class="elementor-alert elementor-alert-warning">' . esc_html__( 'Please select a WPForm from the widget settings.', 'sky-elementor-addons' ) . '</div>';
 		}
 	}

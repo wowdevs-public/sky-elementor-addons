@@ -26,8 +26,6 @@ class Module extends Module_Base {
 
 		if ( 'section' === $element->get_name() || 'column' === $element->get_name() || 'container' === $element->get_name() ) {
 			$tab = Controls_Manager::TAB_STYLE;
-		} else {
-			$tab = Controls_Manager::TAB_ADVANCED;
 		}
 
 		$element->start_controls_section(
@@ -127,8 +125,9 @@ class Module extends Module_Base {
 
 	public function widget_rf_before_render( $widget ) {
 		$settings = $widget->get_settings_for_display();
-		if ( $settings['sa_rf_enable'] === 'yes' ) {
+		if ( isset( $settings['sa_rf_enable'] ) && 'yes' === $settings['sa_rf_enable'] ) {
 			wp_enqueue_script( 'ripples' );
+			wp_enqueue_script( 'sa-ripples-effect' );
 		}
 	}
 

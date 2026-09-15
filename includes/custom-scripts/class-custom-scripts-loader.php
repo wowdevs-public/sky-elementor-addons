@@ -231,11 +231,36 @@ class Custom_Scripts_Loader {
 
 		$handle = 'sky-custom-script-' . $script->ID;
 
-		if ( $script_type === 'css' ) {
+		if ( 'css' === $script_type ) {
 			$this->load_css( $handle, $script_content, $script_position );
 		} else {
 			$this->load_js( $handle, $script_content, $script_position );
 		}
+	}
+
+	/**
+	 * Strip a single outer wrapper tag if the snippet was pasted with one.
+	 *
+	 * Snippets are stored as RAW code — the loader adds the <style>/<script>
+	 * wrapper itself. If an author pastes the wrapper too, this removes it so
+	 * the output never double-wraps.
+	 *
+	 * @param string $content
+	 * @param string $tag     'style' or 'script'
+	 * @return string
+	 */
+	private function strip_wrapper_tags( $content, $tag ) {
+		$content = trim( $content );
+
+		if ( '' === $content ) {
+			return '';
+		}
+
+		if ( preg_match( '#^<' . $tag . '\b[^>]*>(.*)</' . $tag . '>$#is', $content, $matches ) ) {
+			$content = trim( $matches[1] );
+		}
+
+		return $content;
 	}
 
 	/**
@@ -246,12 +271,20 @@ class Custom_Scripts_Loader {
 	 * @param string $position
 	 */
 	private function load_css( $handle, $content, $position ) {
-		if ( $position === 'header' ) {
+		$content = $this->strip_wrapper_tags( $content, 'style' );
+
+		if ( '' === $content ) {
+			return;
+		}
+
+		if ( 'header' === $position ) {
 			add_action( 'wp_head', function () use ( $content ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Raw CSS by design; only manage_options users can save custom scripts.
 				echo '<style type="text/css">' . "\n" . $content . "\n" . '</style>' . "\n";
 			}, 999 );
 		} else {
 			add_action( 'wp_footer', function () use ( $content ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Raw CSS by design; only manage_options users can save custom scripts.
 				echo '<style type="text/css">' . "\n" . $content . "\n" . '</style>' . "\n";
 			}, 999 );
 		}
@@ -265,12 +298,20 @@ class Custom_Scripts_Loader {
 	 * @param string $position
 	 */
 	private function load_js( $handle, $content, $position ) {
-		if ( $position === 'header' ) {
+		$content = $this->strip_wrapper_tags( $content, 'script' );
+
+		if ( '' === $content ) {
+			return;
+		}
+
+		if ( 'header' === $position ) {
 			add_action( 'wp_head', function () use ( $content ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Raw JS by design; only manage_options users can save custom scripts.
 				echo '<script type="text/javascript">' . "\n" . $content . "\n" . '</script>' . "\n";
 			}, 999 );
 		} else {
 			add_action( 'wp_footer', function () use ( $content ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Raw JS by design; only manage_options users can save custom scripts.
 				echo '<script type="text/javascript">' . "\n" . $content . "\n" . '</script>' . "\n";
 			}, 999 );
 		}

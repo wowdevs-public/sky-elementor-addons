@@ -15,7 +15,7 @@ use Elementor\Group_Control_Text_Shadow;
 use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 class Review extends Widget_Base {
@@ -39,13 +39,32 @@ class Review extends Widget_Base {
 	public function get_keywords() {
 		return [ 'sky', 'card', 'review', 'testimonial', 'clients' ];
 	}
+	public function get_style_depends() {
+		if ( sky_addons_editor_mode() ) {
+			return [ 'sky-addons-styles' ];
+		}
+
+		// The stars are eicons glyphs — review.less sets `font-family: eicons` and
+		// the render emits the codepoints directly, so this never goes through
+		// Icons_Manager. Elementor only enqueues `elementor-icons` on the frontend
+		// when the e_font_icon_svg experiment is OFF (frontend.php, the
+		// `wp_enqueue_style( 'elementor-icons' )` branch), so with it on the
+		// @font-face is never declared and every star renders as tofu. The handle
+		// is registered either way, so asking for it here is enough.
+		return [ 'sa-review', 'elementor-icons' ];
+	}
+
 
 	public function get_script_depends() {
-		return [ 'script-handle' ];
+		return [];
 	}
 
 	public function get_custom_help_url() {
 		return 'https://skyaddons.com/docs/sky-addons/widgets/review/';
+	}
+
+	public function has_widget_inner_wrapper(): bool {
+		return ! \Elementor\Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
 	}
 
 	protected function register_controls() {
@@ -83,15 +102,15 @@ class Review extends Widget_Base {
 		$this->add_responsive_control(
 			'media_position',
 			[
-				'label'                => esc_html__( 'Media Position', 'sky-elementor-addons' ),
-				'type'                 => Controls_Manager::CHOOSE,
-				'label_block'          => false,
-				'options'              => [
-					'left' => [
+				'label'           => esc_html__( 'Media Position', 'sky-elementor-addons' ),
+				'type'            => Controls_Manager::CHOOSE,
+				'label_block'     => false,
+				'options' => [
+					'left'  => [
 						'title' => esc_html__( 'Left', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-left',
 					],
-					'top' => [
+					'top'   => [
 						'title' => esc_html__( 'Top', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-v-align-top',
 					],
@@ -100,19 +119,19 @@ class Review extends Widget_Base {
 						'icon'  => 'eicon-h-align-right',
 					],
 				],
-				'toggle'               => false,
-				'desktop_default'      => 'top',
-				'tablet_default'       => 'top',
-				'mobile_default'       => 'top',
-				'prefix_class'         => 'sa-review-media-%s-',
-				'style_transfer'       => true,
-				'selectors'            => [
-					'{{WRAPPER}} .elementor-widget-container .sa-review' => '{{VALUE}};',
+				'toggle'          => false,
+				'desktop_default' => 'top',
+				'tablet_default'  => 'top',
+				'mobile_default'  => 'top',
+				'prefix_class'    => 'sa-review-media-%s-',
+				'style_transfer'  => true,
+				'selectors' => [
+					'{{WRAPPER}} .sa-review' => '{{VALUE}}',
 				],
 				'selectors_dictionary' => [
-					'left'  => 'display: flex; flex-direction: row; text-align: left;',
-					'top'   => 'text-align: left; display: block; flex-direction: unset; flex-flow: unset;',
-					'right' => 'display: flex; flex-direction: row-reverse; text-align: right;',
+					'left'  => 'display: flex; flex-direction: row; text-align: left; align-items: center;',
+					'top'   => 'display: block; text-align: left; flex-direction: unset; flex-flow: unset; align-items: unset;',
+					'right' => 'display: flex; flex-direction: row-reverse; text-align: right; align-items: center;',
 				],
 			]
 		);
@@ -120,18 +139,18 @@ class Review extends Widget_Base {
 		$this->add_responsive_control(
 			'review_alignment',
 			[
-				'label'     => esc_html__( 'Alignment', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::CHOOSE,
-				'options'   => [
-					'left' => [
+				'label' => esc_html__( 'Alignment', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::CHOOSE,
+				'options' => [
+					'left'    => [
 						'title' => esc_html__( 'Left', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-left',
 					],
-					'center' => [
+					'center'  => [
 						'title' => esc_html__( 'Center', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-center',
 					],
-					'right' => [
+					'right'   => [
 						'title' => esc_html__( 'Right', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-right',
 					],
@@ -196,10 +215,10 @@ class Review extends Widget_Base {
 		$this->add_control(
 			'designation_tag',
 			[
-				'label'     => esc_html__( 'Designation HTML Tag', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SELECT,
-				'default'   => 'h6',
-				'options'   => sky_addons_title_tags(),
+				'label'   => esc_html__( 'Designation HTML Tag', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => 'h6',
+				'options' => sky_addons_title_tags(),
 				'condition' => [
 					'show_designation' => 'yes',
 				],
@@ -279,7 +298,7 @@ class Review extends Widget_Base {
 				'label'   => esc_html__( 'Unmarked Style', 'sky-elementor-addons' ),
 				'type'    => Controls_Manager::CHOOSE,
 				'options' => [
-					'solid' => [
+					'solid'   => [
 						'title' => esc_html__( 'Solid', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-star',
 					],
@@ -368,7 +387,7 @@ class Review extends Widget_Base {
 						'max'  => 200,
 						'step' => 1,
 					],
-					'%' => [
+					'%'  => [
 						'min' => 0,
 						'max' => 100,
 					],
@@ -396,9 +415,9 @@ class Review extends Widget_Base {
 		$this->add_responsive_control(
 			'img_horizontal_offset',
 			[
-				'label'          => esc_html__( 'Horizontal Offset', 'sky-elementor-addons' ),
-				'type'           => Controls_Manager::SLIDER,
-				'default'        => [
+				'label'       => esc_html__( 'Horizontal Offset', 'sky-elementor-addons' ),
+				'type'        => Controls_Manager::SLIDER,
+				'default' => [
 					'size' => 0,
 				],
 				'tablet_default' => [
@@ -407,18 +426,18 @@ class Review extends Widget_Base {
 				'mobile_default' => [
 					'size' => 0,
 				],
-				'range'          => [
+				'range' => [
 					'px' => [
 						'min'  => -300,
 						'step' => 2,
 						'max'  => 300,
 					],
 				],
-				'render_type'    => 'ui',
-				'condition'      => [
+				'render_type' => 'ui',
+				'condition' => [
 					'img_offset_popover' => 'yes',
 				],
-				'selectors'      => [
+				'selectors' => [
 					'{{WRAPPER}} .sa-review' => '--sky-media-h-offset: {{SIZE}}px;',
 				],
 			]
@@ -427,9 +446,9 @@ class Review extends Widget_Base {
 		$this->add_responsive_control(
 			'img_vertical_offset',
 			[
-				'label'          => esc_html__( 'Vertical Offset', 'sky-elementor-addons' ),
-				'type'           => Controls_Manager::SLIDER,
-				'default'        => [
+				'label'       => esc_html__( 'Vertical Offset', 'sky-elementor-addons' ),
+				'type'        => Controls_Manager::SLIDER,
+				'default' => [
 					'size' => 0,
 				],
 				'tablet_default' => [
@@ -438,18 +457,18 @@ class Review extends Widget_Base {
 				'mobile_default' => [
 					'size' => 0,
 				],
-				'range'          => [
+				'range' => [
 					'px' => [
 						'min'  => -300,
 						'step' => 2,
 						'max'  => 300,
 					],
 				],
-				'render_type'    => 'ui',
-				'condition'      => [
+				'render_type' => 'ui',
+				'condition' => [
 					'img_offset_popover' => 'yes',
 				],
-				'selectors'      => [
+				'selectors' => [
 					'{{WRAPPER}} .sa-review' => '--sky-media-v-offset: {{SIZE}}px;',
 				],
 			]
@@ -458,10 +477,10 @@ class Review extends Widget_Base {
 		$this->add_responsive_control(
 			'img_rotate',
 			[
-				'label'          => esc_html__( 'Rotate', 'sky-elementor-addons' ),
-				'type'           => Controls_Manager::SLIDER,
-				'devices'        => [ 'desktop', 'tablet', 'mobile' ],
-				'default'        => [
+				'label'       => esc_html__( 'Rotate', 'sky-elementor-addons' ),
+				'type'        => Controls_Manager::SLIDER,
+				'devices'     => [ 'desktop', 'tablet', 'mobile' ],
+				'default' => [
 					'size' => 0,
 				],
 				'tablet_default' => [
@@ -470,18 +489,18 @@ class Review extends Widget_Base {
 				'mobile_default' => [
 					'size' => 0,
 				],
-				'range'          => [
+				'range' => [
 					'px' => [
 						'min'  => -360,
 						'max'  => 360,
 						'step' => 5,
 					],
 				],
-				'condition'      => [
+				'condition' => [
 					'img_offset_popover' => 'yes',
 				],
-				'render_type'    => 'ui',
-				'selectors'      => [
+				'render_type' => 'ui',
+				'selectors' => [
 					'{{WRAPPER}} .sa-review' => '--sky-media-rotate: {{SIZE}}deg;',
 				],
 			]
@@ -543,9 +562,9 @@ class Review extends Widget_Base {
 		$this->add_control(
 			'img_opacity',
 			[
-				'label'     => esc_html__( 'Opacity', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SLIDER,
-				'range'     => [
+				'label' => esc_html__( 'Opacity', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::SLIDER,
+				'range' => [
 					'px' => [
 						'max'  => 1,
 						'min'  => 0.10,
@@ -578,9 +597,9 @@ class Review extends Widget_Base {
 		$this->add_control(
 			'img_opacity_hover',
 			[
-				'label'     => esc_html__( 'Opacity', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SLIDER,
-				'range'     => [
+				'label' => esc_html__( 'Opacity', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::SLIDER,
+				'range' => [
 					'px' => [
 						'max'  => 1,
 						'min'  => 0.10,
@@ -604,9 +623,9 @@ class Review extends Widget_Base {
 		$this->add_control(
 			'img_transition',
 			[
-				'label'     => esc_html__( 'Transition Duration (s)', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SLIDER,
-				'range'     => [
+				'label' => esc_html__( 'Transition Duration (s)', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::SLIDER,
+				'range' => [
 					'px' => [
 						'max'  => 3,
 						'step' => 0.1,
@@ -635,8 +654,8 @@ class Review extends Widget_Base {
 		$this->start_controls_section(
 			'section_name_style',
 			[
-				'label'     => esc_html__( 'Name', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Name', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'name!' => '',
 				],
@@ -655,7 +674,7 @@ class Review extends Widget_Base {
 						'max'  => 100,
 						'step' => 1,
 					],
-					'%' => [
+					'%'  => [
 						'min' => 0,
 						'max' => 100,
 					],
@@ -687,8 +706,8 @@ class Review extends Widget_Base {
 		$this->add_control(
 			'name_color',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-review .sa-name' => 'color: {{VALUE}}',
 				],
@@ -716,10 +735,10 @@ class Review extends Widget_Base {
 		$this->add_control(
 			'name_color_hover',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .elementor-widget-container:hover .sa-name' => 'color: {{VALUE}}',
+					'{{WRAPPER}} .sa-review:hover .sa-name' => 'color: {{VALUE}}',
 				],
 			]
 		);
@@ -729,7 +748,7 @@ class Review extends Widget_Base {
 			[
 				'name'     => 'name_text_shadow_hover',
 				'label'    => esc_html__( 'Text Shadow', 'sky-elementor-addons' ),
-				'selector' => '{{WRAPPER}} .elementor-widget-container:hover .sa-name',
+				'selector' => '{{WRAPPER}} .sa-review:hover .sa-name',
 			]
 		);
 
@@ -742,8 +761,8 @@ class Review extends Widget_Base {
 		$this->start_controls_section(
 			'section_designation_style',
 			[
-				'label'     => esc_html__( 'Designation', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Designation', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'designation!'     => '',
 					'show_designation' => 'yes',
@@ -763,7 +782,7 @@ class Review extends Widget_Base {
 						'max'  => 100,
 						'step' => 1,
 					],
-					'%' => [
+					'%'  => [
 						'min' => 0,
 						'max' => 100,
 					],
@@ -795,8 +814,8 @@ class Review extends Widget_Base {
 		$this->add_control(
 			'designation_color',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-review .sa-designation' => 'color: {{VALUE}}',
 				],
@@ -824,10 +843,10 @@ class Review extends Widget_Base {
 		$this->add_control(
 			'designation_color_hover',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .elementor-widget-container:hover .sa-designation' => 'color: {{VALUE}}',
+					'{{WRAPPER}} .sa-review:hover .sa-designation' => 'color: {{VALUE}}',
 				],
 			]
 		);
@@ -837,7 +856,7 @@ class Review extends Widget_Base {
 			[
 				'name'     => 'designation_text_shadow_hover',
 				'label'    => esc_html__( 'Text Shadow', 'sky-elementor-addons' ),
-				'selector' => '{{WRAPPER}} .elementor-widget-container:hover .sa-designation',
+				'selector' => '{{WRAPPER}} .sa-review:hover .sa-designation',
 			]
 		);
 
@@ -850,8 +869,8 @@ class Review extends Widget_Base {
 		$this->start_controls_section(
 			'section_review_text_style',
 			[
-				'label'     => esc_html__( 'Review', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Review', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'review!' => '',
 				],
@@ -870,7 +889,7 @@ class Review extends Widget_Base {
 						'max'  => 100,
 						'step' => 1,
 					],
-					'%' => [
+					'%'  => [
 						'min' => 0,
 						'max' => 100,
 					],
@@ -902,8 +921,8 @@ class Review extends Widget_Base {
 		$this->add_control(
 			'review_color',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-review .sa-review-desc' => 'color: {{VALUE}}',
 				],
@@ -922,10 +941,10 @@ class Review extends Widget_Base {
 		$this->add_control(
 			'review_color_hover',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .elementor-widget-container:hover .sa-review-desc' => 'color: {{VALUE}}',
+					'{{WRAPPER}} .sa-review:hover .sa-review-desc' => 'color: {{VALUE}}',
 				],
 			]
 		);
@@ -956,7 +975,7 @@ class Review extends Widget_Base {
 						'max'  => 100,
 						'step' => 1,
 					],
-					'%' => [
+					'%'  => [
 						'min' => 0,
 						'max' => 100,
 					],
@@ -970,9 +989,9 @@ class Review extends Widget_Base {
 		$this->add_responsive_control(
 			'rating_size',
 			[
-				'label'     => esc_html__( 'Size', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SLIDER,
-				'range'     => [
+				'label' => esc_html__( 'Size', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::SLIDER,
+				'range' => [
 					'px' => [
 						'min' => 0,
 						'max' => 100,
@@ -987,9 +1006,9 @@ class Review extends Widget_Base {
 		$this->add_responsive_control(
 			'rating_icon_space',
 			[
-				'label'     => esc_html__( 'Space Between', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SLIDER,
-				'range'     => [
+				'label' => esc_html__( 'Space Between', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::SLIDER,
+				'range' => [
 					'px' => [
 						'min' => 0,
 						'max' => 50,
@@ -1017,8 +1036,8 @@ class Review extends Widget_Base {
 		$this->add_control(
 			'stars_unmarked_color',
 			[
-				'label'     => esc_html__( 'Unmarked Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Unmarked Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .review-star-rating i' => 'color: {{VALUE}}',
 				],
@@ -1072,18 +1091,18 @@ class Review extends Widget_Base {
 	}
 
 	protected function get_rating() {
-		$settings = $this->get_settings_for_display();
+		$settings     = $this->get_settings_for_display();
 		$rating_scale = (int) $settings['rating_scale'];
-		$rating = (float) $settings['rating'] > $rating_scale ? $rating_scale : $settings['rating'];
+		$rating       = (float) $settings['rating'] > $rating_scale ? $rating_scale : $settings['rating'];
 
 		return [ $rating, $rating_scale ];
 	}
 
 	protected function render_stars( $icon ) {
-		$rating_data = $this->get_rating();
-		$rating = (float) $rating_data[0];
+		$rating_data    = $this->get_rating();
+		$rating         = (float) $rating_data[0];
 		$floored_rating = floor( $rating );
-		$stars_html = '';
+		$stars_html     = '';
 
 		for ( $stars = 1.0; $stars <= $rating_data[1]; $stars++ ) {
 			if ( $stars <= $floored_rating ) {
@@ -1099,10 +1118,10 @@ class Review extends Widget_Base {
 	}
 
 	protected function render() {
-		$settings = $this->get_settings();
+		$settings = $this->get_settings_for_display();
 
 		if ( ! empty( $settings['image']['url'] ) ) {
-			$this->add_render_attribute( 'image', 'src', $settings['image']['url'] );
+			$this->add_render_attribute( 'image', 'src', esc_url( $settings['image']['url'] ) );
 			$this->add_render_attribute( 'image', 'alt', Control_Media::get_image_alt( $settings['image'] ) );
 			$this->add_render_attribute( 'image', 'title', Control_Media::get_image_title( $settings['image'] ) );
 
@@ -1110,14 +1129,12 @@ class Review extends Widget_Base {
 				$settings['hover_animation'] = $settings['img_hover_animation'];
 				$this->add_render_attribute( 'image', 'class', 'elementor-animation-' . $settings['hover_animation'] );
 			}
-
-			$image_html = Group_Control_Image_Size::get_attachment_image_html( $settings, 'thumbnail', 'image' );
 		}
 
 		// star rating
-		$rating_data = $this->get_rating();
+		$rating_data    = $this->get_rating();
 		$textual_rating = $rating_data[0] . '/' . $rating_data[1];
-		$icon = '&#xE934;';
+		$icon           = '&#xE934;';
 
 		if ( 'star_fontawesome' === $settings['star_style'] ) {
 			if ( 'outline' === $settings['unmarked_star_style'] ) {
@@ -1152,8 +1169,9 @@ class Review extends Widget_Base {
 
 			<div class="sa-review-body">
 				<?php
-				if ( $settings['review_position'] === 'before' ) :
-					if ( ! empty( $settings['review'] ) ) : ?>
+				if ( 'before' === $settings['review_position'] ) :
+					if ( ! empty( $settings['review'] ) ) :
+						?>
 						<div class="sa-review-desc sa-mt-4">
 							<?php echo wp_kses_post( $settings['review'] ); ?>
 						</div>
@@ -1173,7 +1191,7 @@ class Review extends Widget_Base {
 						);
 					}
 
-					if ( $settings['show_designation'] === 'yes' && ! empty( $settings['designation'] ) ) {
+					if ( 'yes' === $settings['show_designation'] && ! empty( $settings['designation'] ) ) {
 						printf(
 							'<%1$s class="%2$s">%3$s</%1$s>',
 							esc_attr( Utils::validate_html_tag( $settings['designation_tag'] ) ),
@@ -1189,7 +1207,7 @@ class Review extends Widget_Base {
 
 				<?php
 
-				if ( $settings['review_position'] === 'after' ) :
+				if ( 'after' === $settings['review_position'] ) :
 					if ( ! empty( $settings['review'] ) ) :
 						?>
 						<div class="sa-review-desc sa-mt-4">

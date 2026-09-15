@@ -5,7 +5,7 @@ namespace Sky_Addons\Modules\ReadingProgress\Skins;
 use Elementor\Skin_Base as Elementor_Skin_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 class Skin_With_Cursor extends Elementor_Skin_Base {
@@ -25,14 +25,6 @@ class Skin_With_Cursor extends Elementor_Skin_Base {
 	public function render() {
 		?>
 		<div class="sa-reading-progress sa-skin-with-cursor"></div>
-		<div class='sa-progress-with-cursor-2'>
-			<div class="sa-progress-wrap">
-				<svg class="sa-progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
-					<path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" />
-				</svg>
-			</div>
-		</div>
-		<div class='sa-progress-with-cursor-3'></div>
 		<?php
 	}
 }

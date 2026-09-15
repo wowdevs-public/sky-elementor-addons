@@ -1,3 +1,4 @@
+<?php if ( ! defined( 'ABSPATH' ) ) { exit; } ?>
 <script type="text/template" id="sa-skyTemplatesLibrary_preview">
 	<iframe class="skyTemplatesLibrary_template-preview-thumbnail"></iframe>
 </script>

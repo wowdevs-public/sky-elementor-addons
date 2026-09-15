@@ -3,7 +3,7 @@
 namespace Sky_Addons\Modules\SlinkyMenu;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 /**
@@ -83,7 +83,7 @@ class Menu_Walker extends \Walker_Nav_Menu {
 			$attributes .= sprintf( ' %s="%s"', esc_attr( $name ), esc_attr( $value ) );
 		}
 
-		$id_attr = $id ? sprintf( ' id="%s"', esc_attr( $id ) ) : '';
+		$id_attr    = $id ? sprintf( ' id="%s"', esc_attr( $id ) ) : '';
 		$class_attr = $class ? sprintf( ' class="%s"', esc_attr( $class ) ) : '';
 
 		$output .= sprintf( '<li%s%s%s>', $id_attr, $attributes, $class_attr );

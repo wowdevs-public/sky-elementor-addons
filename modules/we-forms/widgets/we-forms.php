@@ -12,7 +12,7 @@ use Elementor\Core\Kits\Documents\Tabs\Global_Typography;
 use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 class WeForms extends Widget_Base {
@@ -45,6 +45,10 @@ class WeForms extends Widget_Base {
 		return true;
 	}
 
+	public function has_widget_inner_wrapper(): bool {
+		return ! \Elementor\Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
+	}
+
 	protected function register_controls() {
 		$this->start_controls_section(
 			'section_weforms',
@@ -61,9 +65,10 @@ class WeForms extends Widget_Base {
 				[
 					'type'            => Controls_Manager::RAW_HTML,
 					'raw'             => sprintf(
+						/* translators: %1$s: plugin name linked to its install page, %2$s: current user's display name. */
 						__( 'Hello %2$s, looks like %1$s is missing in your site. Please click on the link below and install/activate %1$s. Make sure to refresh this page after installation or activation.', 'sky-elementor-addons' ),
 						'<a href="' . esc_url( admin_url( 'plugin-install.php?s=weForms&tab=search&type=term' ) ) . '" target="_blank" rel="noopener">weForms</a>',
-						sky_addons_get_current_user_display_name()
+						esc_html( sky_addons_get_current_user_display_name() )
 					),
 					'content_classes' => 'elementor-panel-alert elementor-panel-alert-danger',
 				]
@@ -73,7 +78,7 @@ class WeForms extends Widget_Base {
 				'_weforms_install',
 				[
 					'type' => Controls_Manager::RAW_HTML,
-					'raw'  => '<a href="' . esc_url( admin_url( 'plugin-install.php?s=weForms&tab=search&type=term' ) ) . '" target="_blank" rel="noopener">Click to install or activate weForms</a>',
+					'raw'  => '<a href="' . esc_url( admin_url( 'plugin-install.php?s=weForms&tab=search&type=term' ) ) . '" target="_blank" rel="noopener">' . __( 'Click to install or activate weForms', 'sky-elementor-addons' ) . '</a>',
 				]
 			);
 
@@ -133,7 +138,7 @@ class WeForms extends Widget_Base {
 					'size' => 99,
 				],
 				'range'       => [
-					'%' => [
+					'%'  => [
 						'min' => 1,
 						'max' => 100,
 					],
@@ -193,7 +198,7 @@ class WeForms extends Widget_Base {
 			[
 				'name'     => 'field_typography',
 				'label'    => __( 'Typography', 'sky-elementor-addons' ),
-				'selector' => '{{WRAPPER}} .wpuf-form-add.wpuf-style ul.wpuf-form .wpuf-fields input:not(.weforms_submit_btn), .wpuf-form-add.wpuf-style ul.wpuf-form .wpuf-fields textarea',
+				'selector' => '{{WRAPPER}} .wpuf-form-add.wpuf-style ul.wpuf-form .wpuf-fields input:not(.weforms_submit_btn), {{WRAPPER}} .wpuf-form-add.wpuf-style ul.wpuf-form .wpuf-fields textarea',
 				'global'   => [
 					'default' => Global_Typography::TYPOGRAPHY_TEXT,
 				],
@@ -203,8 +208,8 @@ class WeForms extends Widget_Base {
 		$this->add_control(
 			'field_textcolor',
 			[
-				'label'     => __( 'Field Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Field Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .wpuf-form-add.wpuf-style ul.wpuf-form .wpuf-fields input:not(.weforms_submit_btn), {{WRAPPER}} .wpuf-form-add.wpuf-style ul.wpuf-form .wpuf-fields textarea' => 'color: {{VALUE}};',
 				],
@@ -214,9 +219,10 @@ class WeForms extends Widget_Base {
 		$this->add_control(
 			'field_placeholder_color',
 			[
-				'label'     => __( 'Field Placeholder Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Field Placeholder Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
+					'{{WRAPPER}} ::placeholder'           => 'color: {{VALUE}};',
 					'{{WRAPPER}} ::-webkit-input-placeholder' => 'color: {{VALUE}};',
 					'{{WRAPPER}} ::-moz-placeholder'      => 'color: {{VALUE}};',
 					'{{WRAPPER}} ::-ms-input-placeholder' => 'color: {{VALUE}};',
@@ -306,7 +312,7 @@ class WeForms extends Widget_Base {
 	protected function __label_style_controls() {
 
 		$this->start_controls_section(
-			'we-form-label',
+			'we_form_label',
 			[
 				'label' => __( 'Form Field Labels', 'sky-elementor-addons' ),
 				'tab'   => Controls_Manager::TAB_STYLE,
@@ -320,7 +326,7 @@ class WeForms extends Widget_Base {
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => [ 'px', '%' ],
 				'selectors'  => [
-					'{{WRAPPER}} .wpuf-label label' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .wpuf-label label' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 			]
 		);
@@ -372,8 +378,8 @@ class WeForms extends Widget_Base {
 		$this->add_control(
 			'label_color',
 			[
-				'label'     => __( 'Label Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Label Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .wpuf-label label, {{WRAPPER}} .wpuf-form-sub-label' => 'color: {{VALUE}}',
 				],
@@ -383,8 +389,8 @@ class WeForms extends Widget_Base {
 		$this->add_control(
 			'requered_label',
 			[
-				'label'     => __( 'Required Label Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Required Label Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .wpuf-label .required' => 'color: {{VALUE}} !important',
 				],
@@ -394,8 +400,8 @@ class WeForms extends Widget_Base {
 		$this->add_control(
 			'desc_color',
 			[
-				'label'     => __( 'Help Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Help Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .wpuf-fields .wpuf-help' => 'color: {{VALUE}}',
 				],
@@ -442,7 +448,7 @@ class WeForms extends Widget_Base {
 					'size' => 100,
 				],
 				'range'      => [
-					'%' => [
+					'%'  => [
 						'min' => 1,
 						'max' => 100,
 					],
@@ -463,7 +469,7 @@ class WeForms extends Widget_Base {
 				'label'           => __( 'Button Position', 'sky-elementor-addons' ),
 				'type'            => Controls_Manager::CHOOSE,
 				'options'         => [
-					'left' => [
+					'left'   => [
 						'title' => __( 'Left', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-left',
 					],
@@ -471,7 +477,7 @@ class WeForms extends Widget_Base {
 						'title' => __( 'Center', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-center',
 					],
-					'right' => [
+					'right'  => [
 						'title' => __( 'Right', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-right',
 					],
@@ -481,9 +487,9 @@ class WeForms extends Widget_Base {
 				],
 				'desktop_default' => 'left',
 				'toggle'          => false,
-				'prefix_class'    => 'ha-form-btn--%s',
+				'prefix_class'    => 'sa-form-btn--%s',
 				'selectors'       => [
-					'{{WRAPPER}} .wpuf-form-add.wpuf-style ul.wpuf-form .wpuf-submit' => 'text-align: {{Value}};',
+					'{{WRAPPER}} .wpuf-form-add.wpuf-style ul.wpuf-form .wpuf-submit' => 'text-align: {{VALUE}};',
 				],
 			]
 		);
@@ -579,9 +585,9 @@ class WeForms extends Widget_Base {
 		$this->add_control(
 			'submit_color',
 			[
-				'label'     => __( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '',
+				'label'   => __( 'Text Color', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::COLOR,
+				'default' => '',
 				'selectors' => [
 					'{{WRAPPER}} .wpuf-form-add.wpuf-style ul.wpuf-form .wpuf-submit input[type=submit]' => 'color: {{VALUE}};',
 				],
@@ -610,8 +616,8 @@ class WeForms extends Widget_Base {
 		$this->add_control(
 			'submit_hover_color',
 			[
-				'label'     => __( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .wpuf-form-add.wpuf-style ul.wpuf-form .wpuf-submit input[type=submit]:hover, {{WRAPPER}} .wpuf-form-add.wpuf-style ul.wpuf-form .wpuf-submit input[type=submit]:focus' => 'color: {{VALUE}};',
 				],
@@ -631,8 +637,8 @@ class WeForms extends Widget_Base {
 		$this->add_control(
 			'submit_hover_border_color',
 			[
-				'label'     => __( 'Border Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Border Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .wpuf-form-add.wpuf-style ul.wpuf-form .wpuf-submit input[type=submit]:hover, {{WRAPPER}} .wpuf-form-add.wpuf-style ul.wpuf-form .wpuf-submit input[type=submit]:focus' => 'border-color: {{VALUE}};',
 				],
@@ -691,8 +697,8 @@ class WeForms extends Widget_Base {
 		$this->add_control(
 			'break_title_color',
 			[
-				'label'     => __( 'Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .section_break .wpuf-section-title' => 'color: {{VALUE}};',
 				],
@@ -711,8 +717,8 @@ class WeForms extends Widget_Base {
 		$this->add_control(
 			'break_description_color',
 			[
-				'label'     => __( 'Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => __( 'Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .section_break .wpuf-section-details' => 'color: {{VALUE}};',
 				],
@@ -734,13 +740,13 @@ class WeForms extends Widget_Base {
 		$settings = $this->get_settings_for_display();
 
 		if ( ! empty( $settings['form_id'] ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Form markup from weForms' shortcode, escaped by that plugin; wp_kses_post() would strip the form fields.
 			echo sky_addons_do_shortcode( 'weforms', [
-				'id' => $settings['form_id'],
+				'id' => (int) $settings['form_id'],
 			] );
 		} elseif ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
-			// Show a helpful message when no form is selected (only in editor)
 			echo '<div style="text-align: center; padding: 20px; background: #f9f9f9; border: 2px dashed #ddd; color: #666;">';
-			echo '<p>' . __( 'Please select a weForms form from the widget settings to display it here.', 'sky-elementor-addons' ) . '</p>';
+			echo '<p>' . esc_html__( 'Please select a weForms form from the widget settings to display it here.', 'sky-elementor-addons' ) . '</p>';
 			echo '</div>';
 		}
 	}

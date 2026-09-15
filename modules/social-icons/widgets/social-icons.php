@@ -13,7 +13,7 @@ use Elementor\Repeater;
 use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 class Social_Icons extends Widget_Base {
@@ -40,17 +40,21 @@ class Social_Icons extends Widget_Base {
 	}
 
 	public function get_style_depends() {
-		return [
-			'elementor-icons-fa-solid',
-			'elementor-icons-fa-brands',
-			'widget-social-icons',
-		];
+		if ( sky_addons_editor_mode() ) {
+			return [ 'elementor-icons-fa-solid', 'elementor-icons-fa-brands', 'widget-social-icons', 'sky-addons-styles' ];
+		}
+
+		return [ 'elementor-icons-fa-solid', 'elementor-icons-fa-brands', 'widget-social-icons', 'sa-social-icons' ];
 	}
 
 	public function get_custom_help_url() {
 		return 'https://skyaddons.com/docs/sky-addons/widgets/social-icons/';
 	}
 
+
+	public function has_widget_inner_wrapper(): bool {
+		return ! \Elementor\Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
+	}
 
 	protected function register_controls() {
 
@@ -66,9 +70,9 @@ class Social_Icons extends Widget_Base {
 		$repeater->add_control(
 			'social_icon',
 			[
-				'label'       => esc_html__( 'Icon', 'sky-elementor-addons' ),
-				'type'        => Controls_Manager::ICONS,
-				'default'     => [
+				'label' => esc_html__( 'Icon', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::ICONS,
+				'default' => [
 					'value'   => 'fab fa-facebook-f',
 					'library' => 'fa-brands',
 				],
@@ -166,9 +170,9 @@ class Social_Icons extends Widget_Base {
 		$repeater->add_control(
 			'social_label',
 			[
-				'label'     => esc_html__( 'Social Name', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::TEXT,
-				'dynamic'   => [ 'active' => true ],
+				'label'   => esc_html__( 'Social Name', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::TEXT,
+				'dynamic' => [ 'active' => true ],
 				'condition' => [
 					'enable_social_label' => 'yes',
 				],
@@ -207,8 +211,8 @@ class Social_Icons extends Widget_Base {
 		$repeater->add_control(
 			'item_icon_color',
 			[
-				'label'     => esc_html__( 'Icon Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Icon Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sky-social-icons .sa-social-icon{{CURRENT_ITEM}} '       => 'color: {{VALUE}};',
 					'{{WRAPPER}} .sky-social-icons .sa-social-icon{{CURRENT_ITEM}} svg * ' => 'fill: {{VALUE}};',
@@ -219,8 +223,8 @@ class Social_Icons extends Widget_Base {
 		$repeater->add_control(
 			'item_icon_bg',
 			[
-				'label'     => esc_html__( 'Background Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Background Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sky-social-icons .sa-social-icon{{CURRENT_ITEM}}' => 'background-color: {{VALUE}};',
 				],
@@ -230,10 +234,24 @@ class Social_Icons extends Widget_Base {
 		$repeater->add_control(
 			'item_icon_border_color',
 			[
-				'label'     => esc_html__( 'Border Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Border Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sky-social-icons .sa-social-icon{{CURRENT_ITEM}}' => 'border-color: {{VALUE}};',
+				],
+			]
+		);
+
+		$repeater->add_control(
+			'item_label_color',
+			[
+				'label' => esc_html__( 'Label Color', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'type'  => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .sky-social-icons .sa-social-icon{{CURRENT_ITEM}} .sa-social-label' => 'color: {{VALUE}};',
+				],
+				'condition' => [
+					'enable_social_label' => 'yes',
 				],
 			]
 		);
@@ -250,8 +268,8 @@ class Social_Icons extends Widget_Base {
 		$repeater->add_control(
 			'item_icon_color_hover',
 			[
-				'label'     => esc_html__( 'Icon Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Icon Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sky-social-icons .sa-social-icon{{CURRENT_ITEM}}:hover '       => 'color: {{VALUE}};',
 					'{{WRAPPER}} .sky-social-icons .sa-social-icon{{CURRENT_ITEM}}:hover svg * ' => 'fill: {{VALUE}};',
@@ -262,8 +280,8 @@ class Social_Icons extends Widget_Base {
 		$repeater->add_control(
 			'item_icon_bg_hover',
 			[
-				'label'     => esc_html__( 'Background Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Background Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sky-social-icons .sa-social-icon{{CURRENT_ITEM}}:hover' => 'background-color: {{VALUE}};',
 				],
@@ -273,10 +291,24 @@ class Social_Icons extends Widget_Base {
 		$repeater->add_control(
 			'item_icon_border_color_hover',
 			[
-				'label'     => esc_html__( 'Border Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Border Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .sky-social-icons .sa-social-icon{{CURRENT_ITEM}}' => 'border-color: {{VALUE}};',
+					'{{WRAPPER}} .sky-social-icons .sa-social-icon{{CURRENT_ITEM}}:hover' => 'border-color: {{VALUE}};',
+				],
+			]
+		);
+
+		$repeater->add_control(
+			'item_label_color_hover',
+			[
+				'label' => esc_html__( 'Label Color', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'type'  => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .sky-social-icons .sa-social-icon{{CURRENT_ITEM}}:hover .sa-social-label' => 'color: {{VALUE}};',
+				],
+				'condition' => [
+					'enable_social_label' => 'yes',
 				],
 			]
 		);
@@ -318,9 +350,9 @@ class Social_Icons extends Widget_Base {
 		$this->add_responsive_control(
 			'socials_icons_alignment',
 			[
-				'label'     => esc_html__( 'Alignment', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::CHOOSE,
-				'options'   => [
+				'label' => esc_html__( 'Alignment', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::CHOOSE,
+				'options' => [
 					'left'   => [
 						'title' => esc_html__( 'Left', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-left',
@@ -340,11 +372,57 @@ class Social_Icons extends Widget_Base {
 			]
 		);
 
+		$this->add_responsive_control(
+			'social_icons_direction',
+			[
+				'label' => esc_html__( 'Direction', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'type'  => Controls_Manager::CHOOSE,
+				'options' => [
+					'row'    => [
+						'title' => esc_html__( 'Horizontal', 'sky-elementor-addons' ),
+						'icon'  => 'eicon-arrow-right',
+					],
+					'column' => [
+						'title' => esc_html__( 'Vertical', 'sky-elementor-addons' ),
+						'icon'  => 'eicon-arrow-down',
+					],
+				],
+				'selectors' => [
+					'{{WRAPPER}} .sky-social-icons' => 'flex-direction: {{VALUE}};',
+				],
+			]
+		);
+
 		$this->add_control(
 			'hide_socials_name',
 			[
 				'label' => esc_html__( 'Hide Social Name', 'sky-elementor-addons' ),
 				'type'  => Controls_Manager::SWITCHER,
+			]
+		);
+
+		$this->add_responsive_control(
+			'social_label_position',
+			[
+				'label'   => esc_html__( 'Label Position', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => 'right',
+				'options' => [
+					'right' => esc_html__( 'Right', 'sky-elementor-addons' ),
+					'below' => esc_html__( 'Below', 'sky-elementor-addons' ),
+					'above' => esc_html__( 'Above', 'sky-elementor-addons' ),
+				],
+				'selectors_dictionary' => [
+					'right' => 'row',
+					'below' => 'column',
+					'above' => 'column-reverse',
+				],
+				'selectors' => [
+					'{{WRAPPER}} .sky-social-icons .sa-social-icon' => 'flex-direction: {{VALUE}};',
+				],
+				'condition' => [
+					'hide_socials_name!' => 'yes',
+				],
 			]
 		);
 
@@ -359,10 +437,10 @@ class Social_Icons extends Widget_Base {
 		$this->add_control(
 			'separator_select',
 			[
-				'label'     => esc_html__( 'Separator Type', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SELECT,
-				'default'   => 'default',
-				'options'   => [
+				'label'   => esc_html__( 'Separator Type', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => 'default',
+				'options' => [
 					'default' => esc_html__( 'Default', 'sky-elementor-addons' ),
 					'custom'  => esc_html__( 'Custom', 'sky-elementor-addons' ),
 				],
@@ -397,10 +475,10 @@ class Social_Icons extends Widget_Base {
 		$this->add_control(
 			'separator_text',
 			[
-				'label'     => esc_html__( 'Custom Separator', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::TEXT,
-				'default'   => esc_html__( '/', 'sky-elementor-addons' ),
-				'dynamic'   => [ 'active' => true ],
+				'label'   => esc_html__( 'Custom Separator', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::TEXT,
+				'default' => esc_html__( '/', 'sky-elementor-addons' ),
+				'dynamic' => [ 'active' => true ],
 				'condition' => [
 					'separator_select' => 'custom',
 				],
@@ -488,10 +566,10 @@ class Social_Icons extends Widget_Base {
 		$this->add_control(
 			'socials_adv_border_radius',
 			[
-				'label'     => esc_html__( 'Radius', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::TEXT,
-				'default'   => esc_html__( '30% 70% 70% 30% / 30% 30% 70% 70% ', 'sky-elementor-addons' ),
-				'dynamic'   => [ 'active' => true ],
+				'label'   => esc_html__( 'Radius', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::TEXT,
+				'default' => esc_html__( '30% 70% 70% 30% / 30% 30% 70% 70% ', 'sky-elementor-addons' ),
+				'dynamic' => [ 'active' => true ],
 				'selectors' => [
 					'{{WRAPPER}} .sky-social-icons .sa-link'     => 'border-radius: {{VALUE}};',
 					'{{WRAPPER}} .sky-social-icons .sa-link svg' => 'border-radius: {{VALUE}};',
@@ -514,8 +592,8 @@ class Social_Icons extends Widget_Base {
 		$this->add_control(
 			'social_icons_color',
 			[
-				'label'     => esc_html__( 'Icons Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Icons Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sky-social-icons .sa-link'       => 'color: {{VALUE}}',
 					'{{WRAPPER}} .sky-social-icons .sa-link svg *' => 'fill: {{VALUE}}',
@@ -545,9 +623,9 @@ class Social_Icons extends Widget_Base {
 		$this->add_control(
 			'social_icons_opacity',
 			[
-				'label'     => esc_html__( 'Opacity', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SLIDER,
-				'range'     => [
+				'label' => esc_html__( 'Opacity', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::SLIDER,
+				'range' => [
 					'px' => [
 						'max'  => 1,
 						'min'  => 0.10,
@@ -572,8 +650,8 @@ class Social_Icons extends Widget_Base {
 		$this->add_control(
 			'social_icons_color_hover',
 			[
-				'label'     => esc_html__( 'Icons Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Icons Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sky-social-icons .sa-link:hover'       => 'color: {{VALUE}}',
 					'{{WRAPPER}} .sky-social-icons .sa-link:hover svg *' => 'fill: {{VALUE}}',
@@ -594,8 +672,8 @@ class Social_Icons extends Widget_Base {
 		$this->add_control(
 			'social_icons_border_color_hover',
 			[
-				'label'     => esc_html__( 'Border Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Border Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sky-social-icons .sa-link:hover'     => 'border-color: {{VALUE}};',
 					'{{WRAPPER}} .sky-social-icons .sa-link:hover svg' => 'border-color: {{VALUE}};',
@@ -643,9 +721,9 @@ class Social_Icons extends Widget_Base {
 		$this->add_control(
 			'social_icons_opacity_hover',
 			[
-				'label'     => esc_html__( 'Opacity', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SLIDER,
-				'range'     => [
+				'label' => esc_html__( 'Opacity', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::SLIDER,
+				'range' => [
 					'px' => [
 						'max'  => 1,
 						'min'  => 0.10,
@@ -654,6 +732,37 @@ class Social_Icons extends Widget_Base {
 				],
 				'selectors' => [
 					'{{WRAPPER}} .sky-social-icons .sa-link:hover' => 'opacity: {{SIZE}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'group_hover_dim',
+			[
+				'label' => esc_html__( 'Dim Others on Hover', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'type'  => Controls_Manager::SWITCHER,
+			]
+		);
+
+		$this->add_control(
+			'group_hover_dim_opacity',
+			[
+				'label'   => esc_html__( 'Dim Opacity', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::SLIDER,
+				'range'   => [
+					'px' => [
+						'min'  => 0,
+						'max'  => 1,
+						'step' => 0.01,
+					],
+				],
+				'default' => [ 'size' => 0.4 ],
+				'selectors' => [
+					'{{WRAPPER}} .sky-social-icons:hover .sa-link'       => 'opacity: {{SIZE}};',
+					'{{WRAPPER}} .sky-social-icons:hover .sa-link:hover' => 'opacity: 1;',
+				],
+				'condition' => [
+					'group_hover_dim' => 'yes',
 				],
 			]
 		);
@@ -705,8 +814,8 @@ class Social_Icons extends Widget_Base {
 		$this->start_controls_section(
 			'section_social_label_style',
 			[
-				'label'     => esc_html__( 'Label', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Label', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'hide_socials_name!' => 'yes',
 				],
@@ -736,7 +845,7 @@ class Social_Icons extends Widget_Base {
 					],
 				],
 				'selectors'  => [
-					'{{WRAPPER}} .sa-social-label' => 'margin-left: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .sa-social-label' => 'margin-inline-start: {{SIZE}}{{UNIT}};',
 				],
 			]
 		);
@@ -746,8 +855,8 @@ class Social_Icons extends Widget_Base {
 		$this->start_controls_section(
 			'section_separator_style',
 			[
-				'label'     => esc_html__( 'Separator', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Separator', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_separator' => 'yes',
 				],
@@ -757,8 +866,8 @@ class Social_Icons extends Widget_Base {
 		$this->add_control(
 			'separator_color',
 			[
-				'label'     => esc_html__( 'Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-social-icon-separator'            => 'color: {{VALUE}}',
 					'{{WRAPPER}} .sa-social-icon-separator.sa-default' => 'background-color: {{VALUE}}',
@@ -775,17 +884,29 @@ class Social_Icons extends Widget_Base {
 			]
 		);
 
+		$this->add_responsive_control(
+			'separator_spacing',
+			[
+				'label'      => esc_html__( 'Spacing', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => [ 'px', 'em' ],
+				'range'      => [
+					'px' => [
+						'min' => 0,
+						'max' => 50,
+					],
+				],
+				'selectors'  => [
+					'{{WRAPPER}} .sa-social-icon-separator' => 'margin-inline-end: {{SIZE}}{{UNIT}};',
+				],
+			]
+		);
+
 		$this->end_controls_section();
 	}
 
 	protected function render() {
 		$settings = $this->get_settings_for_display();
-
-		$class_animation = '';
-
-		if ( ! empty( $settings['icons_hover_animation'] ) ) {
-			$class_animation = ' elementor-animation-' . $settings['icons_hover_animation'];
-		}
 		?>
 		<div class="sky-social-icons sa-d-inline-flex sa-align-items-center sa-justify-content-center">
 			<?php
@@ -799,12 +920,15 @@ class Social_Icons extends Widget_Base {
 				}
 
 				$link_key = 'link_' . $index;
-				$this->add_render_attribute($link_key, 'class', [
+				$this->add_render_attribute( $link_key, 'class', [
 					'sa-link sa-social-icon sa-text-decoration-none',
-					'elementor-social-icon-' . $class_animation,
 					'elementor-repeater-item-' . $item['_id'],
 					'elementor-social-icon-' . $social,
-				]);
+				] );
+
+				if ( ! empty( $settings['icons_hover_animation'] ) ) {
+					$this->add_render_attribute( $link_key, 'class', 'elementor-animation-' . esc_attr( $settings['icons_hover_animation'] ) );
+				}
 
 				$this->add_link_attributes( $link_key, $item['link'] );
 				?>
@@ -812,7 +936,8 @@ class Social_Icons extends Widget_Base {
 					<?php
 					Icons_Manager::render_icon( $item['social_icon'] );
 
-					if ( 'yes' !== $settings['hide_socials_name'] && ! empty( $item['social_label'] ) ) : ?>
+					if ( 'yes' !== $settings['hide_socials_name'] && ! empty( $item['social_label'] ) ) :
+						?>
 						<span class="sa-social-label"><?php echo esc_html( $item['social_label'] ); ?></span>
 					<?php endif; ?>
 				</a>

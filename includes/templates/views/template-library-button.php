@@ -1,3 +1,4 @@
+<?php if ( ! defined( 'ABSPATH' ) ) { exit; } ?>
 <script type="text/template" id="sa-skyTemplatesLibrary_insert-button">
 	<a class="elementor-template-library-template-action elementor-button skyTemplatesLibrary_insert-button footer-live-preview">
 		<i class="eicon-file-download" aria-hidden="true"></i>

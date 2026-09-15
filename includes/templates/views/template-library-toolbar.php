@@ -1,3 +1,4 @@
+<?php if ( ! defined( 'ABSPATH' ) ) { exit; } ?>
 <script type="text/template" id="sa-skyTemplatesLibrary_template">
 	<div class="skyTemplatesLibrary_template-body" id="liteTemplate-{{ template_id }}">
 		<div class="skyTemplatesLibrary_template-preview">

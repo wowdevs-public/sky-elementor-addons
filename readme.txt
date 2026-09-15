@@ -1,15 +1,15 @@
-=== Sky Addons – Elementor Addons with Widgets & Templates ===
-Plugin Name: Sky Addons – Elementor Addons with Widgets & Templates
-Version: 3.3.3
+=== Sky Addons for Elementor ===
+Plugin Name: Sky Addons for Elementor
+Version: 4.0.0
 Author: wowDevs
 Author URI: https://wowdevs.com/
 Contributors: wowdevs, bdkoder, mizan42047
 Tags: Elementor Addons, Essential Widgets, Elementor Templates, Theme Builder, Elementor Kit
 Donate link: https://skyaddons.com/pricing/
-Requires at least: 5.0
-Tested up to: 6.9
+Requires at least: 6.8
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 3.3.3
+Stable tag: 4.0.0
 License: GPLv3 or later
 License URI: https://opensource.org/licenses/GPL-3.0
 
@@ -223,7 +223,7 @@ If you want to contribute, go to our [Sky Addons GitHub Repository](https://gith
 
 == External Services ==
 
-This plugin connects to two external services under the conditions described below. No data is ever sent without a clear user action or explicit opt-in.
+This plugin connects to the external services described below. No data is ever sent without a clear user action or explicit opt-in.
 
 = 1. Templates Library (skyaddons.com) =
 
@@ -252,6 +252,34 @@ Service URL: https://dashboard.wowdevs.com/
 API endpoint: https://dashboard.wowdevs.com/wp-json/dci/v1/data-insights
 Privacy Policy: https://wowdevs.com/privacy-policy/
 Terms of Service: https://wowdevs.com/terms-and-conditions/
+
+= 3. Google Sheets (docs.google.com) =
+
+**What it does:** Reads the contents of a Google Sheet you choose, so the Table widget can display it.
+
+**When it connects:** Only when you build a Table widget and set its Data Source to **Google Sheet** and provide a sheet link. The request is made from your server when the page is rendered, and the result is cached for the lifetime you choose in the widget (1 hour by default). No request is made if you do not use this source. No API key or Google account connection is required.
+
+**Data sent:** The spreadsheet ID, and the sheet tab and cell range if you enter them. Your server's usual outbound request headers are included. No personal data, site content or user data is sent.
+
+**Data received:** The sheet contents, as CSV.
+
+**Service:** Google Sheets, operated by Google LLC. The sheet must be shared as "Anyone with the link can view" for this to work.
+Service URL: https://docs.google.com/
+Endpoint used: https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv
+Privacy Policy: https://policies.google.com/privacy
+Terms of Service: https://policies.google.com/terms
+
+= 4. Remote CSV files (address you supply) =
+
+**What it does:** Downloads a CSV file from a web address you enter, so the Table widget can display it.
+
+**When it connects:** Only when you build a Table widget, set its Data Source to **CSV URL (Remote)** and enter an address. The request is made from your server when the page is rendered, and the result is cached for the lifetime you choose in the widget (1 hour by default). No request is made if you do not use this source.
+
+**Data sent:** Nothing beyond the request for the file itself.
+
+**Data received:** The contents of the CSV file.
+
+**Service:** Whichever third party hosts the address you enter — this plugin does not choose it and has no relationship with it. Their privacy policy and terms are the ones that apply. Requests are made with WordPress's safe HTTP function, so addresses on your own private network are blocked.
 
 == Installation ==
 
@@ -299,125 +327,68 @@ Development happens on GitHub:
 
 == Changelog ==
 
-= 3.3.3 [4th May 2026] =
+= 4.0.0 [15th September 2026] =
 
-* Improved: Security improved (Thanks to Athiwat Tiprasaharn (Jitlada))
+* Added: Dynamic Content Feature (Build Anything)
+* Added: [Advanced Table](https://skyaddons.com/elementor/table-widget/) widget
+* Added: [Fancy Testimonial](https://skyaddons.com/elementor/testimonial-widget/) widget
+* Added: Advanced [Tilt Effect](https://skyaddons.com/elementor/tilt-effect-extension/) Extension
+* Added: Advanced [Video Player](https://skyaddons.com/elementor/video-player-widget/) widget
+* Added: Advanced [WhatsApp Button](https://skyaddons.com/elementor/whatsapp-button-widget/) widget
+* Added: [Button Effects](https://skyaddons.com/elementor/button-effects-extension/) extension
+* Added: [Grid Canvas](https://skyaddons.com/elementor/grid-canvas-extension/) extension
+* Added: [Sticky Element](https://skyaddons.com/elementor/sticky-element-extension/) extension
+* Added: Dynamic Content and ACF in Accordion widget
+* Added: Dynamic Content and ACF in [Advanced Slider](https://skyaddons.com/elementor/advanced-slider-widget/) widget
+* Added: Dynamic Content and ACF in [List Group](https://skyaddons.com/elementor/list-group-widget/) & [Tidy List](https://skyaddons.com/elementor/tidy-list-widget/)
+* Added: Dynamic Content and ACF in [Panel Slider](https://skyaddons.com/elementor/panel-slider-widget/) widget
+* Added: Archive & Single Page Builder
+* Improved: [Audio Player](https://skyaddons.com/elementor/audio-player-widget/) widget completely refreshed
+* Improved: Dashboard UI & System Improved
+* Improved: Video Feature Improved in all Post releated widgets
+* Improved: Pagination of Blog releated widgets
+* Improved: Overall system performance and stability enhancements
+* Security: Fixed SQL injection vulnerability in Duplicator feature (Thanks to Ananda Dhakal - Patchstack)
+* Security: Fixed XSS via unsafe link URLs (javascript: protocol) in PDF Viewer, Card, Review & Info Box widgets (Thanks to Abu Hurayra - Patchstack)
 
-= 3.3.2 [29th April 2026] =
+= 3.8.4 [10th June 2026] =
+* Added: [WhatsApp Button](https://skyaddons.com/elementor/whatsapp-button-widget/) Widget
+* Added: [Table](https://skyaddons.com/elementor/table-widget/) Widget
+* Added: [Grid Canvas](https://skyaddons.com/elementor/grid-canvas-extension/) Extension
+* Fixed: [Step Flow](https://skyaddons.com/elementor/step-flow-widget/) Widget (Thanks to Gary)
 
-* Improved: System improved
+= 3.8.3 [1st June 2026] =
+* Improved: Assets Manager (Thanks to Lucas)
 
-= 3.3.1 [21th April 2026] =
-
-* Improved: System improved
-
-= 3.3.0 [20th March 2026] =
-
-* Improved: Glory Slider widget Improved (Thanks to Roosevelt)
-* Improved: System improved
-
-= 3.2.4 [2nd March 2026] =
-
-* Added: WPML Support added
-* Added: Custom Scripts (Global Features) added
-* Improved: Carousel Pagination improved
-
-= 3.2.3 [10th December 2025] =
-
-* Improved: System improved
-
-= 3.2.1 [16th August 2025] =
-
-* Improved: System improved
-
-= 3.2.0 [26th July 2025] =
-
-* Added: Contact Form 7 widget added
-* Added: Fluent Form widget added
-* Added: Gravity Forms widget added
-* Added: Ninja Forms widget added
-* Added: weForms widget added
-* Added: WP Forms widget added
-* Improved: Security improved
-
-= 3.1.4 [9th July 2025] =
-
-* Improved: Dashboard improved
-* Improved: Security improved
-
-= 3.1.3 [21th June 2025] =
-
-* Improved: Media Position in InfoBox widget
-* Improved: Logo Carousel widget
-* Improved: Social Icons in Team Member widget
-
-= 3.1.2 [4th June 2025] =
-
-* Improved: System improved
-
-= 3.1.1 [16th May 2025] =
-
-* Improved: System improved
-
-= 3.1.0 [12th May 2025] =
-
-* Added: Gradient Text Extensions added
-* Improved: Socail Icon widget improved
-* Improved: List Group widget improved
-* Improved: InfoBox widget improved
-* Improved: Card widget improved
-* Improved: System improved
-
-= 3.0.3 [16th April 2025] =
-
-* Improved: System improved
-* Fixed: Security issue fixed (Thanks to Darius Sveikauskas)
-
-= 3.0.2 [27th March 2025] =
-
-* Fixed: Ripples Effect fixed (Thanks to Lucas)
-
-= 3.0.1 [27th March 2025] =
-
-* Fixed: Slinky menu custom link fixed (Thanks to Lucas)
-
-= 3.0.0 [25th March 2025] =
-
-* Added: Theme Builder Added
-* Added: Simple Parallax Effects added
-* Added: Duplicator Feature Added
-* Added: SVG Support Feature Added
-* Added: Post Title widget added
-* Added: Page Title widget added
-* Added: Post Excerpt widget added
-* Added: Post Content widget added
-* Added: Post Featured Image widget added
-* Improved: System improved
-
-= 2.7.3 [11th March 2025] =
-
-* Improved: API Route improved
-
-= 2.7.2 [10th March 2025] =
-
-* Improved: System improved
-
-= 2.7.1 [6th March 2025] =
-
-* Fixed: API Route fixed for sub folders
-
-= 2.7.0 [5th March 2025] =
-
-* Added: Completely new admin UI added
-* Improved: System improved
-
-= 2.6.9 [18th January 2025] =
-
-* Fixed: Button Alignment isse fixed in Card widget (Thanks to Faye)
-* Improved: Templates Library improved
-
-= 2.6.8 [06th January 2025] =
-
-* Fixed: Ripple Effects Fixed (Thanks to Johnathan)
+= 3.8.2 [28th May 2026] =
+* Added: Assets Manager Added
+* Added: Theme Builder Completely Unlocked and Redesigned
+* Added: [Custom Scripts](https://skyaddons.com/docs/sky-addons/extensions/custom-scripts-css-js/) Improved & Redesigned
+* Added: [Review Carousel](https://skyaddons.com/elementor/review-carousel-widget/) Unlock to free
+* Added: [Testimonial Carousel](https://skyaddons.com/elementor/testimonial-carousel-widget/) Unlock to free
+* Added: Dynamic Content & ACF added in Accordion widget
+* Added: 11 modern styles and full control added in [Audio Player](https://skyaddons.com/elementor/audio-player-widget/)
+* Added: Dynamic Content & ACF added in [List Group](https://skyaddons.com/elementor/list-group-widget/) & [Tidy List](https://skyaddons.com/elementor/tidy-list-widget/)
+* Added: New animation styles added in [Animated Heading](https://skyaddons.com/elementor/animated-heading-widget/)
+* Added: Brand Name, Lazy Loading, Effects added in [Logo Grid](https://skyaddons.com/elementor/logo-grid-widget/) & Carousel
+* Added: Targeted widget mode added in [Equal Height](https://skyaddons.com/elementor/equal-height-extensions/)
+* Added: Entrance Animations & Effects added in [Portion Effect](https://skyaddons.com/elementor/portion-effect-widget/) widget
+* Added: Header Bar, Badge added in [PDF Viewer](https://skyaddons.com/elementor/pdf-viewer-widget/) widget
+* Added: Styling added in Ninja, Fluent & Gravity Forms
+* Improved: [Info Box](https://skyaddons.com/elementor/info-box-widget/) & [Card](https://skyaddons.com/elementor/card-widget/) widgets
+* Improved: Updated documentation links and control labels plugin-wide
+* Improved: [Social Icons](https://skyaddons.com/elementor/social-icons-widget/) — removed dead `.sa-anim-2` empty CSS rule from LESS file
+* Improved: Redesigned [Changelog](https://skyaddons.com/elementor/changelog-widget/) widget [View Demo](https://skyaddons.com/changelog/)
+* Improved: [Backdrop Filter](https://skyaddons.com/elementor/backdrop-filter-extensions/) & Custom Clip path feature improved
+* Improved: All Form widgets
+* Improved: [Post Comments](https://skyaddons.com/elementor/post-comments-widget/) widget
+* Improved: [Reading Progress](https://skyaddons.com/elementor/reading-progress-widget/) widget
+* Improved: [Simple Parallax](https://skyaddons.com/elementor/parallax-effects-extensions/) Extensions
+* Improved: [Slinky Menu](https://skyaddons.com/elementor/slinky-menu-widget/) widget
+* Improved: [Social Icons](https://skyaddons.com/elementor/social-icons-widget/) widget
+* Improved: [Table Of Content](https://skyaddons.com/elementor/table-of-content-widget/) completely redesigned
+* Improved: [Team Member](https://skyaddons.com/elementor/team-member-widget/) widget
+* Fixed: Accessibility violations, tooltip bugs, and CSS specificity issues
+* Removed: Number, Page Title, Post Title, Featured Image, Post Excerpt widget
 
 For full update history and version details, 👉 [view the Changelog Here](https://skyaddons.com/changelog/).

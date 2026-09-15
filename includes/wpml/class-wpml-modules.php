@@ -10,6 +10,14 @@ use WPML_Elementor_Translatable_Nodes;
 /**
  * Abstract base class for WPML translation integration in Sky Elementor Addons widgets.
  * Implements IWPML_Page_Builders_Module and provides core logic for handling translatable fields and items.
+ *
+ * Supported get_fields() formats (any mix is allowed):
+ *   1. Simple field          : 'field_name'
+ *   2. Configured field      : 'field_name' => [ 'title' => '', 'editor_type' => 'LINE' ]
+ *   3. Configured link field : 'field_name' => [ 'title' => '', 'editor_type' => 'LINK' ]
+ *
+ * For format 1 the title/editor type come from get_title()/get_editor_type().
+ * Legacy keys 'type' (instead of 'title') are still accepted for back-compat.
  */
 abstract class WPML_Modules implements IWPML_Page_Builders_Module {
 
@@ -44,8 +52,50 @@ abstract class WPML_Modules implements IWPML_Page_Builders_Module {
 	abstract public function get_items_field();
 
 	/**
-	 * Collects translatable strings from widget items and fields.
-	 * Handles both simple and complex field configurations.
+	 * Normalizes get_fields() into a uniform map: field_name => [ 'title', 'editor_type' ].
+	 *
+	 * @return array
+	 */
+	protected function normalize_fields() {
+		$normalized = [];
+
+		foreach ( $this->get_fields() as $key => $field ) {
+			if ( is_array( $field ) ) {
+				// Configured field. The array key is the field name; fall back to
+				// the legacy 'field' sub-key when the entry uses a numeric key.
+				$field_name = is_string( $key ) ? $key : ( isset( $field['field'] ) ? $field['field'] : '' );
+
+				if ( '' === $field_name ) {
+					continue;
+				}
+
+				$title = '';
+				if ( isset( $field['title'] ) ) {
+					$title = $field['title'];
+				} elseif ( isset( $field['type'] ) ) {
+					$title = $field['type'];
+				} else {
+					$title = $this->get_title( $field_name );
+				}
+
+				$normalized[ $field_name ] = [
+					'title'       => $title,
+					'editor_type' => isset( $field['editor_type'] ) ? $field['editor_type'] : $this->get_editor_type( $field_name ),
+				];
+			} else {
+				// Simple field.
+				$normalized[ $field ] = [
+					'title'       => $this->get_title( $field ),
+					'editor_type' => $this->get_editor_type( $field ),
+				];
+			}
+		}
+
+		return $normalized;
+	}
+
+	/**
+	 * Collects translatable strings from widget repeater items.
 	 *
 	 * @param string|int       $node_id Unique node identifier.
 	 * @param array            $element Widget element data.
@@ -53,171 +103,113 @@ abstract class WPML_Modules implements IWPML_Page_Builders_Module {
 	 * @return WPML_PB_String[] Updated array of WPML_PB_String objects.
 	 */
 	public function get( $node_id, $element, $strings ) {
+		$widget_type = isset( $element['widgetType'] ) ? $element['widgetType'] : '';
+		$fields      = $this->normalize_fields();
+
 		foreach ( $this->get_items( $element ) as $item ) {
-			foreach ( $this->get_fields() as $key => $field ) {
-				if ( ! is_array( $field ) ) {
-					// Simple field (string)
-					if ( ! isset( $item[ $field ] ) ) {
-						continue;
-					}
+			if ( ! is_array( $item ) || ! isset( $item['_id'] ) ) {
+				continue;
+			}
 
-					$strings[] = new WPML_PB_String(
-						$item[ $field ],
-						$this->get_string_name( $node_id, $item[ $field ], $field, $element['widgetType'], $item['_id'] ),
-						$this->get_title( $field ),
-						$this->get_editor_type( $field )
-					);
-				} else {
-					// Complex field (array)
-					if ( isset( $field['field'] ) && isset( $field['editor_type'] ) ) {
-						// New field configuration format
-						if ( $field['editor_type'] === 'LINK' ) {
-							// Handle URL/Link field
-							if ( isset( $item[ $key ][ $field['field'] ] ) ) {
-								$strings[] = new WPML_PB_String(
-									$item[ $key ][ $field['field'] ],
-									$this->get_string_name( $node_id, $item[ $key ][ $field['field'] ], $key . '_' . $field['field'], $element['widgetType'], $item['_id'] ),
-									$field['type'],
-									'LINK'
-								);
-							}
-						} else {
-							// Handle other configured fields
-							if ( isset( $item[ $key ] ) ) {
-								$strings[] = new WPML_PB_String(
-									$item[ $key ],
-									$this->get_string_name( $node_id, $item[ $key ], $key, $element['widgetType'], $item['_id'] ),
-									$field['type'],
-									$field['editor_type']
-								);
-							}
-						}
-					} else {
-						// Legacy format - array of sub-fields
-						foreach ( $field as $inner_field ) {
-							if ( ! isset( $item[ $key ][ $inner_field ] ) ) {
-								continue;
-							}
-
-							$strings[] = new WPML_PB_String(
-								$item[ $key ][ $inner_field ],
-								$this->get_string_name( $node_id, $item[ $key ][ $inner_field ], $key . '_' . $inner_field, $element['widgetType'], $item['_id'] ),
-								$this->get_title( $key ),
-								$this->get_editor_type( $key )
-							);
-						}
+			foreach ( $fields as $field_name => $config ) {
+				if ( 'LINK' === $config['editor_type'] ) {
+					if ( isset( $item[ $field_name ]['url'] ) && '' !== $item[ $field_name ]['url'] ) {
+						$strings[] = new WPML_PB_String(
+							$item[ $field_name ]['url'],
+							$this->get_string_name( $node_id, $field_name, $widget_type, $item['_id'] ),
+							$config['title'],
+							'LINK'
+						);
 					}
+				} elseif ( isset( $item[ $field_name ] ) && is_string( $item[ $field_name ] ) && '' !== $item[ $field_name ] ) {
+						$strings[] = new WPML_PB_String(
+							$item[ $field_name ],
+							$this->get_string_name( $node_id, $field_name, $widget_type, $item['_id'] ),
+							$config['title'],
+							$config['editor_type']
+						);
 				}
 			}
 		}
+
 		return $strings;
 	}
 
 	/**
-	 * Updates widget items with translated string values.
-	 * Handles both simple and complex field configurations.
+	 * Updates widget repeater items with translated string values.
 	 *
 	 * @param int|string     $node_id Unique node identifier.
 	 * @param mixed          $element Widget element data.
-	 * @param WPML_PB_String $string Translated WPML_PB_String object.
-	 * @return mixed Updated widget item or element data.
+	 * @param WPML_PB_String $string  Translated WPML_PB_String object.
+	 * @return mixed Updated repeater item (with 'index') or unchanged element data.
 	 */
 	public function update( $node_id, $element, WPML_PB_String $string ) {
-		foreach ( $this->get_items( $element ) as $key => $item ) {
-			foreach ( $this->get_fields() as $field_key => $field ) {
-				if ( ! is_array( $field ) ) {
-					// Simple field (string)
-					if ( ! isset( $item[ $field ] ) ) {
-						continue;
-					}
+		$widget_type = isset( $element['widgetType'] ) ? $element['widgetType'] : '';
+		$fields      = $this->normalize_fields();
 
-					if ( $this->get_string_name( $node_id, $item[ $field ], $field, $element['widgetType'], $item['_id'] ) === $string->get_name() ) {
-						$item[ $field ] = $string->get_value();
-						$item['index']  = $key;
-						return $item;
+		foreach ( $this->get_items( $element ) as $index => $item ) {
+			if ( ! is_array( $item ) || ! isset( $item['_id'] ) ) {
+				continue;
+			}
+
+			foreach ( $fields as $field_name => $config ) {
+				if ( $this->get_string_name( $node_id, $field_name, $widget_type, $item['_id'] ) !== $string->get_name() ) {
+					continue;
+				}
+
+				if ( 'LINK' === $config['editor_type'] ) {
+					if ( isset( $item[ $field_name ] ) && is_array( $item[ $field_name ] ) ) {
+						$item[ $field_name ]['url'] = $string->get_value();
 					}
 				} else {
-					// Complex field (array)
-					if ( isset( $field['field'] ) && isset( $field['editor_type'] ) ) {
-						// New field configuration format
-						if ( $field['editor_type'] === 'LINK' ) {
-							// Handle URL/Link field
-							if ( isset( $item[ $field_key ][ $field['field'] ] ) ) {
-								if ( $this->get_string_name( $node_id, $item[ $field_key ][ $field['field'] ], $field_key . '_' . $field['field'], $element['widgetType'], $item['_id'] ) === $string->get_name() ) {
-									$item[ $field_key ][ $field['field'] ] = $string->get_value();
-									$item['index']                         = $key;
-									return $item;
-								}
-							}
-						} else {
-							// Handle other configured fields
-							if ( isset( $item[ $field_key ] ) ) {
-								if ( $this->get_string_name( $node_id, $item[ $field_key ], $field_key, $element['widgetType'], $item['_id'] ) === $string->get_name() ) {
-									$item[ $field_key ] = $string->get_value();
-									$item['index']      = $key;
-									return $item;
-								}
-							}
-						}
-					} else {
-						// Legacy format - array of sub-fields
-						foreach ( $field as $inner_field ) {
-							if ( ! isset( $item[ $field_key ][ $inner_field ] ) ) {
-								continue;
-							}
-
-							if ( $this->get_string_name( $node_id, $item[ $field_key ][ $inner_field ], $field_key . '_' . $inner_field, $element['widgetType'], $item['_id'] ) === $string->get_name() ) {
-								$item[ $field_key ][ $inner_field ] = $string->get_value();
-								$item['index']                      = $key;
-								return $item;
-							}
-						}
-					}
+					$item[ $field_name ] = $string->get_value();
 				}
+
+				$item['index'] = $index;
+				return $item;
 			}
 		}
+
 		return $element;
 	}
 
 	/**
-	 * Generates a unique string name for WPML translation mapping.
+	 * Generates a unique string name for WPML translation mapping of a repeater field.
 	 *
-	 * @param string $node_id Node identifier.
-	 * @param string $value Field value.
-	 * @param string $type Field type.
-	 * @param string $key Widget type or key.
-	 * @param string $item_id Item identifier.
+	 * @param string $node_id     Node identifier.
+	 * @param string $field       Field name.
+	 * @param string $widget_type Widget type.
+	 * @param string $item_id     Repeater item identifier.
 	 * @return string Unique string name for WPML.
 	 */
-	private function get_string_name( $node_id, $value, $type, $key = '', $item_id = '' ) {
-		return $key . '-' . $type . '-' . $node_id . '-' . $item_id;
+	private function get_string_name( $node_id, $field, $widget_type, $item_id ) {
+		return $widget_type . '-' . $field . '-' . $node_id . '-' . $item_id;
 	}
 
 	/**
-	 * @param $element
+	 * Returns the repeater items for the given element.
 	 *
-	 * @return mixed
+	 * @param array $element Widget element data.
+	 * @return array Repeater items, or an empty array when none exist.
 	 */
 	public function get_items( $element ) {
-
-		$items_field = $this->get_items_field();
+		$settings_key = WPML_Elementor_Translatable_Nodes::SETTINGS_FIELD;
+		$settings     = isset( $element[ $settings_key ] ) && is_array( $element[ $settings_key ] ) ? $element[ $settings_key ] : [];
+		$items_field  = $this->get_items_field();
 
 		if ( is_array( $items_field ) ) {
 			$items = [];
 
 			foreach ( $items_field as $field ) {
-				if ( isset( $element[ WPML_Elementor_Translatable_Nodes::SETTINGS_FIELD ][ $field ] ) ) {
-					$items = array_merge(
-						$items,
-						$element[ WPML_Elementor_Translatable_Nodes::SETTINGS_FIELD ][ $field ]
-					);
+				if ( isset( $settings[ $field ] ) && is_array( $settings[ $field ] ) ) {
+					$items = array_merge( $items, $settings[ $field ] );
 				}
 			}
 
 			return $items;
 		}
 
-		return $element[ WPML_Elementor_Translatable_Nodes::SETTINGS_FIELD ][ $items_field ];
+		return ( isset( $settings[ $items_field ] ) && is_array( $settings[ $items_field ] ) ) ? $settings[ $items_field ] : [];
 	}
 }
 
@@ -241,6 +233,8 @@ abstract class WPML_Module_With_Items extends WPML_Modules {
 /**
  * Base class for modules that don't have repeater items (e.g., single field widgets).
  * Implements IWPML_Page_Builders_Module and provides default logic for non-repeater widgets.
+ *
+ * Supported get_fields() formats match WPML_Modules (simple, configured, configured link).
  */
 abstract class WPML_Module_Without_Items implements IWPML_Page_Builders_Module {
 
@@ -266,8 +260,47 @@ abstract class WPML_Module_Without_Items implements IWPML_Page_Builders_Module {
 	}
 
 	/**
+	 * Normalizes get_fields() into a uniform map: field_name => [ 'title', 'editor_type' ].
+	 *
+	 * @return array
+	 */
+	protected function normalize_fields() {
+		$normalized = [];
+
+		foreach ( $this->get_fields() as $key => $field ) {
+			if ( is_array( $field ) ) {
+				$field_name = is_string( $key ) ? $key : ( isset( $field['field'] ) ? $field['field'] : '' );
+
+				if ( '' === $field_name ) {
+					continue;
+				}
+
+				$title = '';
+				if ( isset( $field['title'] ) ) {
+					$title = $field['title'];
+				} elseif ( isset( $field['type'] ) ) {
+					$title = $field['type'];
+				} else {
+					$title = $this->get_title( $field_name );
+				}
+
+				$normalized[ $field_name ] = [
+					'title'       => $title,
+					'editor_type' => isset( $field['editor_type'] ) ? $field['editor_type'] : $this->get_editor_type( $field_name ),
+				];
+			} else {
+				$normalized[ $field ] = [
+					'title'       => $this->get_title( $field ),
+					'editor_type' => $this->get_editor_type( $field ),
+				];
+			}
+		}
+
+		return $normalized;
+	}
+
+	/**
 	 * Collects translatable strings from widget fields.
-	 * Handles both simple and link field types.
 	 *
 	 * @param string|int       $node_id Unique node identifier.
 	 * @param array            $element Widget element data.
@@ -275,70 +308,76 @@ abstract class WPML_Module_Without_Items implements IWPML_Page_Builders_Module {
 	 * @return WPML_PB_String[] Updated array of WPML_PB_String objects.
 	 */
 	public function get( $node_id, $element, $strings ) {
-		foreach ( $this->get_fields() as $field => $field_config ) {
-			if ( ! isset( $element['settings'][ $field ] ) ) {
+		$widget_type = isset( $element['widgetType'] ) ? $element['widgetType'] : '';
+		$settings    = isset( $element['settings'] ) && is_array( $element['settings'] ) ? $element['settings'] : [];
+
+		foreach ( $this->normalize_fields() as $field => $config ) {
+			if ( ! isset( $settings[ $field ] ) ) {
 				continue;
 			}
 
-			$editor_type = is_array( $field_config ) && isset( $field_config['editor_type'] ) ? $field_config['editor_type'] : $this->get_editor_type( $field );
-			$title       = is_array( $field_config ) && isset( $field_config['title'] ) ? $field_config['title'] : $this->get_title( $field );
-
-			if ( $editor_type === 'LINK' ) {
-				$value = $element['settings'][ $field ];
-				if ( is_array( $value ) && isset( $value['url'] ) ) {
+			if ( 'LINK' === $config['editor_type'] ) {
+				$value = $settings[ $field ];
+				if ( is_array( $value ) && isset( $value['url'] ) && '' !== $value['url'] ) {
 					$strings[] = new WPML_PB_String(
 						$value['url'],
-						$this->get_string_name( $node_id, $field, $element['widgetType'] ),
-						$title,
+						$this->get_string_name( $node_id, $field, $widget_type ),
+						$config['title'],
 						'LINK'
 					);
 				}
 			} else {
+				if ( ! is_string( $settings[ $field ] ) || '' === $settings[ $field ] ) {
+					continue;
+				}
+
 				$strings[] = new WPML_PB_String(
-					$element['settings'][ $field ],
-					$this->get_string_name( $node_id, $field, $element['widgetType'] ),
-					$title,
-					$editor_type
+					$settings[ $field ],
+					$this->get_string_name( $node_id, $field, $widget_type ),
+					$config['title'],
+					$config['editor_type']
 				);
 			}
 		}
+
 		return $strings;
 	}
 
 	/**
 	 * Updates widget fields with translated string values.
-	 * Handles both simple and link field types.
 	 *
 	 * @param int|string     $node_id Unique node identifier.
 	 * @param mixed          $element Widget element data.
-	 * @param WPML_PB_String $string Translated WPML_PB_String object.
+	 * @param WPML_PB_String $string  Translated WPML_PB_String object.
 	 * @return mixed Updated widget element data.
 	 */
 	public function update( $node_id, $element, WPML_PB_String $string ) {
-		foreach ( $this->get_fields() as $field => $field_config ) {
-			if ( $this->get_string_name( $node_id, $field, $element['widgetType'] ) === $string->get_name() ) {
-				$editor_type = is_array( $field_config ) && isset( $field_config['editor_type'] ) ? $field_config['editor_type'] : $this->get_editor_type( $field );
+		$widget_type = isset( $element['widgetType'] ) ? $element['widgetType'] : '';
 
-				if ( $editor_type === 'LINK' ) {
-					$value = $element['settings'][ $field ];
-					if ( is_array( $value ) ) {
-						$value['url']                  = $string->get_value();
-						$element['settings'][ $field ] = $value;
-					}
-				} else {
-					$element['settings'][ $field ] = $string->get_value();
-				}
-				return $element;
+		foreach ( $this->normalize_fields() as $field => $config ) {
+			if ( $this->get_string_name( $node_id, $field, $widget_type ) !== $string->get_name() ) {
+				continue;
 			}
+
+			if ( 'LINK' === $config['editor_type'] ) {
+				if ( isset( $element['settings'][ $field ] ) && is_array( $element['settings'][ $field ] ) ) {
+					$element['settings'][ $field ]['url'] = $string->get_value();
+				}
+			} else {
+				$element['settings'][ $field ] = $string->get_value();
+			}
+
+			return $element;
 		}
+
 		return $element;
 	}
 
 	/**
 	 * Generates a unique string name for WPML translation mapping for non-repeater widgets.
 	 *
-	 * @param string $node_id Node identifier.
-	 * @param string $field Field name.
+	 * @param string $node_id     Node identifier.
+	 * @param string $field       Field name.
 	 * @param string $widget_type Widget type.
 	 * @return string Unique string name for WPML.
 	 */

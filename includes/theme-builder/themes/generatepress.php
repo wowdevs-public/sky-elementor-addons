@@ -37,12 +37,12 @@ class Generatepress {
 	}
 
 	public function add_plugin_header_markup() {
-		do_action( 'wowdevs_themes_builder_before_header' );
+		do_action( 'wowdevs_themes_builder_template_before_header' );
 		echo '<div class="wowdevs-template-content-markup wowdevs-template-content-header">';
     // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo wowdevs_render_elementor_content( $this->header );
 		echo '</div>';
-		do_action( 'wowdevs_themes_builder_after_header' );
+		do_action( 'wowdevs_themes_builder_template_after_header' );
 	}
 
 
@@ -52,11 +52,11 @@ class Generatepress {
 	}
 
 	public function add_plugin_footer_markup() {
-		do_action( 'wowdevs_themes_builder_before_footer' );
+		do_action( 'wowdevs_themes_builder_template_before_footer' );
 		echo '<div class="wowdevs-template-content-markup wowdevs-template-content-footer">';
     // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo wowdevs_render_elementor_content( $this->footer );
 		echo '</div>';
-		do_action( 'wowdevs_themes_builder_after_footer' );
+		do_action( 'wowdevs_themes_builder_template_after_footer' );
 	}
 }

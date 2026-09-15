@@ -48,9 +48,10 @@ class Module extends Module_Base {
 			[
 				'label'              => esc_html__( 'Apply Elements', 'sky-elementor-addons' ),
 				'type'               => Controls_Manager::SELECT,
-				'default'            => 'widgets',
+				'default'            => 'select_widgets',
 				'options'            => [
 					'widgets'         => esc_html__( 'Widgets', 'sky-elementor-addons' ),
+					'select_widgets'  => esc_html__( 'Select Widgets', 'sky-elementor-addons' ),
 					'widgets_1st'     => esc_html__( 'Widgets > 1st Element', 'sky-elementor-addons' ),
 					'widgets_1st_2nd' => esc_html__( 'Widgets > 2nd Element', 'sky-elementor-addons' ),
 					'widgets_1st_3rd' => esc_html__( 'Widgets > 3rd Element', 'sky-elementor-addons' ),
@@ -59,9 +60,25 @@ class Module extends Module_Base {
 					'widgets_3rd'     => esc_html__( 'Widgets > Child > Child > 1st Element', 'sky-elementor-addons' ),
 					'custom'          => esc_html__( 'Custom', 'sky-elementor-addons' ),
 				],
+				'render_type'        => 'template',
 				'frontend_available' => true,
 				'condition'          => [
 					'sa_eqh_enable' => 'yes',
+				],
+			]
+		);
+
+		$widget->add_control(
+			'sa_eqh_widget_list',
+			[
+				'label'              => esc_html__( 'Select Widgets', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'type'               => 'sa-widget-list',
+				'multiple'           => true,
+				'render_type'        => 'template',
+				'frontend_available' => true,
+				'condition'          => [
+					'sa_eqh_enable'         => 'yes',
+					'sa_eqh_apply_elements' => 'select_widgets',
 				],
 			]
 		);
@@ -72,6 +89,7 @@ class Module extends Module_Base {
 				'label'              => esc_html__( 'Custom Selector', 'sky-elementor-addons' ),
 				'type'               => Controls_Manager::TEXT,
 				'description'        => esc_html__( 'Example - .class-name', 'sky-elementor-addons' ),
+				'render_type'        => 'template',
 				'frontend_available' => true,
 				'condition'          => [
 					'sa_eqh_enable'         => 'yes',
@@ -90,6 +108,7 @@ class Module extends Module_Base {
 					'height'     => esc_html__( 'Height (Default)', 'sky-elementor-addons' ),
 					'min_height' => esc_html__( 'Min-Height', 'sky-elementor-addons' ),
 				],
+				'render_type'        => 'none',
 				'frontend_available' => true,
 				'condition'          => [
 					'sa_eqh_enable' => 'yes',
@@ -102,7 +121,7 @@ class Module extends Module_Base {
 			[
 				'label'              => esc_html__( 'Disable on Tablet', 'sky-elementor-addons' ),
 				'type'               => Controls_Manager::SWITCHER,
-				'render_type'        => 'template',
+				'render_type'        => 'none',
 				'default'            => 'no',
 				'frontend_available' => true,
 				'condition'          => [
@@ -116,7 +135,7 @@ class Module extends Module_Base {
 			[
 				'label'              => esc_html__( 'Disable on Mobile', 'sky-elementor-addons' ),
 				'type'               => Controls_Manager::SWITCHER,
-				'render_type'        => 'template',
+				'render_type'        => 'none',
 				'default'            => 'yes',
 				'frontend_available' => true,
 				'condition'          => [
@@ -127,9 +146,10 @@ class Module extends Module_Base {
 	}
 
 	public function widget_equal_height_before_render( $widget ) {
-		$settings                      = $widget->get_settings_for_display();
-		if ( $settings['sa_eqh_enable'] === 'yes' ) {
+		$settings = $widget->get_settings_for_display();
+		if ( 'yes' === ( $settings['sa_eqh_enable'] ?? '' ) ) {
 			wp_enqueue_script( 'equal-height' );
+			wp_enqueue_script( 'sa-equal-height' );
 		}
 	}
 

@@ -13,7 +13,7 @@ use Elementor\Widget_Base;
 use Sky_Addons\Modules\SlinkyMenu\Menu_Walker;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 class Slinky_Menu extends Widget_Base {
@@ -39,18 +39,27 @@ class Slinky_Menu extends Widget_Base {
 	}
 
 	public function get_style_depends() {
-		return [
-			'slinky',
-			'elementor-icons-fa-solid',
-		];
+		if ( sky_addons_editor_mode() ) {
+			return [ 'slinky', 'elementor-icons-fa-solid', 'sky-addons-styles' ];
+		}
+
+		return [ 'slinky', 'elementor-icons-fa-solid' ];
 	}
 
 	public function get_script_depends() {
-		return [ 'slinky' ];
+		if ( sky_addons_editor_mode() ) {
+			return [ 'slinky', 'sky-addons-scripts' ];
+		}
+
+		return [ 'slinky', 'sa-slinky-menu' ];
 	}
 
 	public function get_custom_help_url() {
 		return 'https://skyaddons.com/docs/sky-addons/widgets/slinky-vertical-menu/';
+	}
+
+	public function has_widget_inner_wrapper(): bool {
+		return ! \Elementor\Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
 	}
 
 	protected function register_controls() {
@@ -94,9 +103,9 @@ class Slinky_Menu extends Widget_Base {
 		$this->add_control(
 			'speed',
 			[
-				'label'   => esc_html__( 'Animate Speed (ms)', 'sky-elementor-addons' ),
-				'type'    => Controls_Manager::SLIDER,
-				'range'   => [
+				'label' => esc_html__( 'Animate Speed (ms)', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::SLIDER,
+				'range' => [
 					'px' => [
 						'min' => 100,
 						'max' => 5000,
@@ -197,8 +206,8 @@ class Slinky_Menu extends Widget_Base {
 		$this->add_control(
 			'item_color',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} li > a, {{WRAPPER}} li > a:focus' => 'color: {{VALUE}}',
 				],
@@ -208,19 +217,19 @@ class Slinky_Menu extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Background::get_type(),
 			[
-				'name'           => 'item_background',
-				'label'          => esc_html__( 'Background', 'sky-elementor-addons' ),
-				'types'          => [ 'classic', 'gradient' ],
+				'name'     => 'item_background',
+				'label'    => esc_html__( 'Background', 'sky-elementor-addons' ),
+				'types'    => [ 'classic', 'gradient' ],
 				'fields_options' => [
 					'background' => [
 						'label'   => esc_html__( 'Background', 'sky-elementor-addons' ),
 						'default' => 'classic',
 					],
-					'color' => [
+					'color'      => [
 						'default' => '#F6F7F8',
 					],
 				],
-				'selector'       => '{{WRAPPER}} li > a, {{WRAPPER}} li > a:focus',
+				'selector' => '{{WRAPPER}} li > a, {{WRAPPER}} li > a:focus',
 			]
 		);
 
@@ -254,8 +263,8 @@ class Slinky_Menu extends Widget_Base {
 		$this->add_control(
 			'item_color_hover',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} li > a:hover' => 'color: {{VALUE}}',
 				],
@@ -265,27 +274,27 @@ class Slinky_Menu extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Background::get_type(),
 			[
-				'name'           => 'item_background_hover',
-				'label'          => esc_html__( 'Background', 'sky-elementor-addons' ),
-				'types'          => [ 'classic', 'gradient' ],
+				'name'     => 'item_background_hover',
+				'label'    => esc_html__( 'Background', 'sky-elementor-addons' ),
+				'types'    => [ 'classic', 'gradient' ],
 				'fields_options' => [
 					'background' => [
 						'label'   => esc_html__( 'Background', 'sky-elementor-addons' ),
 						'default' => 'classic',
 					],
-					'color' => [
+					'color'      => [
 						'default' => '#f1f2f4',
 					],
 				],
-				'selector'       => '{{WRAPPER}} li > a:hover',
+				'selector' => '{{WRAPPER}} li > a:hover',
 			]
 		);
 
 		$this->add_control(
 			'item_border_color_hover',
 			[
-				'label'     => esc_html__( 'Border Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Border Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} li > a:hover' => 'border-color: {{VALUE}};',
 				],
@@ -334,8 +343,8 @@ class Slinky_Menu extends Widget_Base {
 		$this->start_controls_section(
 			'section_item_title_style',
 			[
-				'label'     => esc_html__( 'Menu Item Title', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Menu Item Title', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_title' => 'yes',
 				],
@@ -387,8 +396,8 @@ class Slinky_Menu extends Widget_Base {
 		$this->add_control(
 			'item_title_color',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} li > .title, {{WRAPPER}} li > .title:focus' => 'color: {{VALUE}}',
 				],
@@ -398,19 +407,19 @@ class Slinky_Menu extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Background::get_type(),
 			[
-				'name'           => 'item_title_background',
-				'label'          => esc_html__( 'Background', 'sky-elementor-addons' ),
-				'types'          => [ 'classic', 'gradient' ],
+				'name'     => 'item_title_background',
+				'label'    => esc_html__( 'Background', 'sky-elementor-addons' ),
+				'types'    => [ 'classic', 'gradient' ],
 				'fields_options' => [
 					'background' => [
 						'label'   => esc_html__( 'Background', 'sky-elementor-addons' ),
 						'default' => 'classic',
 					],
-					'color' => [
+					'color'      => [
 						'default' => '#F6F7F8',
 					],
 				],
-				'selector'       => '{{WRAPPER}} li > .title, {{WRAPPER}} li > .title:focus',
+				'selector' => '{{WRAPPER}} li > .title, {{WRAPPER}} li > .title:focus',
 			]
 		);
 
@@ -445,8 +454,8 @@ class Slinky_Menu extends Widget_Base {
 		$this->add_control(
 			'arrow_color',
 			[
-				'label'     => esc_html__( 'Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .slinky-theme-default .next::after' => 'color: {{VALUE}};',
 					'{{WRAPPER}} .slinky-theme-default .back::before' => 'color: {{VALUE}};',
@@ -457,8 +466,8 @@ class Slinky_Menu extends Widget_Base {
 		$this->add_control(
 			'arrow_color_hover',
 			[
-				'label'     => esc_html__( 'Hover Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Hover Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .menu-item-has-children:hover > .next::after' => 'color: {{VALUE}};',
 					'{{WRAPPER}} .header:hover > .back::before' => 'color: {{VALUE}};',
@@ -523,7 +532,7 @@ class Slinky_Menu extends Widget_Base {
 		$nav_menu_args = [
 			'menu'           => $nav_menu,
 			'container'      => false,
-			'menu_class'     => 'slinky-vertical-menu',
+			'menu_class'     => 'slinky-vertical-menu sa-m-0 sa-p-0',
 			'menu_id'        => $id . '-menu',
 			'echo'           => true,
 			'fallback_cb'    => false,
@@ -541,8 +550,8 @@ class Slinky_Menu extends Widget_Base {
 		$id       = 'sa-slinky-menu' . $this->get_id();
 
 		$this->add_render_attribute('slinky-menu', [
-			'class'         => 'sa-slinky-menu slinky-theme-default sa-d-none',
-			'id'            => $id,
+			'class' => 'sa-slinky-menu slinky-theme-default sa-d-none',
+			'id'    => $id,
 			'data-settings' => [
 				wp_json_encode(array_filter([
 					'id'    => '#' . $id,

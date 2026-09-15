@@ -2,24 +2,121 @@
 
 defined( 'ABSPATH' ) || exit;
 
-use Sky_Addons\Sky_Addons_Plugin;
+if ( ! function_exists( 'sky_addons_pagination_link_attributes' ) ) {
+	/**
+	 * Build the attribute string for a prev/next pagination anchor.
+	 *
+	 * The anchors are assembled by hand (see sky_addons_post_pagination()), so
+	 * core never fires its own attribute filters for them. Firing them here
+	 * keeps third-party code that hooks `previous_posts_link_attributes` /
+	 * `next_posts_link_attributes` working, and is where `.sa-post-page-link`
+	 * gets added — every Pagination style control (padding, typography, radius,
+	 * border, colour, hover) targets that class and nothing else, so without it
+	 * the arrows drift away from the number pills the moment a user touches a
+	 * control.
+	 *
+	 * @param string $filter `previous_posts_link_attributes` | `next_posts_link_attributes`.
+	 * @return string Attribute string, ready to interpolate into the `<a>`.
+	 */
+	function sky_addons_pagination_link_attributes( $filter ) {
+		$attributes = apply_filters( $filter, '' );
+
+		// A filter is free to return anything. Anything but a string is not an
+		// attribute list; casting an array here would emit a warning and drop the
+		// token `Array` into the tag.
+		if ( ! is_string( $attributes ) ) {
+			$attributes = '';
+		}
+
+		/*
+		 * Walk the string one attribute at a time and rebuild it, rather than
+		 * pattern-matching `class=` in place.
+		 *
+		 * Two reasons. A quoted value is consumed whole by the pass below, so a
+		 * `class=` sitting inside some *other* attribute's value — a title, a
+		 * data-, anything — can never be mistaken for the class attribute; a
+		 * search-and-replace would write the plugin's classes into that value and
+		 * leave the real class untouched, silently costing the arrows every
+		 * Pagination style control. And HTML5's unquoted form (`class=foo`) is
+		 * matched here too, where a quote-anchored pattern would miss it, append a
+		 * second `class` attribute, and lose one of the two to the browser.
+		 *
+		 * `sa-d-block` is carried for parity with the number pills, which have it
+		 * in their markup. Both are inert: `.sa-post-pagination .sa-post-page-link`
+		 * out-specifies `body .sa-d-block`, so the pill rule sets the display in
+		 * either case.
+		 */
+		$classes = [ 'sa-post-page-link', 'sa-d-block' ];
+		$parsed  = [];
+
+		preg_match_all(
+			'/([^\s"\'=<>\/]+)(?:\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\'=<>`]*)))?/',
+			$attributes,
+			$matches,
+			PREG_SET_ORDER
+		);
+
+		foreach ( $matches as $match ) {
+			$name  = strtolower( $match[1] );
+			$value = '';
+
+			// Exactly one of the three value groups can be set — double-quoted,
+			// single-quoted, unquoted — and trailing groups are absent entirely
+			// when the attribute had no value at all.
+			for ( $i = 2; $i <= 4; $i++ ) {
+				if ( isset( $match[ $i ] ) && '' !== $match[ $i ] ) {
+					$value = $match[ $i ];
+					break;
+				}
+			}
+
+			// The link is echoed without wp_kses(), because kses' post allowlist
+			// has no `svg`/`path` and would strip the chevron out of it. kses was
+			// also the only thing standing between a third-party filter and an
+			// event handler on the tag: esc_attr() escapes an attribute's VALUE
+			// and has nothing to say about its NAME, so `onclick` would survive
+			// it intact. Drop the whole `on*` family here instead — narrower than
+			// kses, and applied where the untrusted string actually enters.
+			if ( 0 === strpos( $name, 'on' ) ) {
+				continue;
+			}
+
+			if ( 'class' === $name ) {
+				$classes[] = $value;
+				continue;
+			}
+
+			$parsed[ $name ] = $value;
+		}
+
+		$parsed['class'] = trim( implode( ' ', $classes ) );
+
+		$output = '';
+
+		foreach ( $parsed as $name => $value ) {
+			$output .= sprintf( ' %s="%s"', esc_attr( $name ), esc_attr( $value ) );
+		}
+
+		return trim( $output );
+	}
+}
 
 if ( ! function_exists( 'sky_addons_core' ) ) {
 
 	function sky_addons_core() {
 		$obj                = new \stdClass();
-		$obj->templates_dir = Sky_Addons_Plugin::sky_addons_dir() . 'includes/views/';
-		$obj->includes_dir  = Sky_Addons_Plugin::sky_addons_dir() . 'includes/';
-		$obj->controls_dir  = Sky_Addons_Plugin::sky_addons_dir() . 'controls/';
-		$obj->images        = Sky_Addons_Plugin::sky_addons_url() . 'assets/images/';
-		$obj->traits_dir    = Sky_Addons_Plugin::sky_addons_dir() . 'traits/';
+		$obj->templates_dir = \Sky_Addons\Sky_Addons_Plugin::sky_addons_dir() . 'includes/views/';
+		$obj->includes_dir  = \Sky_Addons\Sky_Addons_Plugin::sky_addons_dir() . 'includes/';
+		$obj->controls_dir  = \Sky_Addons\Sky_Addons_Plugin::sky_addons_dir() . 'controls/';
+		$obj->images        = \Sky_Addons\Sky_Addons_Plugin::sky_addons_url() . 'assets/images/';
+		$obj->traits_dir    = \Sky_Addons\Sky_Addons_Plugin::sky_addons_dir() . 'traits/';
 		return $obj;
 	}
 }
 
 if ( ! function_exists( 'sky_addons_get_icon' ) ) {
 	function sky_addons_get_icon() {
-		return '<span class="sky-ctrl-section-icon-wrapper"><img src="' . sky_addons_core()->images . 'sky-logo-gradient.png" class="sky-ctrl-section-icon" alt="Sky Addons" title="Sky Addons"></span>';
+		return '<span class="sky-ctrl-section-icon-wrapper"><img src="' . SKY_ADDONS_ASSETS_URL . 'images/sky-logo-gradient.png" class="sky-ctrl-section-icon" alt="Sky Addons" title="Sky Addons"></span>';
 	}
 }
 
@@ -35,6 +132,38 @@ if ( ! function_exists( 'sky_addons_control_indicator_pro' ) ) {
 		if ( sky_addons_init_pro() !== true ) {
 			return '<span class="sa-control-indicator-badge sa-pro-badge">' . esc_html( 'Pro', 'sky-elementor-addons' ) . '<span>';
 		}
+	}
+}
+
+if ( ! function_exists( 'sky_addons_label_badge' ) ) {
+	/**
+	 * Return a coloured badge span for appending to an Elementor control label.
+	 * Automatically disappears once the plugin reaches $until_version.
+	 *
+	 * Usage: 'label' => esc_html__( 'My Control', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' )
+	 *
+	 * @param string      $type          Badge type: 'new' | 'updated' | 'fixed' | 'beta'.
+	 * @param string|null $until_version Plugin version at which the badge auto-expires (e.g. '3.5.0').
+	 * @return string Badge span HTML, or empty string when expired or type is unknown.
+	 */
+	function sky_addons_label_badge( $type = 'new', $until_version = null ) {
+		if ( $until_version && defined( 'SKY_ADDONS_VERSION' )
+			&& version_compare( SKY_ADDONS_VERSION, $until_version, '>=' ) ) {
+			return '';
+		}
+
+		$types = [
+			'new'     => 'New',
+			'updated' => 'Updated',
+			'fixed'   => 'Fixed',
+			'beta'    => 'Beta',
+		];
+
+		if ( ! isset( $types[ $type ] ) ) {
+			return '';
+		}
+
+		return ' <span class="sa-control-indicator-badge sa-badge--' . esc_attr( $type ) . '">' . esc_html( $types[ $type ] ) . '</span>';
 	}
 }
 
@@ -68,7 +197,7 @@ if ( ! function_exists( 'sky_addons_title_tags' ) ) {
 
 if ( ! function_exists( 'sky_addons_editor_mode' ) ) {
 	function sky_addons_editor_mode() {
-		if ( Sky_Addons_Plugin::elementor()->preview->is_preview_mode() || Sky_Addons_Plugin::elementor()->editor->is_edit_mode() ) {
+		if ( \Sky_Addons\Sky_Addons_Plugin::elementor()->preview->is_preview_mode() || \Sky_Addons\Sky_Addons_Plugin::elementor()->editor->is_edit_mode() ) {
 			return true;
 		}
 		return false;
@@ -83,7 +212,7 @@ if ( ! function_exists( 'sky_addons_editor_mode' ) ) {
  */
 if ( ! function_exists( 'sky_addons_template_modify_link' ) ) {
 	function sky_addons_template_modify_link( $template_id ) {
-		if ( Sky_Addons_Plugin::elementor()->editor->is_edit_mode() ) {
+		if ( \Sky_Addons\Sky_Addons_Plugin::elementor()->editor->is_edit_mode() ) {
 
 			$final_url = add_query_arg( [ 'elementor' => '' ], get_permalink( $template_id ) );
 
@@ -100,7 +229,7 @@ if ( ! function_exists( 'sky_addons_template_modify_link' ) ) {
 if ( ! function_exists( 'sky_addons_elementor_template_settings' ) ) {
 	function sky_addons_elementor_template_settings() {
 
-		$templates = Sky_Addons_Plugin::elementor()->templates_manager->get_source( 'local' )->get_items();
+		$templates = \Sky_Addons\Sky_Addons_Plugin::elementor()->templates_manager->get_source( 'local' )->get_items();
 		$types     = [];
 
 		if ( empty( $templates ) ) {
@@ -252,12 +381,22 @@ if ( ! function_exists( 'sky_addons_post_pagination' ) ) {
 			return;
 		}
 
-		if ( is_front_page() ) {
-			$paged = ( get_query_var( 'page' ) ) ? get_query_var( 'page' ) : 1;
-		} else {
-			$paged = ( get_query_var( 'paged' ) ) ? get_query_var( 'paged' ) : 1;
-		}
-		$max = intval( $wp_query->max_num_pages );
+		/**
+		 * Current page number.
+		 *
+		 * Read the same way the widget builds its query — max() of both vars —
+		 * rather than branching on is_front_page(). WordPress paginates a static
+		 * front page with `page` but a "latest posts" front page with `paged`,
+		 * so the old branch returned 1 on every page of a blog-index archive and
+		 * the active state never moved off page 1.
+		 *
+		 * Cast to int: these are compared with === below, and a query var
+		 * arriving as a string would never match.
+		 */
+		$paged = max( 1, (int) get_query_var( 'paged' ), (int) get_query_var( 'page' ) );
+		$max   = intval( $wp_query->max_num_pages );
+
+		$links = [];
 
 		/**
 		 * Inject the Current Page
@@ -287,17 +426,56 @@ if ( ! function_exists( 'sky_addons_post_pagination' ) ) {
 
 		/**
 		 * Previous Link
+		 *
+		 * Built here instead of via get_previous_posts_link(). That function and
+		 * get_previous_posts_page_link() both read the *global* `$paged`, and
+		 * WordPress leaves that at 1 on a static front page because it paginates
+		 * those with `page` rather than `paged` — so the back arrow disappeared on
+		 * every page of a paginated front page, and the forward arrow linked to
+		 * page 2 from page 2. No parameter overrides it; the href is resolved from
+		 * the global a second time inside next_posts().
+		 *
+		 * The number pills below already avoid this by pairing the local `$paged`
+		 * with get_pagenum_link(). The arrows now do the same, so the two halves of
+		 * the block can no longer disagree about which page this is.
+		 *
+		 * `! is_single()` is kept from core, and it is not redundant: `$max` is read
+		 * off the *widget's* query, so a post grid dropped into a Theme Builder
+		 * single template has more than one page while is_single() is true. A page
+		 * link there is a dead end — redirect_canonical() strips `/page/N/` from a
+		 * single post's URL and only puts it back when ! is_single(), so the arrow
+		 * would bounce the reader straight back to page 1.
 		 */
-		if ( get_previous_posts_link() ) {
-			$prev_arrow = '<i class="sa-post-icon-arrow-left" aria-hidden="true"></i>';
+		if ( ! is_single() && $paged > 1 ) {
+			// `sa-post-icon-arrow-left` was never defined — no glyph, no stylesheet,
+			// nothing behind the class — so this link rendered as an empty box.
+			//
+			// The chevron is picked by reading direction, not by the words
+			// previous/next: grunt-rtlcss rewrites CSS properties and cannot flip an
+			// SVG path, so a hardcoded left chevron points backwards on an RTL site.
+			//
+			// Path data is lifted verbatim from Elementor's eicons (GPLv3), which is
+			// where the shared `0 0 1000 1000` viewBox comes from too. Do not redraw
+			// it by hand — eyeballed geometry reads visibly wrong next to the real
+			// eicons Elementor renders elsewhere on the same page.
+			$prev_arrow = is_rtl()
+				? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" aria-hidden="true"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg>'
+				: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" aria-hidden="true"><path d="M646 125C629 125 613 133 604 142L308 442C296 454 292 471 292 487 292 504 296 521 308 533L604 854C617 867 629 875 646 875 663 875 679 871 692 858 704 846 713 829 713 812 713 796 708 779 692 767L438 487 692 225C700 217 708 204 708 187 708 171 704 154 692 142 675 129 663 125 646 125Z"></path></svg>';
+
+			// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- href is esc_url'd, attributes are esc_attr'd in the helper, the arrow is a constant.
 			printf(
-				'<li class="sa-post-page-previous">%s</li>' . "\n",
-				wp_kses_post( get_previous_posts_link( '<span data-sa-post-page-previous>' . $prev_arrow . '</span>' ) )
+				'<li class="sa-post-page-previous"><a href="%1$s" %2$s><span class="sa-icon-wrap" data-sa-post-page-previous>%3$s</span></a></li>' . "\n",
+				esc_url( get_pagenum_link( $paged - 1 ) ),
+				sky_addons_pagination_link_attributes( 'previous_posts_link_attributes' ),
+				$prev_arrow
 			);
+			// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 
-		if ( ! in_array( 1, $links ) ) {
-			$class = ( 1 === $paged ) ? 'current' : 'sa';
+		if ( ! in_array( 1, $links, true ) ) {
+			// Same active class as every other number — this branch used to emit
+			// 'current', which no stylesheet targets.
+			$class = ( 1 === $paged ) ? 'sa-post-page-active' : 'sa';
 
 			printf(
 				'<li class="%s"><a class="sa-post-page-link sa-d-block" href="%s">%s</a></li>' . "\n",
@@ -306,7 +484,7 @@ if ( ! function_exists( 'sky_addons_post_pagination' ) ) {
 				'1'
 			);
 
-			if ( ! in_array( 2, $links ) ) {
+			if ( ! in_array( 2, $links, true ) ) {
 				printf( '<li class="sa-post-page-dot-dot"><span>...</span></li>' );
 			}
 		}
@@ -322,8 +500,8 @@ if ( ! function_exists( 'sky_addons_post_pagination' ) ) {
 			);
 		}
 
-		if ( ! in_array( $max, $links ) ) {
-			if ( ! in_array( $max - 1, $links ) ) {
+		if ( ! in_array( $max, $links, true ) ) {
+			if ( ! in_array( $max - 1, $links, true ) ) {
 				printf( '<li class="sa-post-page-dot-dot"><span>...</span></li>' . "\n" );
 			}
 
@@ -339,12 +517,26 @@ if ( ! function_exists( 'sky_addons_post_pagination' ) ) {
 		/**
 		 * Next Link
 		 */
-		if ( get_next_posts_link( null, $paged ) ) {
-			$next_arrow = '<i class="sa-post-icon-arrow-right" aria-hidden="true"></i>';
+		// See the previous-link comment — same global-`$paged` problem, and it
+		// showed up here as a third symptom on top of the two there: with no page
+		// count to compare against, the arrow also rendered on the last page and
+		// pointed past the end of the archive. `$max` is the count read off the
+		// query above.
+		if ( ! is_single() && $paged < $max ) {
+			// See the previous-link comment — `sa-post-icon-arrow-right` was equally
+			// undefined, and the chevron follows reading direction the same way.
+			$next_arrow = is_rtl()
+				? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" aria-hidden="true"><path d="M646 125C629 125 613 133 604 142L308 442C296 454 292 471 292 487 292 504 296 521 308 533L604 854C617 867 629 875 646 875 663 875 679 871 692 858 704 846 713 829 713 812 713 796 708 779 692 767L438 487 692 225C700 217 708 204 708 187 708 171 704 154 692 142 675 129 663 125 646 125Z"></path></svg>'
+				: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" aria-hidden="true"><path d="M696 533C708 521 713 504 713 487 713 471 708 454 696 446L400 146C388 133 375 125 354 125 338 125 325 129 313 142 300 154 292 171 292 187 292 204 296 221 308 233L563 492 304 771C292 783 288 800 288 817 288 833 296 850 308 863 321 871 338 875 354 875 371 875 388 867 400 854L696 533Z"></path></svg>';
+
+			// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- href is esc_url'd, attributes are esc_attr'd in the helper, the arrow is a constant.
 			printf(
-				'<li class="sa-post-page-next">%s</li>' . "\n",
-				wp_kses_post( get_next_posts_link( '<span data-sa-post-page-next>' . $next_arrow . '</span>' ) )
+				'<li class="sa-post-page-next"><a href="%1$s" %2$s><span class="sa-icon-wrap" data-sa-post-page-next>%3$s</span></a></li>' . "\n",
+				esc_url( get_pagenum_link( $paged + 1 ) ),
+				sky_addons_pagination_link_attributes( 'next_posts_link_attributes' ),
+				$next_arrow
 			);
+			// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 
 		printf( '</ul>' . "\n" );
@@ -381,7 +573,7 @@ if ( ! function_exists( 'sky_addons_display_el_tem_by_id' ) ) {
 
 		if ( ! empty( $posts ) && $posts[0]->ID === $template_id ) {
       //phpcs:ignore
-			echo Sky_Addons_Plugin::elementor()->frontend->get_builder_content_for_display( $template_id );
+			echo \Sky_Addons\Sky_Addons_Plugin::elementor()->frontend->get_builder_content_for_display( $template_id );
 		} else {
 			echo esc_html__( 'The post is not published or does not exist.', 'sky-elementor-addons' );
 		}
@@ -622,8 +814,8 @@ if ( ! function_exists( 'sky_addons_fluent_forms' ) ) {
 			global $wpdb;
 
 			$table        = $wpdb->prefix . 'fluentform_forms';
-			$query        = "SELECT * FROM {$table}";
-			$fluent_forms = $wpdb->get_results( $query );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Fluent Forms' own table, no user input; table names can't be placeholders before WP 6.2.
+			$fluent_forms = $wpdb->get_results( "SELECT id, title FROM {$table}" );
 
 			if ( $fluent_forms ) {
 				foreach ( $fluent_forms as $form ) {
@@ -685,7 +877,7 @@ if ( ! function_exists( 'sky_addons_show_plugin_missing_alert' ) ) {
 			printf(
 				'<div %s>%s</div>',
 				'style="margin: 1rem;padding: 1rem 1.25rem;border-left: 5px solid #f5c848;color: #856404;background-color: #fff3cd;"',
-				$plugin . __( ' is missing! Please install and activate ', 'sky-elementor-addons' ) . $plugin . '.'
+				esc_html( $plugin ) . esc_html__( ' is missing! Please install and activate ', 'sky-elementor-addons' ) . esc_html( $plugin ) . '.'
 			);
 		}
 	}
@@ -724,4 +916,108 @@ function sky_addons_sanitize_html_class_param( $class ) {
 		}, $classes);
 	}
 	return implode( ' ', $sanitized );
+}
+
+/**
+ * Swiper breakpoint keys, aligned to Elementor's CSS bands.
+ *
+ * Swiper `breakpoints` keys are MIN-width (`breakpointsBase` defaults to `window`, resolved
+ * via `matchMedia( '(min-width: Npx)' )`). Elementor breakpoint values are MAX-width and are
+ * emitted as `@media(max-width: Npx)`, so the two systems have to be translated.
+ *
+ * The translation is delegated to Elementor's Breakpoints Manager (3.2+), which reads the
+ * active kit. Do NOT reimplement it as `mobile + 1` / `tablet + 1` — that hard-codes a
+ * three-device world and breaks as soon as an additional breakpoint is enabled:
+ *
+ * - `get_device_min_breakpoint( 'tablet' )` is the first px of the Tablet band. With Mobile
+ *   Landscape (`mobile_extra`, 880) enabled it is 881, not 768.
+ * - `get_desktop_min_point()` is the first px of the Desktop band. With Laptop (1366)
+ *   enabled it is 1367, not 1025; it also skips Widescreen, which is a min-width band.
+ *
+ * Under Elementor's default breakpoints (mobile 767, tablet 1024) this returns 768 / 1025 —
+ * the same values the old arithmetic produced, so the common case is unchanged.
+ *
+ * Scope note: these two keys describe a THREE-band Swiper config, because the widgets that
+ * consume them only read `columns` / `columns_tablet` / `columns_mobile` — there is no
+ * `columns_laptop` control to map an extra device onto. The values above are chosen so the
+ * three Swiper bands never contradict the CSS bands; giving every enabled Elementor device
+ * its own Swiper band would require new column controls and is a separate change.
+ *
+ * The legacy `elementor_viewport_md` / `_lg` options are deliberately NOT consulted: they are
+ * pre-3.0 leftovers, nothing has written them since Elementor 3.0 (`core/upgrade/upgrades.php`
+ * only reads them once, into the kit), so they would silently serve values frozen in 2020.
+ *
+ * WHAT THIS REPLACED, and the behaviour change it caused
+ * ------------------------------------------------------
+ * Kept here on purpose: if a slider ever reports "wrong column count at one specific width",
+ * this is the history that explains it.
+ *
+ * Before 4.0.0 every call site inlined the same block:
+ *
+ *     $elementor_vp_lg = get_option( 'elementor_viewport_lg' );
+ *     $elementor_vp_md = get_option( 'elementor_viewport_md' );
+ *     $viewport_lg     = ! empty( $elementor_vp_lg ) ? $elementor_vp_lg - 1 : 1023;
+ *     $viewport_md     = ! empty( $elementor_vp_md ) ? $elementor_vp_md - 1 : 767;
+ *
+ * Those two numbers were then used as Swiper `breakpoints` KEYS. That is the bug: the options
+ * hold Elementor MAX-widths, `- 1` turns them into the last px of the previous band, but a
+ * Swiper key is a MIN-width. So the old keys 767 / 1023 opened each band one to two px early
+ * and disagreed with the `@media` rules Elementor had already written for the same page.
+ *
+ * Only three widths behave differently now (Elementor default kit). Everything else is
+ * byte-identical, so a regression report that is NOT at one of these widths is not this change:
+ *
+ *     767px         was tablet   -> now mobile    (Elementor CSS: mobile)
+ *     1023, 1024px  was desktop  -> now tablet    (Elementor CSS: tablet)
+ *
+ * 1024px is iPad landscape, so this is the one users notice: a slider set to 4 desktop / 2
+ * tablet columns now shows 2 there. That is correct — it finally matches the Tablet tab the
+ * user filled in — but it is a visible change on sites built before 4.0.0.
+ *
+ * Two Pro widgets (showcase-flow, showcase-wall) already used 768 / 1025 and did not change.
+ *
+ * @since 4.0.0
+ *
+ * @return array {
+ *     @type int $md Min-width where the tablet band starts.
+ *     @type int $lg Min-width where the desktop band starts.
+ * }
+ */
+if ( ! function_exists( 'sky_addons_get_swiper_breakpoints' ) ) {
+	function sky_addons_get_swiper_breakpoints() {
+		$md = 0;
+		$lg = 0;
+
+		if ( class_exists( '\Elementor\Plugin' ) && isset( \Elementor\Plugin::$instance->breakpoints ) ) {
+			$breakpoints = \Elementor\Plugin::$instance->breakpoints;
+
+			// Both are public API since Elementor 3.2, but stay defensive.
+			if ( method_exists( $breakpoints, 'get_device_min_breakpoint' ) ) {
+				$md = (int) $breakpoints->get_device_min_breakpoint( 'tablet' );
+			}
+
+			if ( method_exists( $breakpoints, 'get_desktop_min_point' ) ) {
+				$lg = (int) $breakpoints->get_desktop_min_point();
+			}
+		}
+
+		if ( $md < 1 ) {
+			$md = 768;
+		}
+
+		if ( $lg < 1 ) {
+			$lg = 1025;
+		}
+
+		// A kit imported or edited outside the editor can carry tablet <= mobile, which would
+		// collapse both Swiper keys onto the same value and silently drop one band.
+		if ( $lg <= $md ) {
+			$lg = $md + 1;
+		}
+
+		return [
+			'md' => $md,
+			'lg' => $lg,
+		];
+	}
 }

@@ -16,7 +16,7 @@ use Elementor\Icons_Manager;
 use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 class Info_Box extends Widget_Base {
@@ -38,18 +38,23 @@ class Info_Box extends Widget_Base {
 	}
 
 	public function get_keywords() {
-		return [ 'card', 'informations', 'box', 'sky' ];
+		return [ 'info', 'box', 'card', 'information', 'icon', 'sky' ];
 	}
 
 	public function get_style_depends() {
-		return [
-			'elementor-icons-fa-solid',
-			'elementor-icons-fa-regular',
-		];
+		if ( sky_addons_editor_mode() ) {
+			return [ 'elementor-icons-fa-solid', 'elementor-icons-fa-regular', 'sky-addons-styles' ];
+		}
+
+		return [ 'elementor-icons-fa-solid', 'elementor-icons-fa-regular', 'sa-info-box' ];
 	}
 
 	public function get_custom_help_url() {
 		return 'https://skyaddons.com/docs/sky-addons/widgets/info-box/';
+	}
+
+	public function has_widget_inner_wrapper(): bool {
+		return ! \Elementor\Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
 	}
 
 	protected function register_controls() {
@@ -69,7 +74,7 @@ class Info_Box extends Widget_Base {
 				'type'           => Controls_Manager::CHOOSE,
 				'label_block'    => false,
 				'options'        => [
-					'icon' => [
+					'icon'  => [
 						'title' => esc_html__( 'Icon', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-check',
 					],
@@ -87,15 +92,15 @@ class Info_Box extends Widget_Base {
 		$this->add_control(
 			'image',
 			[
-				'label'     => esc_html__( 'Choose Image', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::MEDIA,
-				'default'   => [
+				'label'   => esc_html__( 'Choose Image', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::MEDIA,
+				'default' => [
 					'url' => Utils::get_placeholder_image_src(),
 				],
 				'condition' => [
 					'media_type' => 'image',
 				],
-				'dynamic'   => [ 'active' => true ],
+				'dynamic' => [ 'active' => true ],
 			]
 		);
 
@@ -129,15 +134,15 @@ class Info_Box extends Widget_Base {
 		$this->add_responsive_control(
 			'media_position',
 			[
-				'label'                => esc_html__( 'Media Position', 'sky-elementor-addons' ),
-				'type'                 => Controls_Manager::CHOOSE,
-				'label_block'          => false,
-				'options'              => [
-					'left' => [
+				'label'           => esc_html__( 'Media Position', 'sky-elementor-addons' ),
+				'type'            => Controls_Manager::CHOOSE,
+				'label_block'     => false,
+				'options' => [
+					'left'  => [
 						'title' => esc_html__( 'Left', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-left',
 					],
-					'top' => [
+					'top'   => [
 						'title' => esc_html__( 'Top', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-v-align-top',
 					],
@@ -146,12 +151,12 @@ class Info_Box extends Widget_Base {
 						'icon'  => 'eicon-h-align-right',
 					],
 				],
-				'toggle'               => false,
-				'desktop_default'      => 'top',
-				'tablet_default'       => 'top',
-				'mobile_default'       => 'top',
-				'selectors'            => [
-					'{{WRAPPER}} .elementor-widget-container .sa-info-box' => '{{VALUE}};',
+				'toggle'          => false,
+				'desktop_default' => 'top',
+				'tablet_default'  => 'top',
+				'mobile_default'  => 'top',
+				'selectors' => [
+					'{{WRAPPER}} .sa-info-box' => '{{VALUE}};',
 				],
 				'selectors_dictionary' => [
 					'left'  => 'flex-direction: row; text-align: left;',
@@ -164,10 +169,10 @@ class Info_Box extends Widget_Base {
 		$this->add_responsive_control(
 			'media_v_align',
 			[
-				'label'                => esc_html__( 'Vertical Alignment', 'sky-elementor-addons' ),
-				'type'                 => Controls_Manager::CHOOSE,
-				'options'              => [
-					'top' => [
+				'label'           => esc_html__( 'Vertical Alignment', 'sky-elementor-addons' ),
+				'type'            => Controls_Manager::CHOOSE,
+				'options' => [
+					'top'    => [
 						'title' => esc_html__( 'Top', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-v-align-top',
 					],
@@ -180,17 +185,20 @@ class Info_Box extends Widget_Base {
 						'icon'  => 'eicon-v-align-bottom',
 					],
 				],
-				'toggle'               => false,
-				'desktop_default'      => 'top',
-				'tablet_default'       => 'top',
-				'mobile_default'       => 'top',
-				'style_transfer'       => true,
+				'toggle'          => false,
+				'desktop_default' => 'top',
+				'tablet_default'  => 'top',
+				'mobile_default'  => 'top',
+				'style_transfer'  => true,
 				'selectors_dictionary' => [
-					'top'    => '    -webkit-align-self: center; -ms-flex-item-align: center; align-self: flex-start;',
+					'top'    => '-webkit-align-self: flex-start; -ms-flex-item-align: start; align-self: flex-start;',
 					'center' => '    -webkit-align-self: center; -ms-flex-item-align: center; align-self: center;',
 					'bottom' => '    -webkit-align-self: flex-end; -ms-flex-item-align: end; align-self: flex-end;',
 				],
-				'selectors'            => [
+				'condition' => [
+					'media_position' => [ 'left', 'right' ],
+				],
+				'selectors' => [
 					'{{WRAPPER}} .sa-infobox-figure' => '{{VALUE}};',
 				],
 			]
@@ -254,13 +262,23 @@ class Info_Box extends Widget_Base {
 			]
 		);
 
+		$this->add_control(
+			'clickable_card',
+			[
+				'label'       => esc_html__( 'Clickable Card', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'type'        => Controls_Manager::SWITCHER,
+				'description' => esc_html__( 'Makes the entire card clickable via the Link URL. Title and button display as text — no nested anchors.', 'sky-elementor-addons' ),
+				'separator'   => 'before',
+			]
+		);
+
 		$this->end_controls_section();
 
 		$this->start_controls_section(
 			'section_button',
 			[
-				'label'     => esc_html__( 'Button', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_CONTENT,
+				'label' => esc_html__( 'Button', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_CONTENT,
 				'condition' => [
 					'show_button' => 'yes',
 				],
@@ -289,18 +307,18 @@ class Info_Box extends Widget_Base {
 		$this->add_responsive_control(
 			'button_alignment',
 			[
-				'label'     => esc_html__( 'Alignment', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::CHOOSE,
-				'options'   => [
-					'left' => [
+				'label' => esc_html__( 'Alignment', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::CHOOSE,
+				'options' => [
+					'left'    => [
 						'title' => esc_html__( 'Left', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-left',
 					],
-					'center' => [
+					'center'  => [
 						'title' => esc_html__( 'Center', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-center',
 					],
-					'right' => [
+					'right'   => [
 						'title' => esc_html__( 'Right', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-right',
 					],
@@ -337,7 +355,7 @@ class Info_Box extends Widget_Base {
 						'title' => esc_html__( 'Before', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-left',
 					],
-					'after' => [
+					'after'  => [
 						'title' => esc_html__( 'After', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-right',
 					],
@@ -387,18 +405,18 @@ class Info_Box extends Widget_Base {
 		$this->add_responsive_control(
 			'info_box_alignment',
 			[
-				'label'     => esc_html__( 'Alignment', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::CHOOSE,
-				'options'   => [
-					'left' => [
+				'label' => esc_html__( 'Alignment', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::CHOOSE,
+				'options' => [
+					'left'    => [
 						'title' => esc_html__( 'Left', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-left',
 					],
-					'center' => [
+					'center'  => [
 						'title' => esc_html__( 'Center', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-center',
 					],
-					'right' => [
+					'right'   => [
 						'title' => esc_html__( 'Right', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-text-align-right',
 					],
@@ -407,8 +425,14 @@ class Info_Box extends Widget_Base {
 						'icon'  => 'eicon-text-align-justify',
 					],
 				],
+				'selectors_dictionary' => [
+					'left'    => 'text-align: left; align-items: flex-start;',
+					'center'  => 'text-align: center; align-items: center;',
+					'right'   => 'text-align: right; align-items: flex-end;',
+					'justify' => 'text-align: justify; align-items: flex-start;',
+				],
 				'selectors' => [
-					'{{WRAPPER}} .sa-info-box' => 'text-align: {{VALUE}} !important;',
+					'{{WRAPPER}} .sa-info-box' => '{{VALUE}}',
 				],
 			]
 		);
@@ -447,7 +471,7 @@ class Info_Box extends Widget_Base {
 						'max'  => 100,
 						'step' => 1,
 					],
-					'%' => [
+					'%'  => [
 						'min' => 0,
 						'max' => 100,
 					],
@@ -468,12 +492,12 @@ class Info_Box extends Widget_Base {
 				'type'       => Controls_Manager::SLIDER,
 				'size_units' => [ 'px', 'em', '%' ],
 				'range'      => [
-					'px' => [
+					'px'      => [
 						'min'  => 0,
 						'max'  => 100,
 						'step' => 1,
 					],
-					'%' => [
+					'%'       => [
 						'min' => 0,
 						'max' => 100,
 					],
@@ -501,7 +525,7 @@ class Info_Box extends Widget_Base {
 						'max'  => 200,
 						'step' => 1,
 					],
-					'%' => [
+					'%'  => [
 						'min' => 0,
 						'max' => 100,
 					],
@@ -553,9 +577,9 @@ class Info_Box extends Widget_Base {
 		$this->add_responsive_control(
 			'media_horizontal_offset',
 			[
-				'label'          => esc_html__( 'Horizontal Offset', 'sky-elementor-addons' ),
-				'type'           => Controls_Manager::SLIDER,
-				'default'        => [
+				'label'       => esc_html__( 'Horizontal Offset', 'sky-elementor-addons' ),
+				'type'        => Controls_Manager::SLIDER,
+				'default' => [
 					'size' => 0,
 				],
 				'tablet_default' => [
@@ -564,18 +588,18 @@ class Info_Box extends Widget_Base {
 				'mobile_default' => [
 					'size' => 0,
 				],
-				'range'          => [
+				'range' => [
 					'px' => [
 						'min'  => -300,
 						'step' => 2,
 						'max'  => 300,
 					],
 				],
-				'render_type'    => 'ui',
-				'condition'      => [
+				'render_type' => 'ui',
+				'condition' => [
 					'media_offset_popover' => 'yes',
 				],
-				'selectors'      => [
+				'selectors' => [
 					'{{WRAPPER}} .sa-info-box ' => '--sky-media-h-offset: {{SIZE}}px;',
 				],
 			]
@@ -584,9 +608,9 @@ class Info_Box extends Widget_Base {
 		$this->add_responsive_control(
 			'media_vertical_offset',
 			[
-				'label'          => esc_html__( 'Vertical Offset', 'sky-elementor-addons' ),
-				'type'           => Controls_Manager::SLIDER,
-				'default'        => [
+				'label'       => esc_html__( 'Vertical Offset', 'sky-elementor-addons' ),
+				'type'        => Controls_Manager::SLIDER,
+				'default' => [
 					'size' => 0,
 				],
 				'tablet_default' => [
@@ -595,18 +619,18 @@ class Info_Box extends Widget_Base {
 				'mobile_default' => [
 					'size' => 0,
 				],
-				'range'          => [
+				'range' => [
 					'px' => [
 						'min'  => -300,
 						'step' => 2,
 						'max'  => 300,
 					],
 				],
-				'render_type'    => 'ui',
-				'condition'      => [
+				'render_type' => 'ui',
+				'condition' => [
 					'media_offset_popover' => 'yes',
 				],
-				'selectors'      => [
+				'selectors' => [
 					'{{WRAPPER}} .sa-info-box' => '--sky-media-v-offset: {{SIZE}}px;',
 				],
 			]
@@ -615,10 +639,10 @@ class Info_Box extends Widget_Base {
 		$this->add_responsive_control(
 			'media_rotate',
 			[
-				'label'          => esc_html__( 'Rotate', 'sky-elementor-addons' ),
-				'type'           => Controls_Manager::SLIDER,
-				'devices'        => [ 'desktop', 'tablet', 'mobile' ],
-				'default'        => [
+				'label'       => esc_html__( 'Rotate', 'sky-elementor-addons' ),
+				'type'        => Controls_Manager::SLIDER,
+				'devices'     => [ 'desktop', 'tablet', 'mobile' ],
+				'default' => [
 					'size' => 0,
 				],
 				'tablet_default' => [
@@ -627,18 +651,18 @@ class Info_Box extends Widget_Base {
 				'mobile_default' => [
 					'size' => 0,
 				],
-				'range'          => [
+				'range' => [
 					'px' => [
 						'min'  => -360,
 						'max'  => 360,
 						'step' => 5,
 					],
 				],
-				'condition'      => [
+				'condition' => [
 					'media_offset_popover' => 'yes',
 				],
-				'render_type'    => 'ui',
-				'selectors'      => [
+				'render_type' => 'ui',
+				'selectors' => [
 					'{{WRAPPER}} .sa-info-box' => '--sky-media-rotate: {{SIZE}}deg;',
 				],
 			]
@@ -693,10 +717,10 @@ class Info_Box extends Widget_Base {
 		$this->add_control(
 			'adv_border_radius',
 			[
-				'label'     => esc_html__( 'Radius', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::TEXT,
-				'default'   => esc_html__( '30% 70% 70% 30% / 30% 30% 70% 70% ', 'sky-elementor-addons' ),
-				'dynamic'   => [ 'active' => true ],
+				'label'   => esc_html__( 'Radius', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::TEXT,
+				'default' => esc_html__( '30% 70% 70% 30% / 30% 30% 70% 70% ', 'sky-elementor-addons' ),
+				'dynamic' => [ 'active' => true ],
 				'selectors' => [
 					'{{WRAPPER}} .sa-info-box .sa-infobox-figure' => 'border-radius: {{VALUE}};',
 				],
@@ -740,8 +764,8 @@ class Info_Box extends Widget_Base {
 		$this->add_control(
 			'icon_color',
 			[
-				'label'     => esc_html__( 'Icon Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Icon Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'condition' => [
 					'media_type' => 'icon',
 				],
@@ -755,22 +779,22 @@ class Info_Box extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Background::get_type(),
 			[
-				'name'      => 'icon_bg',
-				'label'     => esc_html__( 'Background', 'sky-elementor-addons' ),
-				'types'     => [ 'classic', 'gradient' ],
+				'name'     => 'icon_bg',
+				'label'    => esc_html__( 'Background', 'sky-elementor-addons' ),
+				'types'    => [ 'classic', 'gradient' ],
 				'condition' => [
 					'media_type' => 'icon',
 				],
-				'selector'  => '{{WRAPPER}} .sa-infobox-figure.sa-icon-wrap',
+				'selector' => '{{WRAPPER}} .sa-infobox-figure.sa-icon-wrap',
 			]
 		);
 
 		$this->add_control(
 			'media_opacity',
 			[
-				'label'     => esc_html__( 'Opacity', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SLIDER,
-				'range'     => [
+				'label' => esc_html__( 'Opacity', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::SLIDER,
+				'range' => [
 					'px' => [
 						'max'  => 1,
 						'min'  => 0.10,
@@ -786,8 +810,8 @@ class Info_Box extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Css_Filter::get_type(),
 			[
-				'name'      => 'img_css_filters',
-				'selector'  => '{{WRAPPER}} .sa-info-box .sa-infobox-figure',
+				'name'     => 'img_css_filters',
+				'selector' => '{{WRAPPER}} .sa-info-box .sa-infobox-figure',
 				'condition' => [
 					'media_type' => 'image',
 				],
@@ -806,14 +830,14 @@ class Info_Box extends Widget_Base {
 		$this->add_control(
 			'icon_color_hover',
 			[
-				'label'     => esc_html__( 'Icon Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Icon Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'condition' => [
 					'media_type' => 'icon',
 				],
 				'selectors' => [
-					'{{WRAPPER}}  > .elementor-widget-container:hover .sa-icon-wrap' => 'color: {{VALUE}}',
-					'{{WRAPPER}}  > .elementor-widget-container:hover .sa-icon-wrap svg *' => 'fill: {{VALUE}}',
+					'{{WRAPPER}}  .sa-info-box:hover .sa-icon-wrap' => 'color: {{VALUE}}',
+					'{{WRAPPER}}  .sa-info-box:hover .sa-icon-wrap svg *' => 'fill: {{VALUE}}',
 				],
 			]
 		);
@@ -821,10 +845,10 @@ class Info_Box extends Widget_Base {
 		$this->add_control(
 			'img_border_color_hover',
 			[
-				'label'     => esc_html__( 'Border Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Border Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .elementor-widget-container:hover .sa-info-box .sa-infobox-figure' => 'border-color: {{VALUE}};',
+					'{{WRAPPER}} .sa-info-box:hover .sa-infobox-figure' => 'border-color: {{VALUE}};',
 				],
 				'condition' => [
 					'img_border_border!' => '',
@@ -835,22 +859,22 @@ class Info_Box extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Background::get_type(),
 			[
-				'name'      => 'icon_bg_hover',
-				'label'     => esc_html__( 'Background', 'sky-elementor-addons' ),
-				'types'     => [ 'classic', 'gradient' ],
+				'name'     => 'icon_bg_hover',
+				'label'    => esc_html__( 'Background', 'sky-elementor-addons' ),
+				'types'    => [ 'classic', 'gradient' ],
 				'condition' => [
 					'media_type' => 'icon',
 				],
-				'selector'  => '{{WRAPPER}}  > .elementor-widget-container:hover .sa-icon-wrap',
+				'selector' => '{{WRAPPER}} .sa-info-box:hover .sa-icon-wrap',
 			]
 		);
 
 		$this->add_control(
 			'media_opacity_hover',
 			[
-				'label'     => esc_html__( 'Opacity', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SLIDER,
-				'range'     => [
+				'label' => esc_html__( 'Opacity', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::SLIDER,
+				'range' => [
 					'px' => [
 						'max'  => 1,
 						'min'  => 0.10,
@@ -859,7 +883,7 @@ class Info_Box extends Widget_Base {
 				],
 				'selectors' => [
 					'{{WRAPPER}} .sa-info-box  .sa-infobox-figure:hover' => 'opacity: {{SIZE}};',
-					'{{WRAPPER}}  > .elementor-widget-container:hover .sa-infobox-figure' => 'opacity: {{SIZE}};',
+					'{{WRAPPER}}  .sa-info-box:hover .sa-infobox-figure' => 'opacity: {{SIZE}};',
 				],
 			]
 		);
@@ -867,8 +891,8 @@ class Info_Box extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Css_Filter::get_type(),
 			[
-				'name'      => 'img_css_filters_hover',
-				'selector'  => '{{WRAPPER}} .sa-info-box .sa-infobox-figure:hover',
+				'name'     => 'img_css_filters_hover',
+				'selector' => '{{WRAPPER}} .sa-info-box .sa-infobox-figure:hover',
 				'condition' => [
 					'media_type' => 'image',
 				],
@@ -878,9 +902,9 @@ class Info_Box extends Widget_Base {
 		$this->add_control(
 			'media_transition',
 			[
-				'label'     => esc_html__( 'Transition Duration (s)', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::SLIDER,
-				'range'     => [
+				'label' => esc_html__( 'Transition Duration (s)', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::SLIDER,
+				'range' => [
 					'px' => [
 						'max'  => 3,
 						'step' => 0.1,
@@ -895,10 +919,21 @@ class Info_Box extends Widget_Base {
 		$this->add_control(
 			'img_hover_animation',
 			[
-				'label'     => esc_html__( 'Hover Animation', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::HOVER_ANIMATION,
+				'label' => esc_html__( 'Hover Animation', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::HOVER_ANIMATION,
 				'condition' => [
 					'media_type' => 'image',
+				],
+			]
+		);
+
+		$this->add_control(
+			'icon_hover_animation',
+			[
+				'label' => esc_html__( 'Hover Animation', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'type'  => Controls_Manager::HOVER_ANIMATION,
+				'condition' => [
+					'media_type' => 'icon',
 				],
 			]
 		);
@@ -912,8 +947,8 @@ class Info_Box extends Widget_Base {
 		$this->start_controls_section(
 			'section_title_style',
 			[
-				'label'     => esc_html__( 'Title', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Title', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'title!' => '',
 				],
@@ -932,7 +967,7 @@ class Info_Box extends Widget_Base {
 						'max'  => 100,
 						'step' => 1,
 					],
-					'%' => [
+					'%'  => [
 						'min' => 0,
 						'max' => 100,
 					],
@@ -964,8 +999,8 @@ class Info_Box extends Widget_Base {
 		$this->add_control(
 			'title_color',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-title' => 'color: {{VALUE}}',
 				],
@@ -993,10 +1028,10 @@ class Info_Box extends Widget_Base {
 		$this->add_control(
 			'title_color_hover',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .elementor-widget-container:hover .sa-title' => 'color: {{VALUE}}',
+					'{{WRAPPER}} .sa-info-box:hover .sa-title' => 'color: {{VALUE}}',
 				],
 			]
 		);
@@ -1006,7 +1041,7 @@ class Info_Box extends Widget_Base {
 			[
 				'name'     => 'title_text_shadow_hover',
 				'label'    => esc_html__( 'Text Shadow', 'sky-elementor-addons' ),
-				'selector' => '{{WRAPPER}} .elementor-widget-container:hover .sa-title',
+				'selector' => '{{WRAPPER}} .sa-info-box:hover .sa-title',
 			]
 		);
 
@@ -1019,8 +1054,8 @@ class Info_Box extends Widget_Base {
 		$this->start_controls_section(
 			'section_desc_style',
 			[
-				'label'     => esc_html__( 'Description', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Description', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'desc!' => '',
 				],
@@ -1039,7 +1074,7 @@ class Info_Box extends Widget_Base {
 						'max'  => 100,
 						'step' => 1,
 					],
-					'%' => [
+					'%'  => [
 						'min' => 0,
 						'max' => 100,
 					],
@@ -1071,8 +1106,8 @@ class Info_Box extends Widget_Base {
 		$this->add_control(
 			'desc_color',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-desc' => 'color: {{VALUE}}',
 				],
@@ -1091,10 +1126,10 @@ class Info_Box extends Widget_Base {
 		$this->add_control(
 			'desc_color_hover',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
-					'{{WRAPPER}} .elementor-widget-container:hover .sa-desc' => 'color: {{VALUE}}',
+					'{{WRAPPER}} .sa-info-box:hover .sa-desc' => 'color: {{VALUE}}',
 				],
 			]
 		);
@@ -1108,8 +1143,8 @@ class Info_Box extends Widget_Base {
 		$this->start_controls_section(
 			'section_button_style',
 			[
-				'label'     => esc_html__( 'Button', 'sky-elementor-addons' ),
-				'tab'       => Controls_Manager::TAB_STYLE,
+				'label' => esc_html__( 'Button', 'sky-elementor-addons' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
 				'condition' => [
 					'show_button' => 'yes',
 				],
@@ -1149,8 +1184,8 @@ class Info_Box extends Widget_Base {
 		$this->add_control(
 			'button_color',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-info-box .sa-button' => 'color: {{VALUE}}',
 				],
@@ -1218,8 +1253,8 @@ class Info_Box extends Widget_Base {
 		$this->add_control(
 			'button_color_hover',
 			[
-				'label'     => esc_html__( 'Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-info-box .sa-button:hover, {{WRAPPER}} .sa-info-box .sa-button:focus' => 'color: {{VALUE}}',
 				],
@@ -1239,8 +1274,8 @@ class Info_Box extends Widget_Base {
 		$this->add_control(
 			'button_border_color_hover',
 			[
-				'label'     => esc_html__( 'Border Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Border Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .sa-info-box .sa-button:hover' => 'border-color: {{VALUE}};',
 				],
@@ -1299,7 +1334,7 @@ class Info_Box extends Widget_Base {
 		$settings = $this->get_settings_for_display();
 
 		if ( ! empty( $settings['image']['url'] ) ) {
-			$this->add_render_attribute( 'image', 'src', $settings['image']['url'] );
+			$this->add_render_attribute( 'image', 'src', esc_url( $settings['image']['url'] ) );
 			$this->add_render_attribute( 'image', 'alt', Control_Media::get_image_alt( $settings['image'] ) );
 			$this->add_render_attribute( 'image', 'title', Control_Media::get_image_title( $settings['image'] ) );
 
@@ -1317,6 +1352,10 @@ class Info_Box extends Widget_Base {
 			// $html .= '<figure class="elementor-image-box-img">' . $image_html . '</figure>';
 		}
 
+		if ( ! empty( $settings['icon']['value'] ) && 'icon' === $settings['media_type'] && ! empty( $settings['icon_hover_animation'] ) ) {
+			$this->add_render_attribute( 'icon-figure', 'class', 'elementor-animation-' . $settings['icon_hover_animation'] );
+		}
+
 		if ( ! empty( $settings['link']['url'] ) ) {
 			$this->add_render_attribute( 'wrapper-link', 'href', esc_url( $settings['link']['url'] ) );
 
@@ -1330,17 +1369,25 @@ class Info_Box extends Widget_Base {
 		} else {
 			$this->add_render_attribute( 'wrapper-link', 'href', 'javascript:void(0);' );
 		}
+
+		$is_clickable_card = 'yes' === $settings['clickable_card'];
+		$card_tag          = $is_clickable_card ? 'a' : 'div';
 		?>
 
-		<div class="sa-info-box">
-			<?php if ( ! empty( $settings['image']['url'] ) && $settings['media_type'] === 'image' ) : ?>
+		<<?php echo esc_attr( $card_tag ); ?> class="sa-info-box"
+					<?php
+					if ( $is_clickable_card ) :
+						?>
+						<?php $this->print_render_attribute_string( 'wrapper-link' ); ?><?php endif; ?>>
+			<?php if ( ! empty( $settings['image']['url'] ) && 'image' === $settings['media_type'] ) : ?>
 				<figure class="sa-infobox-figure sa-media-image">
 					<?php echo wp_kses_post( Group_Control_Image_Size::get_attachment_image_html( $settings, 'thumbnail', 'image' ) ); ?>
 				</figure>
 			<?php endif; ?>
 
-			<?php if ( ! empty( $settings['icon']['value'] ) && $settings['media_type'] === 'icon' ) : ?>
-				<figure class="sa-infobox-figure sa-icon-wrap sa-text-center">
+			<?php if ( ! empty( $settings['icon']['value'] ) && 'icon' === $settings['media_type'] ) : ?>
+				<?php $this->add_render_attribute( 'icon-figure', 'class', 'sa-infobox-figure sa-icon-wrap sa-text-center' ); ?>
+				<figure <?php $this->print_render_attribute_string( 'icon-figure' ); ?>>
 					<?php
 					Icons_Manager::render_icon( $settings['icon'], [
 						'aria-hidden' => 'true',
@@ -1359,20 +1406,31 @@ class Info_Box extends Widget_Base {
 				if ( ! empty( $settings['title'] ) ) {
 					$this->add_render_attribute( 'title', 'class', 'sa-title sa--title sa--text-title sa-mt-0 sa-fs-4' . $desc_exists );
 					$this->add_inline_editing_attributes( 'title', 'none' );
-					$this->add_link_attributes( 'link_title', $settings['link'] );
-					printf(
-						'<%1$s %2$s><a class="sa-link sa-current-color" %4$s>%3$s</a></%1$s>',
-						esc_attr( Utils::validate_html_tag( $settings['title_tag'] ) ),
-						wp_kses_post( $this->get_render_attribute_string( 'title' ) ),
-						wp_kses_post( $settings['title'] ),
-            // phpcs:ignore
-						$this->get_render_attribute_string( 'link_title' )
-					);
+
+					if ( $is_clickable_card ) {
+						printf(
+							'<%1$s %2$s><span class="sa-link sa-current-color">%3$s</span></%1$s>',
+							esc_attr( Utils::validate_html_tag( $settings['title_tag'] ) ),
+							wp_kses_post( $this->get_render_attribute_string( 'title' ) ),
+							wp_kses_post( $settings['title'] )
+						);
+					} else {
+						// add_link_attributes yields href="" when URL is empty (intentional — differs from button's javascript:void(0) fallback).
+						$this->add_link_attributes( 'link_title', $settings['link'] );
+						printf(
+							'<%1$s %2$s><a class="sa-link sa-current-color" %4$s>%3$s</a></%1$s>',
+							esc_attr( Utils::validate_html_tag( $settings['title_tag'] ) ),
+							wp_kses_post( $this->get_render_attribute_string( 'title' ) ),
+							wp_kses_post( $settings['title'] ),
+							// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+							$this->get_render_attribute_string( 'link_title' )
+						);
+					}
 				}
 
 				if ( ! empty( $settings['desc'] ) ) {
 					$this->add_render_attribute( 'desc', 'class', 'sa-desc sa--text sa--text-info sa-fs-6' );
-					if ( $settings['show_button'] === 'yes' ) {
+					if ( 'yes' === $settings['show_button'] ) {
 						$this->add_render_attribute( 'desc', 'class', 'sa-mb-4 sa-button-exists' );
 					}
 
@@ -1387,23 +1445,25 @@ class Info_Box extends Widget_Base {
 				?>
 
 				<?php
-				if ( $settings['show_button'] === 'yes' ) :
+				if ( 'yes' === $settings['show_button'] ) :
 
 					$this->add_render_attribute( 'btn-link', 'class', 'sa-button sa-d-inline-flex sa-text-decoration-none sa-align-items-center' );
-					$this->add_render_attribute( 'btn-link', 'class', ( $settings['button_full_width'] === 'yes' ) ? ' sa-d-flex' : '' );
+					$this->add_render_attribute( 'btn-link', 'class', ( 'yes' === $settings['button_full_width'] ) ? ' sa-d-flex' : '' );
 
-					if ( ! empty( $settings['link']['url'] ) ) {
-						$this->add_render_attribute( 'btn-link', 'href', esc_url( $settings['link']['url'] ) );
+					if ( ! $is_clickable_card ) {
+						if ( ! empty( $settings['link']['url'] ) ) {
+							$this->add_render_attribute( 'btn-link', 'href', esc_url( $settings['link']['url'] ) );
 
-						if ( $settings['link']['is_external'] ) {
-							$this->add_render_attribute( 'btn-link', 'target', '_blank' );
+							if ( $settings['link']['is_external'] ) {
+								$this->add_render_attribute( 'btn-link', 'target', '_blank' );
+							}
+
+							if ( $settings['link']['nofollow'] ) {
+								$this->add_render_attribute( 'btn-link', 'rel', 'nofollow' );
+							}
+						} else {
+							$this->add_render_attribute( 'btn-link', 'href', 'javascript:void(0);' );
 						}
-
-						if ( $settings['link']['nofollow'] ) {
-							$this->add_render_attribute( 'btn-link', 'rel', 'nofollow' );
-						}
-					} else {
-						$this->add_render_attribute( 'btn-link', 'href', 'javascript:void(0);' );
 					}
 
 					if ( $settings['button_hover_animation'] ) {
@@ -1413,10 +1473,12 @@ class Info_Box extends Widget_Base {
 					if ( ! empty( $settings['button_text'] ) ) :
 						$this->add_render_attribute( 'btn-link', 'class', 'sa-button-icon-' . $settings['button_icon_position'] );
 					endif;
+
+					$btn_tag = $is_clickable_card ? 'span' : 'a';
 					?>
-					<a <?php $this->print_render_attribute_string( 'btn-link' ); ?>>
+					<<?php echo esc_attr( $btn_tag ); ?> <?php $this->print_render_attribute_string( 'btn-link' ); ?>>
 						<?php
-						if ( ! empty( $settings['button_icon']['value'] ) && $settings['button_icon_position'] === 'before' ) {
+						if ( ! empty( $settings['button_icon']['value'] ) && 'before' === $settings['button_icon_position'] ) {
 							echo '<span class="sa-icon-wrap sa-button-icon">';
 							Icons_Manager::render_icon( $settings['button_icon'], [
 								'aria-hidden' => 'true',
@@ -1435,7 +1497,7 @@ class Info_Box extends Widget_Base {
 							);
 
 						endif;
-						if ( ! empty( $settings['button_icon']['value'] ) && $settings['button_icon_position'] === 'after' ) {
+						if ( ! empty( $settings['button_icon']['value'] ) && 'after' === $settings['button_icon_position'] ) {
 							echo '<span class="sa-icon-wrap sa-button-icon">';
 							Icons_Manager::render_icon( $settings['button_icon'], [
 								'aria-hidden' => 'true',
@@ -1443,10 +1505,10 @@ class Info_Box extends Widget_Base {
 							echo '</span>';
 						}
 						?>
-					</a>
+					</<?php echo esc_attr( $btn_tag ); ?>>
 				<?php endif; ?>
 			</div>
-		</div>
+		</<?php echo esc_attr( $card_tag ); ?>>
 
 		<?php
 	}

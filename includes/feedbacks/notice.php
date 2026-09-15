@@ -198,13 +198,13 @@ if ( ! class_exists( 'RC_Reviews_Collector' ) ) {
 				update_option( $allow_name, 'disallow' );
 			}
 
-			if ( $sanitized_status === 'skip' ) {
+			if ( 'skip' === $sanitized_status ) {
 				update_option( $allow_name, 'skip' );
 				/**
 				 * Next schedule date for attempt
 				 */
 				update_option( $date_name, gmdate( 'Y-m-d', strtotime( '+1 month' ) ) );
-			} elseif ( $sanitized_status === 'yes' ) {
+			} elseif ( 'yes' === $sanitized_status ) {
 				update_option( $allow_name, 'yes' );
 			}
 

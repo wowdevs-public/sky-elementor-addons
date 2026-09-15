@@ -8,12 +8,10 @@ class Init {
 	private static $instance = null;
 
 	private function __construct() {
-		$features = get_option( 'sky_addons_inactive_extensions', [] );
-
 		/**
 		 * Duplicator
 		 */
-		if ( ! in_array( 'duplicator', $features ) ) {
+		if ( \Sky_Addons\Managers::is_advanced_feature_active( 'duplicator' ) ) {
 			require_once SKY_ADDONS_INC_PATH . 'features/class-duplicator.php';
 			\Sky_Addons\Features\Duplicator::get_instance();
 		}
@@ -21,9 +19,25 @@ class Init {
 		/**
 		 * SVG Support
 		 */
-		if ( ! in_array( 'svg-support', $features ) ) {
+		if ( \Sky_Addons\Managers::is_advanced_feature_active( 'svg-support' ) ) {
 			require_once SKY_ADDONS_INC_PATH . 'features/class-svg-support.php';
 			\Sky_Addons\Features\Svg_Support::get_instance();
+		}
+
+		/**
+		 * Video Link
+		 */
+		if ( \Sky_Addons\Managers::is_advanced_feature_active( 'video-link' ) ) {
+			require_once SKY_ADDONS_INC_PATH . 'features/class-video-link.php';
+			\Sky_Addons\Features\Video_Link::get_instance();
+		}
+
+		/**
+		 * Menu Duplicator — ships disabled by default.
+		 */
+		if ( \Sky_Addons\Managers::is_advanced_feature_active( 'menu-duplicator' ) ) {
+			require_once SKY_ADDONS_INC_PATH . 'features/class-menu-duplicator.php';
+			\Sky_Addons\Features\Menu_Duplicator::get_instance();
 		}
 	}
 

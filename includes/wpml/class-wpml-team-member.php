@@ -96,7 +96,7 @@ class WPML_Team_Member extends WPML_Module_With_Items {
 				continue;
 			}
 
-			if ( $editor_type === 'LINK' ) {
+			if ( 'LINK' === $editor_type ) {
 				$value = $element['settings'][ $field ];
 				if ( is_array( $value ) && isset( $value['url'] ) ) {
 					$strings[] = new \WPML_PB_String(
@@ -133,7 +133,7 @@ class WPML_Team_Member extends WPML_Module_With_Items {
 
 		foreach ( $regular_fields as $field ) {
 			if ( $this->get_string_name_regular( $node_id, $field, $element['widgetType'] ) === $string->get_name() ) {
-				if ( $field === 'link' ) {
+				if ( 'link' === $field ) {
 					$value = $element['settings'][ $field ];
 					if ( is_array( $value ) ) {
 						$value['url']                  = $string->get_value();

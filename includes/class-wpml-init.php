@@ -51,13 +51,18 @@ class WPML_Init {
 		require_once SKY_ADDONS_INC_PATH . 'wpml/class-wpml-info-box.php';
 		require_once SKY_ADDONS_INC_PATH . 'wpml/class-wpml-list-group.php';
 		require_once SKY_ADDONS_INC_PATH . 'wpml/class-wpml-logo-carousel.php';
+		require_once SKY_ADDONS_INC_PATH . 'wpml/class-wpml-fancy-testimonial.php';
 		require_once SKY_ADDONS_INC_PATH . 'wpml/class-wpml-number.php';
 		require_once SKY_ADDONS_INC_PATH . 'wpml/class-wpml-pdf-viewer.php';
 		require_once SKY_ADDONS_INC_PATH . 'wpml/class-wpml-review.php';
+		require_once SKY_ADDONS_INC_PATH . 'wpml/class-wpml-review-carousel.php';
 		require_once SKY_ADDONS_INC_PATH . 'wpml/class-wpml-social-icons.php';
 		require_once SKY_ADDONS_INC_PATH . 'wpml/class-wpml-step-flow.php';
+		require_once SKY_ADDONS_INC_PATH . 'wpml/class-wpml-table.php';
+		require_once SKY_ADDONS_INC_PATH . 'wpml/class-wpml-table-columns.php';
 		require_once SKY_ADDONS_INC_PATH . 'wpml/class-wpml-team-member.php';
 		require_once SKY_ADDONS_INC_PATH . 'wpml/class-wpml-testimonial.php';
+		require_once SKY_ADDONS_INC_PATH . 'wpml/class-wpml-testimonial-carousel.php';
 	}
 
 	/**
@@ -182,6 +187,23 @@ class WPML_Init {
 			'integration-class' => __NAMESPACE__ . '\\WPML_Step_Flow',
 		];
 
+		// Two nodes for one widget: an integration class can only declare a
+		// single items field, and the table has a head and a body repeater.
+		$nodes_to_translate['sky-table-rows'] = [
+			'conditions'        => [ 'widgetType' => 'sky-table' ],
+			'fields'            => [
+				'table_caption'      => esc_html__( 'Table: Caption', 'sky-elementor-addons' ),
+				'search_placeholder' => esc_html__( 'Table: Search Placeholder', 'sky-elementor-addons' ),
+			],
+			'integration-class' => __NAMESPACE__ . '\\WPML_Table',
+		];
+
+		$nodes_to_translate['sky-table-columns'] = [
+			'conditions'        => [ 'widgetType' => 'sky-table' ],
+			'fields'            => [],
+			'integration-class' => __NAMESPACE__ . '\\WPML_Table_Columns',
+		];
+
 		// Team Member
 		$nodes_to_translate['sky-team-member'] = [
 			'conditions'        => [ 'widgetType' => 'sky-team-member' ],
@@ -194,6 +216,27 @@ class WPML_Init {
 			'conditions'        => [ 'widgetType' => 'sky-testimonial' ],
 			'fields'            => [],
 			'integration-class' => __NAMESPACE__ . '\\WPML_Testimonial',
+		];
+
+		// Fancy Testimonial
+		$nodes_to_translate['sky-fancy-testimonial'] = [
+			'conditions'        => [ 'widgetType' => 'sky-fancy-testimonial' ],
+			'fields'            => [],
+			'integration-class' => __NAMESPACE__ . '\\WPML_Fancy_Testimonial',
+		];
+
+		// Review Carousel
+		$nodes_to_translate['sky-review-carousel'] = [
+			'conditions'        => [ 'widgetType' => 'sky-review-carousel' ],
+			'fields'            => [],
+			'integration-class' => __NAMESPACE__ . '\\WPML_Review_Carousel',
+		];
+
+		// Testimonial Carousel
+		$nodes_to_translate['sky-testimonial-carousel'] = [
+			'conditions'        => [ 'widgetType' => 'sky-testimonial-carousel' ],
+			'fields'            => [],
+			'integration-class' => __NAMESPACE__ . '\\WPML_Testimonial_Carousel',
 		];
 
 		// Logo Grid (using logo carousel class)

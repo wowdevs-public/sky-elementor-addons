@@ -3,8 +3,8 @@
  * Plugin Name: Sky Addons for Elementor
  * Plugin URI: https://skyaddons.com/
  * Description: <a href="https://skyaddons.com/">Sky Addons for Elementor</a> offers a range of advanced and engaging widgets for your website. With features like Free Elementor Templates Library, card, advanced accordion, advanced slider, advanced skill bars, dual button, image compare, info box, list group, logo grid, team member, floating effects  and many more, it's easy to find what you're looking for. Install it today to create a better web!
- * Version: 3.3.3
- * Requires at least: 5.0
+ * Version: 4.0.0
+ * Requires at least: 6.8
  * Requires PHP: 7.4
  * Author: wowDevs
  * Author URI: https://wowdevs.com/
@@ -13,7 +13,7 @@
  * License: GPLv3 or later
  * License URI: https://opensource.org/licenses/GPL-3.0
  * Elementor requires at least: 3.0.0
- * Elementor tested up to: 4.0.4
+ * Elementor tested up to: 4.2
  *
  * @package Sky_Addons
  */
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SKY_ADDONS_VERSION', '3.3.3' );
+define( 'SKY_ADDONS_VERSION', '4.0.0' );
 define( 'SKY_ADDONS_SLUG', 'sky-addons' );
 
 define( 'SKY_ADDONS__FILE__', __FILE__ );
@@ -75,13 +75,21 @@ function sky_addons_load_plugin() {
 
 	load_plugin_textdomain( 'sky-elementor-addons' );
 
+	/**
+	 * Helper functions — always available, no Elementor dependency at load time.
+	 */
+	require_once __DIR__ . '/includes/functions.php';
+
+	/**
+	 * Asset Manager (optimizer) subsystem — single entry point. Defines the
+	 * asset-mode helpers and loads the Optimizer class early (admin-safe, no
+	 * Elementor dependency). The engine is instantiated later in plugin.php.
+	 */
+	require_once __DIR__ . '/includes/optimizer/index.php';
+
 	// Core always boots: admin menu, dashboard REST API, custom scripts CPT.
 	require_once SKY_ADDONS_PATH . 'class-core.php';
 	\Sky_Addons\Core::instance();
-
-	// plugin.php is always loaded: it defines the class and helper functions.
-	// sky_elementor_addons() at the bottom of that file is guarded by did_action('elementor/loaded').
-	require_once SKY_ADDONS_PATH . 'plugin.php';
 
 	if ( ! did_action( 'elementor/loaded' ) ) {
 		add_action( 'admin_notices', 'sky_addons_fail_load' );
@@ -93,6 +101,10 @@ function sky_addons_load_plugin() {
 		add_action( 'admin_notices', 'sky_addons_fail_load_out_of_date' );
 		return;
 	}
+
+	// plugin.php is always loaded: it defines the class and helper functions.
+	require_once SKY_ADDONS_PATH . 'plugin.php';
+	\Sky_Addons\Sky_Addons_Plugin::instance();
 }
 
 add_action( 'plugins_loaded', 'sky_addons_load_plugin' );
@@ -244,44 +256,4 @@ if ( ! function_exists( 'sky_addons_rc_plugin' ) ) {
 		);
 	}
 	add_action( 'admin_init', 'sky_addons_rc_plugin' );
-}
-
-/**
- * Will be remove this feature after March 2025
- *
- * We are facing a little bit _WP_Dependency issue and that's why we are using this feature.
- */
-if ( ! function_exists( 'sky_addons_pro_compare_version' ) ) {
-	function sky_addons_pro_compare_version( $target_version ) {
-		// Plugin file path
-		$plugin_file = 'sky-elementor-addons-pro/sky-elementor-addons-pro.php';
-
-		// Get all installed plugins
-		$all_plugins = get_plugins();
-
-		if ( isset( $all_plugins[ $plugin_file ] ) ) {
-			// Get the current version of the plugin
-			$current_version = $all_plugins[ $plugin_file ]['Version'];
-
-			// Compare versions
-			if ( version_compare( $current_version, $target_version, '<' ) ) {
-				/**
-				 * Plugin is older than
-				 */
-				require_once SKY_ADDONS_INC_PATH . 'pro-solutions/solutions.php';
-			} elseif ( version_compare( $current_version, $target_version, '>' ) ) {
-				/**
-				 * Plugin is newer than
-				 */
-			} else {
-				/**
-				 * Plugin is the same version
-				 */
-			}
-		}
-
-		return 'Plugin is not installed.';
-	}
-
-	sky_addons_pro_compare_version( '2.1.1' );
 }

@@ -11,7 +11,7 @@ use Elementor\Core\Kits\Documents\Tabs\Global_Typography;
 use Elementor\Widget_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 class GravityForms extends Widget_Base {
@@ -41,7 +41,11 @@ class GravityForms extends Widget_Base {
 	}
 
 	public function is_reload_preview_required() {
-		return true;
+		return false;
+	}
+
+	public function has_widget_inner_wrapper(): bool {
+		return ! \Elementor\Plugin::$instance->experiments->is_feature_active( 'e_optimized_markup' );
 	}
 
 	protected function register_controls() {
@@ -51,7 +55,7 @@ class GravityForms extends Widget_Base {
 			[
 				'label' => sky_addons_is_gravityforms_activated() ? __( 'Gravity Forms', 'sky-elementor-addons' ) : __( 'Missing Notice',
 				'sky-elementor-addons' ),
-				'tab'   => Controls_Manager::TAB_CONTENT,
+				'tab' => Controls_Manager::TAB_CONTENT,
 			]
 		);
 
@@ -62,6 +66,7 @@ class GravityForms extends Widget_Base {
 				[
 					'type'            => Controls_Manager::RAW_HTML,
 					'raw'             => sprintf(
+						/* translators: %1$s: current user's display name. */
 						__( 'Hello %1$s, looks like Gravity Forms is missing in your site. Please install/activate Gravity Forms. Make sure to refresh this page after installation or activation.', 'sky-elementor-addons' ),
 						sky_addons_get_current_user_display_name()
 					),
@@ -77,7 +82,7 @@ class GravityForms extends Widget_Base {
 					'label'       => esc_html__( 'Form Selection', 'sky-elementor-addons' ),
 					'type'        => Controls_Manager::SELECT,
 					'label_block' => true,
-					'options'     => [ '' => __( '', 'sky-elementor-addons' ) ] + \sky_addons_get_gravity_forms(),
+					'options'     => [ '' => '' ] + \sky_addons_get_gravity_forms(),
 				]
 			);
 
@@ -115,6 +120,10 @@ class GravityForms extends Widget_Base {
 		$this->__form_fields_submit_style_controls();
 		$this->__form_fields_break_style_controls();
 		$this->__form_fields_list_style_controls();
+		$this->__form_container_style_controls();
+		$this->__form_fields_error_style_controls();
+		$this->__form_consent_style_controls();
+		$this->__form_rich_text_style_controls();
 	}
 
 	protected function __form_fields_style_controls() {
@@ -134,7 +143,7 @@ class GravityForms extends Widget_Base {
 				'type'       => Controls_Manager::SLIDER,
 				'size_units' => [ 'px', '%' ],
 				'range'      => [
-					'%' => [
+					'%'  => [
 						'min' => 1,
 						'max' => 100,
 					],
@@ -170,8 +179,7 @@ class GravityForms extends Widget_Base {
 				'size_units' => [ 'px', '%' ],
 				'selectors'  => [
 					'{{WRAPPER}} .gform_body .gfield .ginput_container:not(.ginput_container_fileupload) > input:not(.ginput_quantity)' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-					'{{WRAPPER}} .gform_body .gfield .ginput_container.ginput_complex input' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-					'{{WRAPPER}} .gform_body .gfield .ginput_container.ginput_complex input:not([type=radio]):not([type=checkbox]):not([type=submit]):not([type=button]):not([type=image]):not([type=file])' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .gform_body .gfield .ginput_container.ginput_complex > input:not([type=radio]):not([type=checkbox]):not([type=submit]):not([type=button]):not([type=image]):not([type=file])' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 					'{{WRAPPER}} .gform_body .gfield textarea' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
 			]
@@ -206,8 +214,8 @@ class GravityForms extends Widget_Base {
 		$this->add_control(
 			'field_textcolor',
 			[
-				'label'     => esc_html__( 'Field Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Field Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .gfield .ginput_container > input' => 'color: {{VALUE}};',
 					'{{WRAPPER}} .gfield .ginput_container.ginput_complex input' => 'color: {{VALUE}};',
@@ -222,8 +230,8 @@ class GravityForms extends Widget_Base {
 		$this->add_control(
 			'field_placeholder_color',
 			[
-				'label'     => esc_html__( 'Placeholder Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Placeholder Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} ::-webkit-input-placeholder' => 'color: {{VALUE}};',
 					'{{WRAPPER}} ::-moz-placeholder'      => 'color: {{VALUE}};',
@@ -244,7 +252,7 @@ class GravityForms extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Border::get_type(),
 			[
-				'name'     => 'field_border',
+				'name' => 'field_border',
 				'selector' => '{{WRAPPER}} .gfield .ginput_container:not(.ginput_container_fileupload) > input,
 				{{WRAPPER}} .gfield .ginput_complex input,
 				{{WRAPPER}} .gfield .ginput_container_address input,
@@ -257,7 +265,7 @@ class GravityForms extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Box_Shadow::get_type(),
 			[
-				'name'     => 'field_box_shadow',
+				'name' => 'field_box_shadow',
 				'selector' => '{{WRAPPER}} .gfield .ginput_container:not(.ginput_container_fileupload) > input,
 				{{WRAPPER}} .gfield .ginput_complex input,
 				{{WRAPPER}} .gfield .ginput_container_address input,
@@ -287,7 +295,7 @@ class GravityForms extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Border::get_type(),
 			[
-				'name'     => 'field_focus_border',
+				'name' => 'field_focus_border',
 				'selector' => '{{WRAPPER}} .gfield .ginput_container > input:focus,
 				{{WRAPPER}} .gfield .ginput_complex input:focus,
 				{{WRAPPER}} .gfield .ginput_container_address input:focus,
@@ -299,7 +307,7 @@ class GravityForms extends Widget_Base {
 		$this->add_group_control(
 			Group_Control_Box_Shadow::get_type(),
 			[
-				'name'     => 'field_focus_box_shadow',
+				'name' => 'field_focus_box_shadow',
 				'selector' => '{{WRAPPER}} .gfield .ginput_container > input:focus,
 				{{WRAPPER}} .gfield .ginput_complex input:focus,
 				{{WRAPPER}} .gfield .ginput_container_address input:focus,
@@ -398,8 +406,8 @@ class GravityForms extends Widget_Base {
 		$this->add_control(
 			'label_color',
 			[
-				'label'     => esc_html__( 'Label Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Label Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .gform_body .gfield .gfield_label' => 'color: {{VALUE}}',
 					'{{WRAPPER}} .gform_body .gfield .ginput_complex label' => 'color: {{VALUE}}',
@@ -411,8 +419,8 @@ class GravityForms extends Widget_Base {
 		$this->add_control(
 			'sub_label_color',
 			[
-				'label'     => esc_html__( 'Sub-label Text Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Sub-label Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .gform_body .gfield .gfield_description' => 'color: {{VALUE}}',
 				],
@@ -422,8 +430,8 @@ class GravityForms extends Widget_Base {
 		$this->add_control(
 			'requered_label',
 			[
-				'label'     => esc_html__( 'Required Label Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Required Label Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .gform_body .gfield .gfield_label .gfield_required' => 'color: {{VALUE}}',
 				],
@@ -469,7 +477,7 @@ class GravityForms extends Widget_Base {
 					'size' => 100,
 				],
 				'range'      => [
-					'%' => [
+					'%'  => [
 						'min' => 1,
 						'max' => 100,
 					],
@@ -488,10 +496,10 @@ class GravityForms extends Widget_Base {
 		$this->add_control(
 			'submit_btn_position',
 			[
-				'label'                => esc_html__( 'Submit Button Position', 'sky-elementor-addons' ),
-				'type'                 => Controls_Manager::CHOOSE,
-				'options'              => [
-					'left' => [
+				'label'   => esc_html__( 'Submit Button Position', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::CHOOSE,
+				'options' => [
+					'left'   => [
 						'title' => __( 'Left', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-left',
 					],
@@ -499,23 +507,23 @@ class GravityForms extends Widget_Base {
 						'title' => __( 'Center', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-center',
 					],
-					'right' => [
+					'right'  => [
 						'title' => __( 'Right', 'sky-elementor-addons' ),
 						'icon'  => 'eicon-h-align-right',
 					],
 				],
-				'condition'            => [
+				'condition' => [
 					'submit_btn_width' => '',
 				],
-				'default'              => 'left',
+				'default' => 'left',
 				'selectors_dictionary' => [
 					'left'   => 'justify-content: flex-start; text-align: left;',
 					'center' => 'justify-content: center; text-align: center;',
 					'right'  => 'justify-content: flex-end; text-align: right;',
 				],
-				'selectors'            => [
-					'{{WRAPPER}} .gform_wrapper .gform_footer' => '{{Value}};',
-					'{{WRAPPER}}.elementor-widget-sky-gravity-forms .gform_wrapper .gform_footer' => '{{Value}};',
+				'selectors' => [
+					'{{WRAPPER}} .gform_wrapper .gform_footer' => '{{VALUE}};',
+					'{{WRAPPER}}.elementor-widget-sky-gravity-forms .gform_wrapper .gform_footer' => '{{VALUE}};',
 				],
 			]
 		);
@@ -598,9 +606,9 @@ class GravityForms extends Widget_Base {
 		$this->add_control(
 			'submit_color',
 			[
-				'label'     => esc_html__( 'Submit Button Text Color (Normal)', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '',
+				'label'   => esc_html__( 'Submit Button Text Color (Normal)', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::COLOR,
+				'default' => '',
 				'selectors' => [
 					'{{WRAPPER}} .gform_wrapper .gform_button' => 'color: {{VALUE}};',
 					'{{WRAPPER}}.elementor-widget-sky-gravity-forms .gform_wrapper input[type="submit"].gform_button' => 'color: {{VALUE}};',
@@ -630,8 +638,8 @@ class GravityForms extends Widget_Base {
 		$this->add_control(
 			'submit_hover_color',
 			[
-				'label'     => esc_html__( 'Submit Button Text Color (Hover)', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Submit Button Text Color (Hover)', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .gform_wrapper .gform_button:hover' => 'color: {{VALUE}};',
 					'{{WRAPPER}} .gform_wrapper .gform_button:focus' => 'color: {{VALUE}};',
@@ -654,8 +662,8 @@ class GravityForms extends Widget_Base {
 		$this->add_control(
 			'submit_hover_border_color',
 			[
-				'label'     => esc_html__( 'Submit Button Border Color (Hover)', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Submit Button Border Color (Hover)', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .gform_wrapper .gform_button:hover' => 'border-color: {{VALUE}};',
 					'{{WRAPPER}} .gform_wrapper .gform_button:focus' => 'border-color: {{VALUE}};',
@@ -724,8 +732,8 @@ class GravityForms extends Widget_Base {
 		$this->add_control(
 			'section_break_title_color',
 			[
-				'label'     => esc_html__( 'Section Break Title Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Section Break Title Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .gsection .gsection_title' => 'color: {{VALUE}};',
 				],
@@ -744,8 +752,8 @@ class GravityForms extends Widget_Base {
 		$this->add_control(
 			'section_break_description_color',
 			[
-				'label'     => esc_html__( 'Section Break Description Color', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Section Break Description Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .gsection .gsection_description' => 'color: {{VALUE}};',
 				],
@@ -841,9 +849,9 @@ class GravityForms extends Widget_Base {
 		$this->add_control(
 			'page_break_color',
 			[
-				'label'     => esc_html__( 'Page Break Button Text Color (Normal)', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
-				'default'   => '',
+				'label'   => esc_html__( 'Page Break Button Text Color (Normal)', 'sky-elementor-addons' ),
+				'type'    => Controls_Manager::COLOR,
+				'default' => '',
 				'selectors' => [
 					'{{WRAPPER}} .gform_next_button.button' => 'color: {{VALUE}};',
 					'{{WRAPPER}} .gform_previous_button.button' => 'color: {{VALUE}};',
@@ -873,8 +881,8 @@ class GravityForms extends Widget_Base {
 		$this->add_control(
 			'page_break_hover_color',
 			[
-				'label'     => esc_html__( 'Page Break Button Text Color (Hover)', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Page Break Button Text Color (Hover)', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .gform_next_button.button:hover' => 'color: {{VALUE}};',
 					'{{WRAPPER}} .gform_next_button.button:focus' => 'color: {{VALUE}};',
@@ -897,8 +905,8 @@ class GravityForms extends Widget_Base {
 		$this->add_control(
 			'page_break_hover_border_color',
 			[
-				'label'     => esc_html__( 'Page Break Button Border Color (Hover)', 'sky-elementor-addons' ),
-				'type'      => Controls_Manager::COLOR,
+				'label' => esc_html__( 'Page Break Button Border Color (Hover)', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
 				'selectors' => [
 					'{{WRAPPER}} .gform_next_button.button:hover' => 'border-color: {{VALUE}};',
 					'{{WRAPPER}} .gform_next_button.button:focus' => 'border-color: {{VALUE}};',
@@ -969,6 +977,506 @@ class GravityForms extends Widget_Base {
 		$this->end_controls_section();
 	}
 
+	protected function __form_container_style_controls() {
+
+		$this->start_controls_section(
+			'form_container_section',
+			[
+				'label' => __( 'Form Container', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			]
+		);
+
+		$this->add_responsive_control(
+			'container_padding',
+			[
+				'label'      => esc_html__( 'Padding', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .sa-gravity-form-wrapper' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'container_margin',
+			[
+				'label'      => esc_html__( 'Margin', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .sa-gravity-form-wrapper' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
+			[
+				'name'     => 'container_background',
+				'label'    => __( 'Background', 'sky-elementor-addons' ),
+				'types'    => [ 'classic', 'gradient' ],
+				'selector' => '{{WRAPPER}} .sa-gravity-form-wrapper',
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			[
+				'name'     => 'container_border',
+				'selector' => '{{WRAPPER}} .sa-gravity-form-wrapper',
+			]
+		);
+
+		$this->add_responsive_control(
+			'container_border_radius',
+			[
+				'label'      => esc_html__( 'Border Radius', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .sa-gravity-form-wrapper' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			[
+				'name'     => 'container_box_shadow',
+				'label'    => esc_html__( 'Box Shadow', 'sky-elementor-addons' ),
+				'selector' => '{{WRAPPER}} .sa-gravity-form-wrapper',
+			]
+		);
+
+		$this->end_controls_section();
+	}
+
+	protected function __form_fields_error_style_controls() {
+
+		$this->start_controls_section(
+			'form_error_section',
+			[
+				'label' => __( 'Validation Error', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			[
+				'name'  => 'error_field_border',
+				'label' => esc_html__( 'Error Field Border', 'sky-elementor-addons' ),
+				'selector' => '{{WRAPPER}} .gfield.gfield_error .ginput_container,
+					{{WRAPPER}} .gfield.gfield_error input:not([type=submit]),
+					{{WRAPPER}} .gfield.gfield_error textarea,
+					{{WRAPPER}} .gfield.gfield_error select',
+			]
+		);
+
+		$this->add_control(
+			'error_field_text_color',
+			[
+				'label' => esc_html__( 'Error Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .gfield.gfield_error .ginput_container' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .gfield.gfield_error .validation_message' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
+			[
+				'name'  => 'error_field_background',
+				'label' => esc_html__( 'Error Field Background', 'sky-elementor-addons' ),
+				'types' => [ 'classic', 'gradient' ],
+				'selector' => '{{WRAPPER}} .gfield.gfield_error .ginput_container,
+					{{WRAPPER}} .gfield.gfield_error input:not([type=submit]),
+					{{WRAPPER}} .gfield.gfield_error textarea,
+					{{WRAPPER}} .gfield.gfield_error select',
+			]
+		);
+
+		$this->add_control(
+			'error_label_color',
+			[
+				'label'     => esc_html__( 'Error Label Color', 'sky-elementor-addons' ),
+				'type'      => Controls_Manager::COLOR,
+				'separator' => 'before',
+				'selectors' => [
+					'{{WRAPPER}} .gfield.gfield_error .gfield_label' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'error_message_color',
+			[
+				'label' => esc_html__( 'Error Message Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .validation_message' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .gfield_error .gfield_required' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'error_message_padding',
+			[
+				'label'      => esc_html__( 'Error Message Padding', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .validation_message' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			[
+				'name'     => 'error_message_typography',
+				'label'    => esc_html__( 'Error Message Typography', 'sky-elementor-addons' ),
+				'selector' => '{{WRAPPER}} .validation_message',
+				'global'   => [
+					'default' => Global_Typography::TYPOGRAPHY_TEXT,
+				],
+			]
+		);
+
+		$this->add_control(
+			'form_error_heading',
+			[
+				'label'     => __( 'Form Error', 'sky-elementor-addons' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			]
+		);
+
+		$this->add_control(
+			'form_error_text_color',
+			[
+				'label' => esc_html__( 'Form Error Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .gform_wrapper .validation_error' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'form_error_bg_color',
+			[
+				'label' => esc_html__( 'Form Error Background Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .gform_wrapper .validation_error' => 'background-color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			[
+				'name'     => 'form_error_border',
+				'selector' => '{{WRAPPER}} .gform_wrapper .validation_error',
+			]
+		);
+
+		$this->add_responsive_control(
+			'form_error_border_radius',
+			[
+				'label'      => esc_html__( 'Form Error Border Radius', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .gform_wrapper .validation_error' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'form_error_padding',
+			[
+				'label'      => esc_html__( 'Form Error Padding', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .gform_wrapper .validation_error' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->end_controls_section();
+	}
+
+	protected function __form_consent_style_controls() {
+
+		$this->start_controls_section(
+			'form_consent_section',
+			[
+				'label' => __( 'Consent / Privacy', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			]
+		);
+
+		$this->add_responsive_control(
+			'consent_field_padding',
+			[
+				'label'      => esc_html__( 'Consent Field Padding', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .gfield.gfield--type-consent' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'consent_field_margin',
+			[
+				'label'      => esc_html__( 'Consent Field Margin', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .gfield.gfield--type-consent' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			[
+				'name'     => 'consent_border',
+				'label'    => esc_html__( 'Consent Border', 'sky-elementor-addons' ),
+				'selector' => '{{WRAPPER}} .gfield.gfield--type-consent',
+			]
+		);
+
+		$this->add_responsive_control(
+			'consent_border_radius',
+			[
+				'label'      => esc_html__( 'Consent Border Radius', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .gfield.gfield--type-consent' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			[
+				'name'     => 'consent_box_shadow',
+				'label'    => esc_html__( 'Consent Box Shadow', 'sky-elementor-addons' ),
+				'selector' => '{{WRAPPER}} .gfield.gfield--type-consent',
+			]
+		);
+
+		$this->add_control(
+			'consent_label_heading',
+			[
+				'label'     => __( 'Consent Label', 'sky-elementor-addons' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			[
+				'name'  => 'consent_label_typography',
+				'label' => esc_html__( 'Consent Label Typography', 'sky-elementor-addons' ),
+				'selector' => '{{WRAPPER}} .gfield.gfield--type-consent .gfield_label,
+					{{WRAPPER}} .gfield.gfield--type-consent .ginput_container_consent label',
+				'global' => [
+					'default' => Global_Typography::TYPOGRAPHY_TEXT,
+				],
+			]
+		);
+
+		$this->add_control(
+			'consent_label_color',
+			[
+				'label' => esc_html__( 'Consent Label Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .gfield.gfield--type-consent .gfield_label' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .gfield.gfield--type-consent .ginput_container_consent label' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'consent_text_color',
+			[
+				'label' => esc_html__( 'Consent Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .gfield.gfield--type-consent .ginput_container_consent' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
+			[
+				'name'     => 'consent_background',
+				'label'    => __( 'Consent Background', 'sky-elementor-addons' ),
+				'types'    => [ 'classic', 'gradient' ],
+				'selector' => '{{WRAPPER}} .gfield.gfield--type-consent',
+			]
+		);
+
+		$this->end_controls_section();
+	}
+
+	protected function __form_rich_text_style_controls() {
+
+		$this->start_controls_section(
+			'form_rich_text_section',
+			[
+				'label' => __( 'Rich Text / HTML', 'sky-elementor-addons' ) . sky_addons_label_badge( 'new', '4.5.0' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			]
+		);
+
+		$this->add_responsive_control(
+			'rich_text_padding',
+			[
+				'label'      => esc_html__( 'Rich Text Padding', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .gfield_html' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_responsive_control(
+			'rich_text_margin',
+			[
+				'label'      => esc_html__( 'Rich Text Margin', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .gfield_html' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Background::get_type(),
+			[
+				'name'     => 'rich_text_background',
+				'label'    => __( 'Rich Text Background', 'sky-elementor-addons' ),
+				'types'    => [ 'classic', 'gradient' ],
+				'selector' => '{{WRAPPER}} .gfield_html',
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Border::get_type(),
+			[
+				'name'     => 'rich_text_border',
+				'label'    => esc_html__( 'Rich Text Border', 'sky-elementor-addons' ),
+				'selector' => '{{WRAPPER}} .gfield_html',
+			]
+		);
+
+		$this->add_responsive_control(
+			'rich_text_border_radius',
+			[
+				'label'      => esc_html__( 'Rich Text Border Radius', 'sky-elementor-addons' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => [ 'px', '%' ],
+				'selectors'  => [
+					'{{WRAPPER}} .gfield_html' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				],
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			[
+				'name'     => 'rich_text_box_shadow',
+				'label'    => esc_html__( 'Rich Text Box Shadow', 'sky-elementor-addons' ),
+				'selector' => '{{WRAPPER}} .gfield_html',
+			]
+		);
+
+		$this->add_control(
+			'rich_text_label_heading',
+			[
+				'label'     => __( 'Rich Text Label', 'sky-elementor-addons' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			[
+				'name'     => 'rich_text_label_typography',
+				'label'    => esc_html__( 'Rich Text Label Typography', 'sky-elementor-addons' ),
+				'selector' => '{{WRAPPER}} .gfield_html .gfield-label',
+				'global'   => [
+					'default' => Global_Typography::TYPOGRAPHY_TEXT,
+				],
+			]
+		);
+
+		$this->add_control(
+			'rich_text_label_color',
+			[
+				'label' => esc_html__( 'Rich Text Label Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .gfield_html .gfield-label' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->add_control(
+			'rich_text_heading',
+			[
+				'label'     => __( 'Rich Text Content', 'sky-elementor-addons' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+			]
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			[
+				'name'     => 'rich_text_typography',
+				'label'    => esc_html__( 'Rich Text Typography', 'sky-elementor-addons' ),
+				'selector' => '{{WRAPPER}} .gfield_html',
+				'global'   => [
+					'default' => Global_Typography::TYPOGRAPHY_TEXT,
+				],
+			]
+		);
+
+		$this->add_control(
+			'rich_text_color',
+			[
+				'label' => esc_html__( 'Rich Text Color', 'sky-elementor-addons' ),
+				'type'  => Controls_Manager::COLOR,
+				'selectors' => [
+					'{{WRAPPER}} .gfield_html' => 'color: {{VALUE}};',
+				],
+			]
+		);
+
+		$this->end_controls_section();
+	}
+
 	protected function render() {
 		if ( ! sky_addons_is_gravityforms_activated() ) {
 			sky_addons_show_plugin_missing_alert( __( 'Gravity Forms', 'sky-elementor-addons' ) );
@@ -976,12 +1484,34 @@ class GravityForms extends Widget_Base {
 		}
 
 		$settings = $this->get_settings_for_display();
-		$ajax = false;
-		if ( 'yes' === $settings['ajax'] ) {
-			$ajax = true;
+
+		if ( empty( $settings['form_id'] ) ) {
+			?>
+			<div class="elementor-alert elementor-alert-warning">
+				<?php esc_html_e( 'Please select a Gravity Form to display.', 'sky-elementor-addons' ); ?>
+			</div>
+			<?php
+			return;
 		}
-		if ( ! empty( $settings['form_id'] ) ) {
+
+		$ajax = ( 'yes' === $settings['ajax'] );
+
+		$this->add_render_attribute(
+			'gravity-form-wrapper',
+			[
+				'class' => 'sa-gravity-form-wrapper',
+			]
+		);
+
+		?>
+		<div <?php $this->print_render_attribute_string( 'gravity-form-wrapper' ); ?>>
+			<?php
+			ob_start();
 			gravity_form( $settings['form_id'], $settings['form_title_show'], true, false, null, $ajax );
-		}
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Form markup from Gravity Forms, escaped by that plugin; wp_kses_post() would strip the form fields.
+			echo ob_get_clean();
+			?>
+		</div>
+		<?php
 	}
 }

@@ -1,16 +1,19 @@
 <?php
+/**
+ * Sky Addons Theme Builder — Archive template.
+ *
+ * Swapped in by Theme_Builder::set_builder_template() when a matching
+ * "archive" template is enabled. Copy this file into your theme only if you
+ * need markup around the builder content; the content itself is rendered by
+ * Theme_Builder::render_template().
+ *
+ * @package Sky_Addons
+ */
 
 defined( 'ABSPATH' ) || exit;
 
 get_header();
 
-if ( class_exists( 'Elementor\Plugin' ) ) {
-	$templates = \Sky_Addons\ThemeBuilder\Theme_Builder::template_ids();
-	if ( isset( $templates['archive'] ) && ! empty( $templates['archive'] ) ) {
-    //phpcs:ignore
-		echo wowdevs_render_elementor_content( $templates['archive'] );
-	}
-}
-
+\Sky_Addons\ThemeBuilder\Theme_Builder::render_template( 'archive' );
 
 get_footer();

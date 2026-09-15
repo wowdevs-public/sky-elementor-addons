@@ -70,7 +70,7 @@ class Module extends Module_Base {
 							'from' => 0,
 							'to'   => 10,
 						],
-						'unit'  => 'px',
+						'unit' => 'px',
 					],
 					'range'              => [
 						'px' => [
@@ -103,7 +103,7 @@ class Module extends Module_Base {
 							'from' => 0,
 							'to'   => 10,
 						],
-						'unit'  => 'px',
+						'unit' => 'px',
 					],
 					'range'              => [
 						'px' => [
@@ -195,12 +195,16 @@ class Module extends Module_Base {
 				[
 					'label'              => esc_html__( 'Rotate X', 'sky-elementor-addons' ),
 					'type'               => Controls_Manager::SLIDER,
+					// Flat by default. All three rotate axes used to default to 0 -> 45, so
+					// switching Rotate on for a small tilt animated a 45deg tumble on X, Y and Z
+					// at once. Rotate Z keeps the 45deg default as the plain in-plane spin; X and
+					// Y stay put until the user asks for them.
 					'default'            => [
 						'sizes' => [
 							'from' => 0,
-							'to'   => 45,
+							'to'   => 0,
 						],
-						'unit'  => 'deg',
+						'unit' => 'deg',
 					],
 					'range'              => [
 						'deg' => [
@@ -228,12 +232,13 @@ class Module extends Module_Base {
 				[
 					'label'              => esc_html__( 'Rotate Y', 'sky-elementor-addons' ),
 					'type'               => Controls_Manager::SLIDER,
+					// Flat by default — see the note on Rotate X.
 					'default'            => [
 						'sizes' => [
 							'from' => 0,
-							'to'   => 45,
+							'to'   => 0,
 						],
-						'unit'  => 'deg',
+						'unit' => 'deg',
 					],
 					'range'              => [
 						'deg' => [
@@ -266,7 +271,7 @@ class Module extends Module_Base {
 							'from' => 0,
 							'to'   => 45,
 						],
-						'unit'  => 'deg',
+						'unit' => 'deg',
 					],
 					'range'              => [
 						'deg' => [
@@ -364,7 +369,7 @@ class Module extends Module_Base {
 							'from' => 1,
 							'to'   => 1.5,
 						],
-						'unit'  => 'px',
+						'unit' => 'px',
 					],
 					'range'              => [
 						'px' => [
@@ -398,7 +403,7 @@ class Module extends Module_Base {
 							'from' => 1,
 							'to'   => 1.5,
 						],
-						'unit'  => 'px',
+						'unit' => 'px',
 					],
 					'range'              => [
 						'px' => [
@@ -492,15 +497,19 @@ class Module extends Module_Base {
 				[
 					'label'              => esc_html__( 'Skew X', 'sky-elementor-addons' ),
 					'type'               => Controls_Manager::SLIDER,
+					// Skew is an angle. Both skew controls shipped Scale's default — 1 -> 1.5 on
+					// a px unit — so enabling Skew moved the element 1deg to 1.5deg and read as a
+					// dead control. 0 -> 10deg is a skew you can actually see; Skew Y stays flat
+					// so only the axis asked for moves.
 					'default'            => [
 						'sizes' => [
-							'from' => 1,
-							'to'   => 1.5,
+							'from' => 0,
+							'to'   => 10,
 						],
-						'unit'  => 'px',
+						'unit' => 'deg',
 					],
 					'range'              => [
-						'px' => [
+						'deg' => [
 							'min' => -180,
 							'max' => 180,
 						],
@@ -525,15 +534,16 @@ class Module extends Module_Base {
 				[
 					'label'              => esc_html__( 'Skew Y', 'sky-elementor-addons' ),
 					'type'               => Controls_Manager::SLIDER,
+					// Flat by default — see the note on Skew X.
 					'default'            => [
 						'sizes' => [
-							'from' => 1,
-							'to'   => 1.5,
+							'from' => 0,
+							'to'   => 0,
 						],
-						'unit'  => 'px',
+						'unit' => 'deg',
 					],
 					'range'              => [
-						'px' => [
+						'deg' => [
 							'min' => -180,
 							'max' => 180,
 						],
@@ -651,6 +661,7 @@ class Module extends Module_Base {
 			$settings = $widget->get_settings_for_display();
 		if ( 'yes' === $settings['sa_floating_ef_enable'] ) {
 				wp_enqueue_script( 'anime' );
+				wp_enqueue_script( 'sa-floating-effects' );
 		}
 	}
 

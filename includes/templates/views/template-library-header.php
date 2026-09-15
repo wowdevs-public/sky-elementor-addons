@@ -1,3 +1,4 @@
+<?php if ( ! defined( 'ABSPATH' ) ) { exit; } ?>
 <?php $logo = trailingslashit( plugin_dir_url( SKY_ADDONS__FILE__ ) ) . '/includes/templates/assets/templates-library-logo.svg'; ?>
 <script type="text/template" id="sa-skyTemplatesLibrary_header-logo">
 	<span class="skyTemplatesLibrary_logo-wrap">

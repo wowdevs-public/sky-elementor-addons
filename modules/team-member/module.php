@@ -4,7 +4,7 @@ namespace Sky_Addons\Modules\TeamMember;
 use Sky_Addons\Base\Module_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 class Module extends Module_Base {

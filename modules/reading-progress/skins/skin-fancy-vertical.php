@@ -5,11 +5,10 @@ namespace Sky_Addons\Modules\ReadingProgress\Skins;
 use Elementor\Skin_Base as Elementor_Skin_Base;
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit;
 }
 
 class Skin_Fancy_Vertical extends Elementor_Skin_Base {
-
 
 	public function get_id() {
 		return 'sky-skin-fancy-vertical';
@@ -24,10 +23,13 @@ class Skin_Fancy_Vertical extends Elementor_Skin_Base {
 	}
 
 	public function render() {
-		$settings = $this->parent->get_settings_for_display();
+		$settings  = $this->parent->get_settings_for_display();
+		$show_perc = 'yes' === ( $settings['show_percentage'] ?? 'yes' );
 		?>
 		<div class="sa-reading-progress sa-skin-fancy-vertical">
+			<?php if ( $show_perc ) : ?>
 			<span></span>
+			<?php endif; ?>
 		</div>
 		<?php
 	}
